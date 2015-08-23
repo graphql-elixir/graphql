@@ -2,13 +2,12 @@ defmodule GraphqlLexerTest do
   use ExUnit.Case
 
   def assert_tokens(input, tokens) do
-    {:ok, output, _} = :graphql_lexer.string(input)
-    assert output == tokens
-  end
-
-  def assert_error(input, tokens) do
-    {:error, {_, :graphql_lexer, output}, _} = :graphql_lexer.string(input)
-    assert output == tokens
+    case :graphql_lexer.string(input) do
+      {:ok, output, _} ->
+        assert output == tokens
+      {:error, {_, :graphql_lexer, output}, _} ->
+        assert output == tokens
+    end
   end
 
   # Ignored tokens
@@ -62,7 +61,7 @@ defmodule GraphqlLexerTest do
     assert_tokens '_foo', [{ :name, 1, '_foo' }]
     assert_tokens 'foo0', [{ :name, 1, 'foo0' }]
     assert_tokens '_foo_Bar_QUUX_2139', [{ :name, 1, '_foo_Bar_QUUX_2139' }]
-    assert_error 'a-b', { :illegal, '-'}
+    assert_tokens 'a-b', { :illegal, '-' }
   end
 
 end
