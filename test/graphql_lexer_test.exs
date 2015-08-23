@@ -71,4 +71,14 @@ defmodule GraphqlLexerTest do
     assert_tokens '56789', [{ :int_value, 1, '56789' }]
   end
 
+  test "FloatValue" do
+    assert_tokens '0.0', [{ :float_value, 1, '0.0' }]
+    assert_tokens '-0.1', [{ :float_value, 1, '-0.1' }]
+    assert_tokens '0.1', [{ :float_value, 1, '0.1' }]
+    assert_tokens '2.340', [{ :float_value, 1, '2.340' }]
+    assert_tokens '5678.9', [{ :float_value, 1, '5678.9' }]
+    assert_tokens '1.23e+45', [{ :float_value, 1, '1.23e+45' }]
+    assert_tokens '1.23E-45', [{ :float_value, 1, '1.23E-45' }]
+  end
+
 end

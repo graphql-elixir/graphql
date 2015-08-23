@@ -16,8 +16,13 @@ Name                = [_A-Za-z][_0-9A-Za-z]*
 Digit               = [0-9]
 NonZeroDigit        = [1-9]
 NegativeSign        = -
-IntegerPart         = {NegativeSign}?0|{NegativeSign}?{NonZeroDigit}{Digit}*
+IntegerPart         = {NegativeSign}?(0|{NonZeroDigit}{Digit}*)
 IntValue            = {IntegerPart}
+FractionalPart      = \.{Digit}+
+Sign                = [+\-]
+ExponentIndicator   = [eE]
+ExponentPart        = {ExponentIndicator}{Sign}?{Digit}+
+FloatValue          = {IntegerPart}{FractionalPart}|{IntegerPart}{ExponentPart}|{IntegerPart}{FractionalPart}{ExponentPart}
 
 Rules.
 
@@ -25,6 +30,7 @@ Rules.
 {Punctuator}        : {token, {punctuator, TokenLine, TokenChars}}.
 {Name}              : {token, {name, TokenLine, TokenChars}}.
 {IntValue}          : {token, {int_value, TokenLine, TokenChars}}.
+{FloatValue}        : {token, {float_value, TokenLine, TokenChars}}.
 
 % Token processing code
 
