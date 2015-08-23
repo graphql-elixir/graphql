@@ -61,7 +61,14 @@ defmodule GraphqlLexerTest do
     assert_tokens '_foo', [{ :name, 1, '_foo' }]
     assert_tokens 'foo0', [{ :name, 1, 'foo0' }]
     assert_tokens '_foo_Bar_QUUX_2139', [{ :name, 1, '_foo_Bar_QUUX_2139' }]
-    assert_tokens 'a-b', { :illegal, '-' }
+  end
+
+  test "IntValue" do
+    assert_tokens '0', [{ :int_value, 1, '0' }]
+    assert_tokens '-0', [{ :int_value, 1, '-0' }]
+    assert_tokens '-1', [{ :int_value, 1, '-1' }]
+    assert_tokens '2340', [{ :int_value, 1, '2340' }]
+    assert_tokens '56789', [{ :int_value, 1, '56789' }]
   end
 
 end

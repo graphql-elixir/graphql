@@ -13,12 +13,18 @@ Ignored             = {WhiteSpace}|{LineTerminator}|{Comment}|{Comma}
 % Lexical tokens
 Punctuator          = [!$():=@\[\]{|}]|\.\.\.
 Name                = [_A-Za-z][_0-9A-Za-z]*
+Digit               = [0-9]
+NonZeroDigit        = [1-9]
+NegativeSign        = -
+IntegerPart         = {NegativeSign}?0|{NegativeSign}?{NonZeroDigit}{Digit}*
+IntValue            = {IntegerPart}
 
 Rules.
 
 {Ignored}           : skip_token.
 {Punctuator}        : {token, {punctuator, TokenLine, TokenChars}}.
 {Name}              : {token, {name, TokenLine, TokenChars}}.
+{IntValue}          : {token, {int_value, TokenLine, TokenChars}}.
 
 % Token processing code
 
