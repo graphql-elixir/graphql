@@ -1,0 +1,2 @@
+defmodule Graphql do
+end
