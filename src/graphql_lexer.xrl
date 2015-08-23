@@ -7,16 +7,14 @@ _LineTerminator     = \x{000A}\x{000D}\x{2028}\x{2029}
 LineTerminator      = [{_LineTerminator}]
 Comment             = #[^{_LineTerminator}]*
 Comma               = ,
+Ignored             = {WhiteSpace}|{LineTerminator}|{Comment}|{Comma}
 
 % Describe how tokens are generated
 
 Rules.
 
 % {Word}          : {token, {word, TokenLine, TokenChars}}.
-{WhiteSpace}        : skip_token.
-{LineTerminator}    : skip_token.
-{Comment}           : skip_token.
-{Comma}             : skip_token.
+{Ignored}           : skip_token.
 
 % Token processing code
 
