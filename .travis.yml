@@ -1,0 +1,3 @@
+language: elixir
+otp_release:
+  - 17.4
