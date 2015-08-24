@@ -44,12 +44,4 @@ Rules.
 {FloatValue}        : {token, {float_value, TokenLine, TokenChars}}.
 {StringValue}       : {token, {string_value, TokenLine, TokenChars}}.
 
-% Token processing code
-
 Erlang code.
-
-% to_id([$#|Chars]) ->
-%   Chars.
-
-% to_class([$.|Chars]) ->
-%   Chars.
