@@ -1,16 +1,24 @@
-Nonterminals list elems elem.
-Terminals '[' ']' ',' int atom.
-Rootsymbol list.
+Nonterminals Document Definition OperationType.
+Terminals OperationType.
+Rootsymbol Document.
 
-list -> '[' ']'       : [].
-list -> '[' elems ']' : '$2'.
+% OperationType -> 'query'.
+% OperationType -> 'mutation'.
+%
+% S
+%
+% ListValue -> '[' ']'       : [].
+% ListValue -> '[' elems ']' : '$2'.
 
-elems -> elem           : ['$1'].
-elems -> elem ',' elems : ['$1'|'$3'].
-
-elem -> int  : extract_token('$1').
-elem -> atom : extract_token('$1').
-elem -> list : '$1'.
+% list -> '[' ']'       : [].
+% list -> '[' elems ']' : '$2'.
+%
+% elems -> elem           : ['$1'].
+% elems -> elem ',' elems : ['$1'|'$3'].
+%
+% elem -> int  : extract_token('$1').
+% elem -> atom : extract_token('$1').
+% elem -> list : '$1'.
 
 Erlang code.
 
