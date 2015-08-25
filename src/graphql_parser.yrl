@@ -1,6 +1,13 @@
-Nonterminals Document Definition OperationType.
-Terminals OperationType.
+Nonterminals Document Definition OperationDefinition SelectionSet Selection Field.
+Terminals name '{' '}'.
 Rootsymbol Document.
+
+Document -> Definition.
+Definition -> OperationDefinition.
+OperationDefinition -> SelectionSet.
+SelectionSet -> '{' Selection '}'.
+Selection -> Field.
+Field -> name : extract_token('$1').
 
 % OperationType -> 'query'.
 % OperationType -> 'mutation'.

@@ -91,4 +91,14 @@ defmodule GraphqlLexerTest do
     assert_tokens '"a\\n"',         [{ :string_value, 1, '"a\\n"' }]
   end
 
+  # Sample GraphQL
+  test "Simple statements" do
+    assert_tokens '{ hero }', [
+      { :punctuator, 1, '{' },
+      { :name, 1, 'hero' },
+      { :punctuator, 1, '}' }
+    ]
+  end
+
+
 end

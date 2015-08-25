@@ -11,14 +11,10 @@ defmodule GraphqlParserTest do
   end
 
   test "Hello world" do
-    :graphql_parser.string(input)
-    assert_parse ~S"""
-      {
-        me {
-          name
-        }
-      }
-    """, 
+    input = '{ me }'
+    {:ok, tokens, _} = :graphql_lexer.string(input)
+    # {:ok, output, _} = :graphql_parser.parse(tokens)
+    assert {} == :graphql_parser.parse(tokens)
   end
 
 
