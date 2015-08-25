@@ -1,21 +1,15 @@
 defmodule GraphqlParserTest do
   use ExUnit.Case
 
-  def assert_tokens(input, tokens) do
-    case :graphql_lexer.string(input) do
-      {:ok, output, _} ->
-        assert output == tokens
-      {:error, {_, :graphql_lexer, output}, _} ->
-        assert output == tokens
-    end
-  end
-
-  test "Hello world" do
-    input = '{ me }'
+  def assert_parse(input, output) do
     {:ok, tokens, _} = :graphql_lexer.string(input)
-    # {:ok, output, _} = :graphql_parser.parse(tokens)
-    assert {} == :graphql_parser.parse(tokens)
+    # IO.inspect tokens
+    {:ok, parse_result} = :graphql_parser.parse(tokens)
+    assert parse_result == output
   end
 
+  test "simple name token" do
+    assert_parse 'name', 'name'
+  end
 
 end

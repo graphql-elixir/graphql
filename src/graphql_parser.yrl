@@ -1,11 +1,21 @@
-Nonterminals Document Definition OperationDefinition SelectionSet Selection Field.
-Terminals name '{' '}'.
-Rootsymbol Document.
+Nonterminals
+  Document
+  Definition
+    OperationDefinition
+      SelectionSet
+      Selection
+        Field.
+
+Terminals
+  name '{' '}'.
+
+Rootsymbol Field.
 
 Document -> Definition.
 Definition -> OperationDefinition.
 OperationDefinition -> SelectionSet.
-SelectionSet -> '{' Selection '}'.
+% SelectionSet -> '{' Selection '}'.
+SelectionSet -> Selection.
 Selection -> Field.
 Field -> name : extract_token('$1').
 
