@@ -36,20 +36,20 @@ defmodule GraphqlLexerTest do
 
   # Lexical tokens
   test "Punctuator" do
-    # assert_tokens '!',              [{ :"!", 1 }]
-    # assert_tokens '$',              [{ :"$", 1 }]
-    # assert_tokens '(',              [{ :"(", 1 }]
-    # assert_tokens ')',              [{ :")", 1 }]
-    # assert_tokens ':',              [{ :":", 1 }]
-    # assert_tokens '=',              [{ :"=", 1 }]
-    # assert_tokens ':',              [{ :":", 1 }]
-    # assert_tokens '@',              [{ :"@", 1 }]
-    # assert_tokens '[',              [{ :"[", 1 }]
-    # assert_tokens ']',              [{ :"]", 1 }]
+    assert_tokens '!',              [{ :"!", 1 }]
+    assert_tokens '$',              [{ :"$", 1 }]
+    assert_tokens '(',              [{ :"(", 1 }]
+    assert_tokens ')',              [{ :")", 1 }]
+    assert_tokens ':',              [{ :":", 1 }]
+    assert_tokens '=',              [{ :"=", 1 }]
+    assert_tokens ':',              [{ :":", 1 }]
+    assert_tokens '@',              [{ :"@", 1 }]
+    assert_tokens '[',              [{ :"[", 1 }]
+    assert_tokens ']',              [{ :"]", 1 }]
     assert_tokens '{',              [{ :"{", 1 }]
     assert_tokens '}',              [{ :"}", 1 }]
-    # assert_tokens '|',              [{ :"|", 1 }]
-    # assert_tokens '...',            [{ :punctuator, 1, '...' }]
+    assert_tokens '|',              [{ :"|", 1 }]
+    assert_tokens '...',            [{ :"...", 1  }]
   end
 
   test "Name" do
@@ -99,6 +99,5 @@ defmodule GraphqlLexerTest do
       { :"}", 1 }
     ]
   end
-
 
 end
