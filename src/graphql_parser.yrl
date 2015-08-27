@@ -1,28 +1,36 @@
 Nonterminals
-  Document
-  Definition
-    OperationDefinition
-      SelectionSet
-      Selection
-        Field.
+  % Document
+  % Definitions Definition
+  %   OperationDefinition
+  SelectionSet
+  Selection
+  Field.
 
 Terminals
-  name '{' '}'.
+  ';' '{' '}'
+  name int_value float_value string_value.
 
-Rootsymbol Field.
+Rootsymbol SelectionSet.
 
-Document -> Definition.
-Definition -> OperationDefinition.
-OperationDefinition -> SelectionSet.
-% SelectionSet -> '{' Selection '}'.
-SelectionSet -> Selection.
-Selection -> Field.
+%Document -> Field : '$1'.
+% Document -> Definition.
+% Definitions -> Definition : ['$1'].
+% Definitions -> Definition Definitions : ['$1'|'$2'].
+% Definition -> OperationDefinition.
+% OperationDefinition -> SelectionSet.
+SelectionSet -> '{' Selection '}' : {'$2'}.
+% SelectionSet -> ';' : 'x'.
+% SelectionSet -> ';' Field : '$2'.
+SelectionSet -> Field : '$1'.
+Selection -> Field : '$1'.
 Field -> name : extract_token('$1').
+Field -> int_value : extract_token('$1').
+Field -> float_value : extract_token('$1').
+Field -> string_value : extract_token('$1').
+
 
 % OperationType -> 'query'.
 % OperationType -> 'mutation'.
-%
-% S
 %
 % ListValue -> '[' ']'       : [].
 % ListValue -> '[' elems ']' : '$2'.

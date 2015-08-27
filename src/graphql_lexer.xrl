@@ -38,7 +38,9 @@ StringValue         = "{StringCharacter}*"
 Rules.
 
 {Ignored}           : skip_token.
-{Punctuator}        : {token, {punctuator, TokenLine, TokenChars}}.
+\{                  : {token, {'{', TokenLine}}.
+\}                  : {token, {'}', TokenLine}}.
+% {Punctuator}        : {token, {TokenChars, TokenLine}}.
 {Name}              : {token, {name, TokenLine, TokenChars}}.
 {IntValue}          : {token, {int_value, TokenLine, TokenChars}}.
 {FloatValue}        : {token, {float_value, TokenLine, TokenChars}}.
