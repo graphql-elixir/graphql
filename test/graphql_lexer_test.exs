@@ -97,12 +97,27 @@ defmodule GraphqlLexerTest do
   end
 
   # Sample GraphQL
-  test "Simple statements" do
+  test "Simple statement" do
     assert_tokens '{ hero }', [
       { :"{", 1 },
       { :name, 1, 'hero' },
       { :"}", 1 }
     ]
   end
+
+  test "Named query with nested selection set" do
+    assert_tokens 'query myName { me { name } }', [
+      {:'query', 1},
+      {:name, 1, 'myName'},
+      {:'{', 1},
+      {:name, 1, 'me'},
+      {:'{', 1},
+      {:name, 1, 'name'},
+      {:'}', 1},
+      {:'}', 1}
+    ]
+  end
+
+'query myName { me { name } }'
 
 end
