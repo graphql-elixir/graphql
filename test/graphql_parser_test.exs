@@ -31,6 +31,17 @@ defmodule GraphqlParserTest do
     ], [{ ['id', 'name'] }]
   end
 
+  test "nested selection set" do
+    assert_parse_tokens [
+      {:'{', 1},
+      {:name, 1, 'me'},
+      {:'{', 1},
+      {:name, 1, 'name'},
+      {:'}', 1},
+      {:'}', 1}
+    ], [{ [{ 'me', {['name']} }] }]
+  end
+
   # strings
   test "simple selection set strings" do
     assert_parse '{ hero }', [{ ['hero'] }]
@@ -40,11 +51,8 @@ defmodule GraphqlParserTest do
     assert_parse '{ id firstName lastName }', [{ ['id', 'firstName', 'lastName'] }]
   end
 
-  # test "multiple selection set strings" do
-  #   assert_parse '{ id firstName lastName }', { 'id', 'firstName', 'lastName' }
-  # end
-  #
-  #
-  # assert_parse '{ me { name } }', {  }
+  test "nested selection set strings" do
+    assert_parse '{ me { name } }', [{ [{ 'me', {['name']} }] }]
+  end
 
 end

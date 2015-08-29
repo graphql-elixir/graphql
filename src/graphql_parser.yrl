@@ -29,9 +29,9 @@ Selections -> Selection Selections : ['$1'|'$2'].
 
 Selection -> Field : '$1'.
 
-%Field -> Alias Name Arguments Directives SelectionSet : '$1'
-Field -> Name : '$1'.
 % Field -> Alias Name Arguments Directives SelectionSet : '$1'
+Field -> Name : '$1'.
+Field -> Name SelectionSet : {'$1', '$2'}.
 
 Name -> name : extract_token('$1').
 Name -> int_value : extract_token('$1').
