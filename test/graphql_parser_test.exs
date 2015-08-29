@@ -14,17 +14,12 @@ defmodule GraphqlParserTest do
   end
 
   # just tokens
-  test "simple fields" do
-    assert_parse_tokens [{:name, 1, 'name'}], 'name'
-    assert_parse_tokens [{:int_value, 1, '1'}], '1'
-  end
-
   test "simple selection set" do
     assert_parse_tokens [
       {:'{', 1},
       {:name, 1, 'hero'},
       {:'}', 1}
-    ], { ['hero'] }
+    ], [{ ['hero'] }]
   end
 
   test "multiple selection set" do
@@ -33,21 +28,16 @@ defmodule GraphqlParserTest do
       {:name, 1, 'id'},
       {:name, 1, 'name'},
       {:'}', 1}
-    ], { ['id', 'name'] }
+    ], [{ ['id', 'name'] }]
   end
 
   # strings
-  test "simple field strings" do
-    assert_parse 'name', 'name'
-    assert_parse '1', '1'
-  end
-
   test "simple selection set strings" do
-    assert_parse '{ hero }', { ['hero'] }
+    assert_parse '{ hero }', [{ ['hero'] }]
   end
 
   test "multiple selection set strings" do
-    assert_parse '{ id firstName lastName }', { ['id', 'firstName', 'lastName'] }
+    assert_parse '{ id firstName lastName }', [{ ['id', 'firstName', 'lastName'] }]
   end
 
   # test "multiple selection set strings" do
