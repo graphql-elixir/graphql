@@ -3,11 +3,11 @@ Nonterminals
   % Definitions Definition
   %   OperationDefinition
   SelectionSet
-  Selection
+  Selections Selection
   Field.
 
 Terminals
-  ';' '{' '}'
+  '{' '}'
   name int_value float_value string_value.
 
 Rootsymbol SelectionSet.
@@ -18,10 +18,13 @@ Rootsymbol SelectionSet.
 % Definitions -> Definition Definitions : ['$1'|'$2'].
 % Definition -> OperationDefinition.
 % OperationDefinition -> SelectionSet.
-SelectionSet -> '{' Selection '}' : {'$2'}.
-% SelectionSet -> ';' : 'x'.
-% SelectionSet -> ';' Field : '$2'.
+
+SelectionSet -> '{' Selections '}' : {'$2'}.
 SelectionSet -> Field : '$1'.
+
+Selections -> Selection : ['$1'].
+Selections -> Selection Selections : ['$1'|'$2'].
+
 Selection -> Field : '$1'.
 Field -> name : extract_token('$1').
 Field -> int_value : extract_token('$1').
