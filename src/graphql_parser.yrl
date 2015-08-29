@@ -6,6 +6,7 @@ Nonterminals
   SelectionSet
   Selections Selection
   Field
+  Alias
   Name
   Arguments ArgumentList Argument
   Value.
@@ -40,6 +41,12 @@ Field -> Name : '$1'.
 Field -> Name SelectionSet : {'$1', '$2'}.
 Field -> Name Arguments : {'$1', '$2'}.
 Field -> Name Arguments SelectionSet : {'$1', '$2', '$3'}.
+Field -> Alias Name : {'$1', '$2'}.
+Field -> Alias Name Arguments : {'$1', '$2', '$3'}.
+Field -> Alias Name SelectionSet : {'$1', '$2', '$3'}.
+Field -> Alias Name Arguments SelectionSet : {'$1', '$2', '$3', '$4'}.
+
+Alias -> Name ':' : '$1'.
 
 Arguments -> '(' ArgumentList ')' : '$2'.
 ArgumentList -> Argument : ['$1'].

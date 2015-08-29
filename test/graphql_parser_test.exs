@@ -22,6 +22,16 @@ defmodule GraphqlParserTest do
     ], [{ ['hero'] }]
   end
 
+  test "aliased selection set" do
+    assert_parse_tokens [
+      {:'{', 1},
+      {:name, 1, 'alias'},
+      {:':', 1},
+      {:name, 1, 'hero'},
+      {:'}', 1}
+    ], [{ [{'alias', 'hero'}] }]
+  end
+
   test "multiple selection set" do
     assert_parse_tokens [
       {:'{', 1},
@@ -83,6 +93,12 @@ defmodule GraphqlParserTest do
     ]
   end
 
+  test "aliased selection set string" do
+    assert_parse '{ alias: hero }', [
+      {[ {'alias', 'hero'} ]}
+    ]
+  end
+
   test "multiple selection set string" do
     assert_parse '{ id firstName lastName }', [
       { ['id', 'firstName', 'lastName'] }
@@ -113,6 +129,13 @@ defmodule GraphqlParserTest do
     assert_parse '{ user(id: 4) { name ( thing : "abc" ) } }', [{[
         {'user', [{'id', '4'}], {
           [{'name', [{'thing', '"abc"'}]}]}}]}
+    ]
+  end
+
+  test "aliased nested selection set with arguments string" do
+    assert_parse '{ alias: user(id: 4) { alias2 : name ( thing : "abc" ) } }', [{[
+        {'alias', 'user', [{'id', '4'}], {
+          [{'alias2', 'name', [{'thing', '"abc"'}]}]}}]}
     ]
   end
 
