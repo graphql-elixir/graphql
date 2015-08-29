@@ -63,6 +63,11 @@ defmodule GraphqlLexerTest do
     assert_tokens '_fu_Ba_QX_2',    [{ :name, 1, '_fu_Ba_QX_2' }]
   end
 
+  test "Literals" do
+    assert_tokens 'query',          [{ :"query", 1 }]
+    assert_tokens 'mutation',       [{ :"mutation", 1 }]
+  end
+
   test "IntValue" do
     assert_tokens '0',              [{ :int_value, 1, '0' }]
     assert_tokens '-0',             [{ :int_value, 1, '-0' }]

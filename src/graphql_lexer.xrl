@@ -14,6 +14,8 @@ Ignored             = {WhiteSpace}|{LineTerminator}|{Comment}|{Comma}
 Punctuator          = [!$():=@\[\]{|}]|\.\.\.
 Name                = [_A-Za-z][_0-9A-Za-z]*
 
+Literal             = query|mutation
+
 % int
 Digit               = [0-9]
 NonZeroDigit        = [1-9]
@@ -39,6 +41,7 @@ Rules.
 
 {Ignored}           : skip_token.
 {Punctuator}        : {token, {list_to_atom(TokenChars), TokenLine}}.
+{Literal}           : {token, {list_to_atom(TokenChars), TokenLine}}.
 {Name}              : {token, {name, TokenLine, TokenChars}}.
 {IntValue}          : {token, {int_value, TokenLine, TokenChars}}.
 {FloatValue}        : {token, {float_value, TokenLine, TokenChars}}.
