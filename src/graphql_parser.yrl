@@ -6,10 +6,12 @@ Nonterminals
   SelectionSet
   Selections Selection
   Field
-  Name.
+  Name
+  Arguments ArgumentList Argument
+  Value.
 
 Terminals
-  '{' '}' 'query'
+  '{' '}' '(' ')' ':' 'query'
   name int_value float_value string_value.
 
 Rootsymbol Document.
@@ -33,14 +35,22 @@ Selections -> Selection Selections : ['$1'|'$2'].
 
 Selection -> Field : '$1'.
 
-% Field -> Alias Name Arguments Directives SelectionSet : '$1'
+% Field -> Alias(opt) Name Arguments(opt) Directives(opt) SelectionSet(opt) : '$1'
 Field -> Name : '$1'.
 Field -> Name SelectionSet : {'$1', '$2'}.
+Field -> Name Arguments : {'$1', '$2'}.
+Field -> Name Arguments SelectionSet : {'$1', '$2', '$3'}.
+
+Arguments -> '(' ArgumentList ')' : '$2'.
+ArgumentList -> Argument : ['$1'].
+ArgumentList -> Argument ArgumentList : ['$1'|'$2'].
+Argument -> Name ':' Value : {'$1', '$3'}.
 
 Name -> name : extract_token('$1').
-Name -> int_value : extract_token('$1').
-Name -> float_value : extract_token('$1').
-Name -> string_value : extract_token('$1').
+
+Value -> int_value : extract_token('$1').
+Value -> float_value : extract_token('$1').
+Value -> string_value : extract_token('$1').
 
 Erlang code.
 

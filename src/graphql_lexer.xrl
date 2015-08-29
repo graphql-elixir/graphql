@@ -14,7 +14,7 @@ Ignored             = {WhiteSpace}|{LineTerminator}|{Comment}|{Comma}
 Punctuator          = [!$():=@\[\]{|}]|\.\.\.
 Name                = [_A-Za-z][_0-9A-Za-z]*
 
-Literal             = query|mutation
+Literal             = query|mutation|true|false
 
 % int
 Digit               = [0-9]

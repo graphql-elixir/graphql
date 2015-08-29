@@ -55,6 +55,27 @@ defmodule GraphqlParserTest do
     ], [{ :query, 'myName', { [{ 'me', {['name']} }] } }]
   end
 
+  test "nested selection set with arguments" do
+    assert_parse_tokens [
+      {:'{', 1},
+      {:name, 1, 'user'},
+      {:'(', 1},
+      {:name, 1, 'id'},
+      {:':', 1},
+      {:int_value, 1, '4'},
+      {:')', 1},
+      {:'{', 1},
+      {:name, 1, 'name'},
+      {:'(', 1},
+      {:name, 1, 'thing'},
+      {:':', 1},
+      {:int_value, 1, 'abc'},
+      {:')', 1},
+      {:'}', 1},
+      {:'}', 1}
+    ], [{[{'user', [{'id', '4'}], {[{'name', [{'thing', 'abc'}]}]}}]}]
+  end
+
   # strings
   test "simple selection set string" do
     assert_parse '{ hero }', [
@@ -74,11 +95,24 @@ defmodule GraphqlParserTest do
     ]
   end
 
+  test "nested selection set with arguments string" do
+    assert_parse '{ me { name } }', [
+      { [{ 'me', {['name']} }] }
+    ]
+  end
+
   test "named query with nested selection set string" do
-    assert_parse 'query myName { me { name } }', [
+    assert_parse 'query myName { user { name } }', [
       { :query, 'myName', {[
-        { 'me', {['name']} }
-      ]}}
+        { 'user', {['name']} }
+      ]}
+    }]
+  end
+
+  test "nested selection set with arguments string" do
+    assert_parse '{ user(id: 4) { name ( thing : "abc" ) } }', [{[
+        {'user', [{'id', '4'}], {
+          [{'name', [{'thing', '"abc"'}]}]}}]}
     ]
   end
 
