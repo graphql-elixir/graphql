@@ -4,7 +4,8 @@ Nonterminals
   %   OperationDefinition
   SelectionSet
   Selections Selection
-  Field.
+  Field
+  Name.
 
 Terminals
   '{' '}'
@@ -12,7 +13,6 @@ Terminals
 
 Rootsymbol SelectionSet.
 
-%Document -> Field : '$1'.
 % Document -> Definition.
 % Definitions -> Definition : ['$1'].
 % Definitions -> Definition Definitions : ['$1'|'$2'].
@@ -26,10 +26,15 @@ Selections -> Selection : ['$1'].
 Selections -> Selection Selections : ['$1'|'$2'].
 
 Selection -> Field : '$1'.
-Field -> name : extract_token('$1').
-Field -> int_value : extract_token('$1').
-Field -> float_value : extract_token('$1').
-Field -> string_value : extract_token('$1').
+
+%Field -> Alias Name Arguments Directives SelectionSet : '$1'
+Field -> Name : '$1'.
+% Field -> Alias Name Arguments Directives SelectionSet : '$1'
+
+Name -> name : extract_token('$1').
+Name -> int_value : extract_token('$1').
+Name -> float_value : extract_token('$1').
+Name -> string_value : extract_token('$1').
 
 
 % OperationType -> 'query'.
