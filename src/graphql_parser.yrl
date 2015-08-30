@@ -12,7 +12,7 @@ Nonterminals
   Value.
 
 Terminals
-  '{' '}' '(' ')' ':' 'query'
+  '{' '}' '(' ')' ':' 'query' 'mutation'
   name int_value float_value string_value.
 
 Rootsymbol Document.
@@ -25,6 +25,7 @@ Definitions -> Definition Definitions : ['$1'|'$2'].
 Definition -> OperationDefinition : '$1'.
 
 OperationType -> 'query' : extract_atom('$1').
+OperationType -> 'mutation' : extract_atom('$1').
 
 SelectionSet -> '{' Selections '}' : {'$2'}.
 
