@@ -111,12 +111,6 @@ defmodule GraphqlParserTest do
     ]
   end
 
-  test "nested selection set with arguments string" do
-    assert_parse '{ me { name } }', [
-      { [{ 'me', {['name']} }] }
-    ]
-  end
-
   test "named query with nested selection set string" do
     assert_parse 'query myName { user { name } }', [
       { :query, 'myName', {[
