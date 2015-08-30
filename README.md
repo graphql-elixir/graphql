@@ -1,4 +1,4 @@
-Graphql
+GraphQL
 =======
 
 GraphQL parser for Elixir.
