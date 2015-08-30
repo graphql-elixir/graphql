@@ -141,4 +141,10 @@ defmodule GraphqlParserTest do
     ]
   end
 
+  test "FragmentSpread" do
+    assert_parse 'query myQuery { ...fragSpread }', [
+      { :query, 'myQuery', {[ 'fragSpread' ]}
+    }]
+  end
+
 end

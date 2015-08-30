@@ -5,6 +5,7 @@ Nonterminals
   OperationType
   SelectionSet
   Selections Selection
+  FragmentSpread FragmentName
   Field
   Alias
   Name
@@ -12,7 +13,7 @@ Nonterminals
   Value.
 
 Terminals
-  '{' '}' '(' ')' ':' 'query' 'mutation'
+  '{' '}' '(' ')' ':' '...' 'query' 'mutation'
   name int_value float_value string_value.
 
 Rootsymbol Document.
@@ -36,6 +37,12 @@ Selections -> Selection : ['$1'].
 Selections -> Selection Selections : ['$1'|'$2'].
 
 Selection -> Field : '$1'.
+Selection -> FragmentSpread : '$1'.
+
+FragmentSpread -> '...' FragmentName : '$2'.
+% FragmentSpread -> '...' FragmentName Directives : '$1'.
+
+FragmentName -> Name : '$1'.
 
 % Field -> Alias(opt) Name Arguments(opt) Directives(opt) SelectionSet(opt) : '$1'
 Field -> Name : '$1'.
