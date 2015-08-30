@@ -96,6 +96,11 @@ defmodule GraphqlLexerTest do
     assert_tokens '"a\\n"',         [{ :string_value, 1, '"a\\n"' }]
   end
 
+  test "BooleanValue" do
+    assert_tokens 'true',           [{ :boolean_value, 1, 'true' }]
+    assert_tokens 'false',          [{ :boolean_value, 1, 'false' }]
+  end
+
   # Sample GraphQL
   test "Simple statement" do
     assert_tokens '{ hero }', [

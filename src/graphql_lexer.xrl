@@ -14,7 +14,7 @@ Ignored             = {WhiteSpace}|{LineTerminator}|{Comment}|{Comma}
 Punctuator          = [!$():=@\[\]{|}]|\.\.\.
 Name                = [_A-Za-z][_0-9A-Za-z]*
 
-Literal             = query|mutation|true|false
+Literal             = query|mutation
 
 % int
 Digit               = [0-9]
@@ -37,14 +37,18 @@ EscapedCharacter    = ["\\\/bfnrt]
 StringCharacter     = ([^\"{_LineTerminator}]|\\{EscapedUnicode}|\\{EscapedCharacter})
 StringValue         = "{StringCharacter}*"
 
+% boolean
+BooleanValue        = true|false
+
 Rules.
 
 {Ignored}           : skip_token.
 {Punctuator}        : {token, {list_to_atom(TokenChars), TokenLine}}.
 {Literal}           : {token, {list_to_atom(TokenChars), TokenLine}}.
-{Name}              : {token, {name, TokenLine, TokenChars}}.
 {IntValue}          : {token, {int_value, TokenLine, TokenChars}}.
 {FloatValue}        : {token, {float_value, TokenLine, TokenChars}}.
 {StringValue}       : {token, {string_value, TokenLine, TokenChars}}.
+{BooleanValue}      : {token, {boolean_value, TokenLine, TokenChars}}.
+{Name}              : {token, {name, TokenLine, TokenChars}}.
 
 Erlang code.
