@@ -6,6 +6,7 @@ Nonterminals
   SelectionSet
   Selections Selection
   FragmentSpread FragmentName
+  Directives Directive
   Field
   Alias
   Name
@@ -13,8 +14,8 @@ Nonterminals
   Value.
 
 Terminals
-  '{' '}' '(' ')' ':' '...' 'query' 'mutation'
-  name int_value float_value string_value.
+  '{' '}' '(' ')' ':' '@' '...' 'query' 'mutation'
+  name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
 
@@ -40,7 +41,7 @@ Selection -> Field : '$1'.
 Selection -> FragmentSpread : '$1'.
 
 FragmentSpread -> '...' FragmentName : '$2'.
-% FragmentSpread -> '...' FragmentName Directives : '$1'.
+FragmentSpread -> '...' FragmentName Directives : {extract_atom('$1'), '$2', '$3'}.
 
 FragmentName -> Name : '$1'.
 
@@ -61,13 +62,31 @@ ArgumentList -> Argument : ['$1'].
 ArgumentList -> Argument ArgumentList : ['$1'|'$2'].
 Argument -> Name ':' Value : {'$1', '$3'}.
 
+Directives -> Directive : ['$1'].
+Directives -> Directive Directives : ['$1'|'$2'].
+Directive -> '@' Name : {extract_atom('$1'), '$2'}.
+Directive -> '@' Name Arguments : {extract_atom('$1'), '$2', '$3'}.
+
 Name -> name : extract_token('$1').
 
-Value -> int_value : extract_token('$1').
-Value -> float_value : extract_token('$1').
+Value -> int_value : extract_integer('$1').
+Value -> float_value : extract_float('$1').
 Value -> string_value : extract_token('$1').
+Value -> boolean_value : extract_boolean('$1').
 
 Erlang code.
 
 extract_atom({Value, _Line}) -> Value.
 extract_token({_Token, _Line, Value}) -> Value.
+extract_integer({_Token, _Line, Value}) ->
+  {Int, []} = string:to_integer(Value), Int.
+extract_float({_Token, _Line, Value}) ->
+  {Float, []} = string:to_float(Value), Float.
+
+% TODO Not sure why this doesn't match
+% Surely there's a more concise way to express this?
+extract_boolean({_Token, _Line, Value}) ->
+  case Value of
+    'true' -> true;
+    'false' -> false
+  end.
