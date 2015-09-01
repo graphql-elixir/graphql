@@ -123,6 +123,4 @@ defmodule GraphqlLexerTest do
     ]
   end
 
-'query myName { me { name } }'
-
 end
