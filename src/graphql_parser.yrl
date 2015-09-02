@@ -6,6 +6,7 @@ Nonterminals
   SelectionSet
   Selections Selection
   FragmentSpread FragmentName
+  FragmentDefinition
   Directives Directive
   Field
   Alias
@@ -15,10 +16,13 @@ Nonterminals
   VariableDefinitions VariableDefinition
   Variable
   DefaultValue
+  Type
+  TypeCondition
+  NamedType ListType NonNullType
   Value.
 
 Terminals
-  '{' '}' '(' ')' ':' '@' '$' '=' '...' 'query' 'mutation'
+  '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '...' 'query' 'mutation' 'fragment' 'on'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -29,6 +33,7 @@ Definitions -> Definition : ['$1'].
 Definitions -> Definition Definitions : ['$1'|'$2'].
 
 Definition -> OperationDefinition : '$1'.
+Definition -> FragmentDefinition : '$1'.
 
 OperationType -> 'query' : extract_atom('$1').
 OperationType -> 'mutation' : extract_atom('$1').
@@ -39,14 +44,27 @@ OperationDefinition -> SelectionSet : '$1'.
 OperationDefinition -> OperationType Name SelectionSet : { '$1', '$2', '$3' }.
 OperationDefinition -> OperationType Name VariableDefinitions SelectionSet : { '$1', '$2', '$3' }.
 
+FragmentDefinition -> 'fragment' FragmentName 'on' TypeCondition SelectionSet : {extract_atom('$1'), '$2', extract_atom('$3'), '$4', '$5'}.
+FragmentDefinition -> 'fragment' FragmentName 'on' TypeCondition Directives SelectionSet : {extract_atom('$1'), '$2', extract_atom('$3'), '$4', '$5', '$6'}.
+
+TypeCondition -> NamedType : '$1'.
+
 VariableDefinitions -> '(' VariableDefinitionList ')' : {'$2'}.
 VariableDefinitionList -> VariableDefinition : ['$1'].
 VariableDefinitionList -> VariableDefinition VariableDefinitionList : ['$1'|'$2'].
-VariableDefinition -> Variable ':' Name : {'$1', '$3'}.
-VariableDefinition -> Variable ':' Name DefaultValue : {'$1', '$3', '$4'}.
+VariableDefinition -> Variable ':' Type : {'$1', '$3'}.
+VariableDefinition -> Variable ':' Type DefaultValue : {'$1', '$3', '$4'}.
 Variable -> '$' Name : {extract_atom('$1'), '$2'}.
 
 DefaultValue -> '=' Value : '$2'.
+
+Type -> NamedType : '$1'.
+Type -> ListType : '$1'.
+Type -> NonNullType : '$1'.
+NamedType -> Name : '$1'.
+ListType -> '[' Type ']' : ['$2'].
+NonNullType -> NamedType '!' : {'$1', extract_atom('$2')}.
+NonNullType -> ListType '!' : {'$1', extract_atom('$2')}.
 
 Selections -> Selection : ['$1'].
 Selections -> Selection Selections : ['$1'|'$2'].
@@ -59,7 +77,6 @@ FragmentSpread -> '...' FragmentName Directives : {extract_atom('$1'), '$2', '$3
 
 FragmentName -> Name : '$1'.
 
-% Field -> Alias(opt) Name Arguments(opt) Directives(opt) SelectionSet(opt) : '$1'
 Field -> Name : '$1'.
 Field -> Name SelectionSet : {'$1', '$2'}.
 Field -> Name Arguments : {'$1', '$2'}.
@@ -88,20 +105,10 @@ Value -> float_value : extract_float('$1').
 Value -> string_value : extract_token('$1').
 Value -> boolean_value : extract_boolean('$1').
 
-% Type -> NamedType
-% Type ->ListType
-% NonNullType
-% NamedType
-% Name
-% ListType
-% [Type]
-% NonNullType
-% NamedType!
-% ListType!
-
 Erlang code.
 
 extract_atom({Value, _Line}) -> Value.
+
 extract_token({_Token, _Line, Value}) -> Value.
 
 extract_integer({_Token, _Line, Value}) ->

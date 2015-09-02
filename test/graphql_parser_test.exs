@@ -104,4 +104,19 @@ defmodule GraphqlParserTest do
     }]
   end
 
+  test "Multiple VariableDefinition with DefaultValue" do
+    assert_parse 'query myQuery($x: Int! = 7, $y: [Int]) { id }', [{
+      :query, 'myQuery', {[
+        {{:"$", 'x'}, {'Int', :'!'}, 7},
+        {{:"$", 'y'}, ['Int']}
+      ]}
+    }]
+  end
+
+  test "FragmentDefinition" do
+    assert_parse 'fragment friends on User { id }', [{
+      :fragment, 'friends', :on, 'User', {[ 'id' ]}
+    }]
+  end
+
 end
