@@ -14,12 +14,11 @@ Nonterminals
   VariableDefinitionList
   VariableDefinitions VariableDefinition
   Variable
-  % TypeDefault
-  % DefaultValue
+  DefaultValue
   Value.
 
 Terminals
-  '{' '}' '(' ')' ':' '@' '$' '...' 'query' 'mutation'
+  '{' '}' '(' ')' ':' '@' '$' '=' '...' 'query' 'mutation'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -43,9 +42,11 @@ OperationDefinition -> OperationType Name VariableDefinitions SelectionSet : { '
 VariableDefinitions -> '(' VariableDefinitionList ')' : {'$2'}.
 VariableDefinitionList -> VariableDefinition : ['$1'].
 VariableDefinitionList -> VariableDefinition VariableDefinitionList : ['$1'|'$2'].
-
 VariableDefinition -> Variable ':' Name : {'$1', '$3'}.
+VariableDefinition -> Variable ':' Name DefaultValue : {'$1', '$3', '$4'}.
 Variable -> '$' Name : {extract_atom('$1'), '$2'}.
+
+DefaultValue -> '=' Value : '$2'.
 
 Selections -> Selection : ['$1'].
 Selections -> Selection Selections : ['$1'|'$2'].

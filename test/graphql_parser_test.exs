@@ -88,10 +88,18 @@ defmodule GraphqlParserTest do
     }]
   end
 
-  test "Variables" do
+  test "VariableDefinition" do
     assert_parse 'query myQuery($size: Int) { id }', [{
       :query, 'myQuery', {[
         {{:"$", 'size'}, 'Int'}
+      ]}
+    }]
+  end
+
+  test "VariableDefinition with DefaultValue" do
+    assert_parse 'query myQuery($size: Int = 7) { id }', [{
+      :query, 'myQuery', {[
+        {{:"$", 'size'}, 'Int', 7}
       ]}
     }]
   end
