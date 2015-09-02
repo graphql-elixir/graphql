@@ -81,9 +81,17 @@ defmodule GraphqlParserTest do
   end
 
   test "FragmentSpread with Directives" do
-    assert_parse 'query myQuery { ...fragSpread @directive(num: 1.23) }', [{
+    assert_parse 'query myQuery { ...fragSpread @directive(num: true) }', [{
       :query, 'myQuery', {[
-        {:'...', 'fragSpread', [{ :'@', 'directive', [{'num', 1.23}] }] }
+        {:'...', 'fragSpread', [{ :'@', 'directive', [{'num', true}] }] }
+      ]}
+    }]
+  end
+
+  test "Variables" do
+    assert_parse 'query myQuery($size: Int) { id }', [{
+      :query, 'myQuery', {[
+        {{:"$", 'size'}, 'Int'}
       ]}
     }]
   end

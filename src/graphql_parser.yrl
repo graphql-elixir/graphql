@@ -11,10 +11,15 @@ Nonterminals
   Alias
   Name
   Arguments ArgumentList Argument
+  VariableDefinitionList
+  VariableDefinitions VariableDefinition
+  Variable
+  % TypeDefault
+  % DefaultValue
   Value.
 
 Terminals
-  '{' '}' '(' ')' ':' '@' '...' 'query' 'mutation'
+  '{' '}' '(' ')' ':' '@' '$' '...' 'query' 'mutation'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -33,6 +38,14 @@ SelectionSet -> '{' Selections '}' : {'$2'}.
 
 OperationDefinition -> SelectionSet : '$1'.
 OperationDefinition -> OperationType Name SelectionSet : { '$1', '$2', '$3' }.
+OperationDefinition -> OperationType Name VariableDefinitions SelectionSet : { '$1', '$2', '$3' }.
+
+VariableDefinitions -> '(' VariableDefinitionList ')' : {'$2'}.
+VariableDefinitionList -> VariableDefinition : ['$1'].
+VariableDefinitionList -> VariableDefinition VariableDefinitionList : ['$1'|'$2'].
+
+VariableDefinition -> Variable ':' Name : {'$1', '$3'}.
+Variable -> '$' Name : {extract_atom('$1'), '$2'}.
 
 Selections -> Selection : ['$1'].
 Selections -> Selection Selections : ['$1'|'$2'].
@@ -74,19 +87,27 @@ Value -> float_value : extract_float('$1').
 Value -> string_value : extract_token('$1').
 Value -> boolean_value : extract_boolean('$1').
 
+% Type -> NamedType
+% Type ->ListType
+% NonNullType
+% NamedType
+% Name
+% ListType
+% [Type]
+% NonNullType
+% NamedType!
+% ListType!
+
 Erlang code.
 
 extract_atom({Value, _Line}) -> Value.
 extract_token({_Token, _Line, Value}) -> Value.
+
 extract_integer({_Token, _Line, Value}) ->
   {Int, []} = string:to_integer(Value), Int.
+
 extract_float({_Token, _Line, Value}) ->
   {Float, []} = string:to_float(Value), Float.
 
-% TODO Not sure why this doesn't match
-% Surely there's a more concise way to express this?
-extract_boolean({_Token, _Line, Value}) ->
-  case Value of
-    'true' -> true;
-    'false' -> false
-  end.
+extract_boolean({_Token, _Line, "true"}) -> true;
+extract_boolean({_Token, _Line, "false"}) -> false.
