@@ -43,7 +43,9 @@ SelectionSet -> '{' Selections '}' : {'$2'}.
 
 OperationDefinition -> SelectionSet : '$1'.
 OperationDefinition -> OperationType Name SelectionSet : { '$1', '$2', '$3' }.
-OperationDefinition -> OperationType Name VariableDefinitions SelectionSet : { '$1', '$2', '$3' }.
+OperationDefinition -> OperationType Name VariableDefinitions SelectionSet : { '$1', '$2', '$3', '$4' }.
+OperationDefinition -> OperationType Name Directives SelectionSet : { '$1', '$2', '$3', '$4' }.
+OperationDefinition -> OperationType Name VariableDefinitions Directives SelectionSet : { '$1', '$2', '$3', '$4', '$5' }.
 
 FragmentDefinition -> 'fragment' FragmentName 'on' TypeCondition SelectionSet : {extract_atom('$1'), '$2', extract_atom('$3'), '$4', '$5'}.
 FragmentDefinition -> 'fragment' FragmentName 'on' TypeCondition Directives SelectionSet : {extract_atom('$1'), '$2', extract_atom('$3'), '$4', '$5', '$6'}.

@@ -92,7 +92,8 @@ defmodule GraphqlParserTest do
     assert_parse 'query myQuery($size: Int) { id }', [{
       :query, 'myQuery', {[
         {{:"$", 'size'}, 'Int'}
-      ]}
+      ]},
+      {[ 'id' ]}
     }]
   end
 
@@ -100,7 +101,8 @@ defmodule GraphqlParserTest do
     assert_parse 'query myQuery($size: Int = 7) { id }', [{
       :query, 'myQuery', {[
         {{:"$", 'size'}, 'Int', 7}
-      ]}
+      ]},
+      {[ 'id' ]}
     }]
   end
 
@@ -109,7 +111,19 @@ defmodule GraphqlParserTest do
       :query, 'myQuery', {[
         {{:"$", 'x'}, {'Int', :'!'}, 7},
         {{:"$", 'y'}, ['Int']}
-      ]}
+      ]},
+      {[ 'id' ]}
+    }]
+  end
+
+  test "Multiple VariableDefinition with DefaultValue and Directives" do
+    assert_parse 'query myQuery($x: Int! = 7, $y: [Int]) @directive(num: 1.23) { id }', [{
+      :query, 'myQuery', {[
+        {{:"$", 'x'}, {'Int', :'!'}, 7},
+        {{:"$", 'y'}, ['Int']},
+      ]},
+      [{:@, 'directive', [{'num', 1.23}] }],
+      {[ 'id' ]}
     }]
   end
 
@@ -121,7 +135,7 @@ defmodule GraphqlParserTest do
 
   test "InlineFragment" do
     assert_parse '{ user { name, ... on Person { age } } }', [{
-      [{'user', {['name', {:..., :on, 'Person', {['age']}}]}}]
+      [{'user', {['name', {:..., :on, 'Person', {['age']} } ]} }]
     }]
   end
 
