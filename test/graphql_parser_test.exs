@@ -119,4 +119,10 @@ defmodule GraphqlParserTest do
     }]
   end
 
+  test "InlineFragment" do
+    assert_parse '{ user { name, ... on Person { age } } }', [{
+      [{'user', {['name', {:..., :on, 'Person', {['age']}}]}}]
+    }]
+  end
+
 end

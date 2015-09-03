@@ -7,6 +7,7 @@ Nonterminals
   Selections Selection
   FragmentSpread FragmentName
   FragmentDefinition
+  InlineFragment
   Directives Directive
   Field
   Alias
@@ -71,9 +72,13 @@ Selections -> Selection Selections : ['$1'|'$2'].
 
 Selection -> Field : '$1'.
 Selection -> FragmentSpread : '$1'.
+Selection -> InlineFragment : '$1'.
 
 FragmentSpread -> '...' FragmentName : '$2'.
 FragmentSpread -> '...' FragmentName Directives : {extract_atom('$1'), '$2', '$3'}.
+
+InlineFragment -> '...' 'on' TypeCondition SelectionSet : {extract_atom('$1'), extract_atom('$2'), '$3', '$4'}.
+InlineFragment -> '...' 'on' TypeCondition Directives SelectionSet : {extract_atom('$1'), extract_atom('$2'), '$3', '$4', '5'}.
 
 FragmentName -> Name : '$1'.
 
