@@ -1,26 +1,13 @@
 Nonterminals
   Document
-  Definitions Definition
-  OperationDefinition
-  OperationType
-  SelectionSet
-  Selections Selection
-  FragmentSpread FragmentName
-  FragmentDefinition
-  InlineFragment
-  Directives Directive
-  Field
-  Alias
-  Name
-  Arguments ArgumentList Argument
-  VariableDefinitionList
-  VariableDefinitions VariableDefinition
-  Variable
-  DefaultValue
-  Type
-  TypeCondition
-  NamedType ListType NonNullType
-  Value.
+  Definitions Definition OperationDefinition FragmentDefinition
+  SelectionSet Selections Selection
+  OperationType Name VariableDefinitions VariableDefinition Directives Directive
+  Field Alias Arguments ArgumentList Argument
+  FragmentSpread FragmentName InlineFragment
+  VariableDefinitionList Variable DefaultValue
+  Type TypeCondition NamedType ListType NonNullType
+  Value EnumValue ListValue Values.
 
 Terminals
   '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '...' 'query' 'mutation' 'fragment' 'on'
@@ -128,14 +115,10 @@ Values -> Value Values : ['$1'|'$2'].
 Erlang code.
 
 extract_atom({Value, _Line}) -> Value.
-
 extract_token({_Token, _Line, Value}) -> Value.
-
 extract_integer({_Token, _Line, Value}) ->
   {Int, []} = string:to_integer(Value), Int.
-
 extract_float({_Token, _Line, Value}) ->
   {Float, []} = string:to_float(Value), Float.
-
 extract_boolean({_Token, _Line, "true"}) -> true;
 extract_boolean({_Token, _Line, "false"}) -> false.
