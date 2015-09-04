@@ -92,6 +92,10 @@ Field -> Alias Name : {'$1', '$2'}.
 Field -> Alias Name Arguments : {'$1', '$2', '$3'}.
 Field -> Alias Name SelectionSet : {'$1', '$2', '$3'}.
 Field -> Alias Name Arguments SelectionSet : {'$1', '$2', '$3', '$4'}.
+Field -> Alias Name Directives : {'$1', '$2', '$3'}.
+Field -> Alias Name Arguments Directives : {'$1', '$2', '$3', '$4'}.
+Field -> Alias Name Directives SelectionSet : {'$1', '$2', '$3', '$4'}.
+Field -> Alias Name Arguments Directives SelectionSet : {'$1', '$2', '$3', '$4', '$5'}.
 
 Alias -> Name ':' : '$1'.
 
