@@ -66,6 +66,9 @@ defmodule GraphqlLexerTest do
   test "Literals" do
     assert_tokens 'query',          [{ :"query", 1 }]
     assert_tokens 'mutation',       [{ :"mutation", 1 }]
+    assert_tokens 'fragment',       [{ :"fragment", 1 }]
+    assert_tokens 'on',             [{ :"on", 1 }]
+    assert_tokens 'type',           [{ :"type", 1 }]
   end
 
   test "IntValue" do
@@ -101,6 +104,12 @@ defmodule GraphqlLexerTest do
     assert_tokens 'false',          [{ :boolean_value, 1, 'false' }]
   end
 
+  test "EnumValue" do
+    assert_tokens 'null',           [{ :null, 1 }]
+    assert_tokens 'ENUM_VALUE',     [{ :name, 1, 'ENUM_VALUE' }]
+    assert_tokens 'enum_value',     [{ :name, 1, 'enum_value' }]
+  end
+
   # Sample GraphQL
   test "Simple statement" do
     assert_tokens '{ hero }', [
@@ -122,5 +131,4 @@ defmodule GraphqlLexerTest do
       {:'}', 1}
     ]
   end
-
 end
