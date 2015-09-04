@@ -1,14 +1,8 @@
 defmodule GraphqlParserTest do
   use ExUnit.Case
 
-  def tokenize(string) do
-    {:ok, tokens, _} = :graphql_lexer.string(string)
-    tokens
-  end
-
-  def assert_parse(input_string, expected_tokens) do
-    {:ok, parse_result} = :graphql_parser.parse(tokenize(input_string))
-    assert parse_result == expected_tokens
+  def assert_parse(input_string, expected_output) do
+    assert Graphql.parse(input_string) == expected_output
   end
 
   test "simple selection set" do
