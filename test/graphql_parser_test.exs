@@ -106,21 +106,22 @@ defmodule GraphqlParserTest do
     }]
   end
 
-  test "Multiple VariableDefinition with DefaultValue" do
-    assert_parse 'query myQuery($x: Int! = 7, $y: [Int]) { id }', [{
+  test "Multiple VariableDefinition with DefaultValue (NonNullType, ListType, Variable)" do
+    assert_parse 'query myQuery($x: Int! = 7, $y: [Int], $z: Some = $var) { id }', [{
       :query, 'myQuery', {[
         {{:"$", 'x'}, {'Int', :'!'}, 7},
-        {{:"$", 'y'}, ['Int']}
+        {{:"$", 'y'}, ['Int']},
+        {{:"$", 'z'}, 'Some', {:"$", 'var'}}
       ]},
       {[ 'id' ]}
     }]
   end
 
-  test "Multiple VariableDefinition with DefaultValue and Directives" do
-    assert_parse 'query myQuery($x: Int! = 7, $y: [Int]) @directive(num: 1.23) { id }', [{
+  test "Multiple VariableDefinition with DefaultValue (EnumValue ListValue) and Directives" do
+    assert_parse 'query myQuery($x: Int! = ENUM, $y: [Int] = [1, 2]) @directive(num: 1.23) { id }', [{
       :query, 'myQuery', {[
-        {{:"$", 'x'}, {'Int', :'!'}, 7},
-        {{:"$", 'y'}, ['Int']},
+        {{:"$", 'x'}, {'Int', :'!'}, 'ENUM'},
+        {{:"$", 'y'}, ['Int'], [1, 2]},
       ]},
       [{:@, 'directive', [{'num', 1.23}] }],
       {[ 'id' ]}

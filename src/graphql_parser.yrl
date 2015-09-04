@@ -111,10 +111,19 @@ Directive -> '@' Name Arguments : {extract_atom('$1'), '$2', '$3'}.
 
 Name -> name : extract_token('$1').
 
+Value -> Variable : '$1'.
 Value -> int_value : extract_integer('$1').
 Value -> float_value : extract_float('$1').
 Value -> string_value : extract_token('$1').
 Value -> boolean_value : extract_boolean('$1').
+Value -> EnumValue : '$1'.
+Value -> ListValue : '$1'.
+
+EnumValue -> Name : '$1'.
+ListValue -> '[' ']' : [].
+ListValue -> '[' Values ']' : '$2'.
+Values -> Value : ['$1'].
+Values -> Value Values : ['$1'|'$2'].
 
 Erlang code.
 
