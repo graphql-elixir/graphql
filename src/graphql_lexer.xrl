@@ -1,4 +1,7 @@
-% Describe AWK-like regex shortcuts to tokens
+% GraphQL Lexer
+%
+% See the spec reference http://facebook.github.io/graphql/#sec-Appendix-Grammar-Summary
+% The relevant version is also copied into this repo
 
 Definitions.
 
@@ -14,31 +17,32 @@ Ignored             = {WhiteSpace}|{LineTerminator}|{Comment}|{Comma}
 Punctuator          = [!$():=@\[\]{|}]|\.\.\.
 Name                = [_A-Za-z][_0-9A-Za-z]*
 
-Literal             = query|mutation|fragment|on|type|null
-
-% int
+% Int Value
 Digit               = [0-9]
 NonZeroDigit        = [1-9]
 NegativeSign        = -
 IntegerPart         = {NegativeSign}?(0|{NonZeroDigit}{Digit}*)
 IntValue            = {IntegerPart}
 
-% float
+% Float Value
 FractionalPart      = \.{Digit}+
 Sign                = [+\-]
 ExponentIndicator   = [eE]
 ExponentPart        = {ExponentIndicator}{Sign}?{Digit}+
 FloatValue          = {IntegerPart}{FractionalPart}|{IntegerPart}{ExponentPart}|{IntegerPart}{FractionalPart}{ExponentPart}
 
-% string
+% String Value
 HexDigit            = [0-9A-Fa-f]
 EscapedUnicode      = u{HexDigit}{HexDigit}{HexDigit}{HexDigit}
 EscapedCharacter    = ["\\\/bfnrt]
 StringCharacter     = ([^\"{_LineTerminator}]|\\{EscapedUnicode}|\\{EscapedCharacter})
 StringValue         = "{StringCharacter}*"
 
-% boolean
+% Boolean Value
 BooleanValue        = true|false
+
+% Literal tokens
+Literal             = query|mutation|fragment|on|type|null
 
 Rules.
 
