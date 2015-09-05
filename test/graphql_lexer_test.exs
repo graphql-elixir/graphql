@@ -1,5 +1,5 @@
 defmodule GraphqlLexerTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   def assert_tokens(input, tokens) do
     case :graphql_lexer.string(input) do
