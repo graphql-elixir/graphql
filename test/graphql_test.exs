@@ -2,7 +2,7 @@ defmodule GraphqlTest do
   use ExUnit.Case, async: true
 
   def assert_parse(input_string, expected_output) do
-    assert Graphql.parse(input_string) == expected_output
+    assert GraphQL.parse(input_string) == expected_output
   end
 
   test "parse char list" do
@@ -20,4 +20,13 @@ defmodule GraphqlTest do
           selectionSet: [kind: :SelectionSet, loc: [start: 0],
            selections: [[kind: :Field, loc: [start: 0], name: 'hero']]]]]]
   end
+
+  test "ReportError with message" do
+    assert_raise GraphQL.SyntaxError, "syntax error before: \"a\" on line 1", fn -> GraphQL.parse("a") end
+    assert_raise GraphQL.SyntaxError, "syntax error before: '}' on line 1", fn -> GraphQL.parse("{}") end
+    assert_raise GraphQL.SyntaxError, "syntax error before:  on line 1", fn -> GraphQL.parse("{ a") end
+    assert_raise GraphQL.SyntaxError, "syntax error before: \"a\" on line 1", fn -> GraphQL.parse("a }") end
+  end
+
+
 end

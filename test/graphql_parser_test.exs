@@ -2,7 +2,7 @@ defmodule GraphqlParserTest do
   use ExUnit.Case, async: true
 
   def assert_parse(input_string, expected_output) do
-    assert Graphql.parse(input_string) == expected_output
+    assert GraphQL.parse(input_string) == expected_output
   end
 
   test "simple selection set" do
