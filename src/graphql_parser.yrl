@@ -5,6 +5,7 @@ Nonterminals
   ScalarTypeDefinition EnumTypeDefinition InputObjectTypeDefinition TypeExtensionDefinition
   FieldDefinitionList FieldDefinition ImplementsInterfaces ArgumentsDefinition
   InputValueDefinitionList InputValueDefinition
+  UnionTypeDefinition UnionMembers
   SelectionSet Selections Selection
   OperationType Name VariableDefinitions VariableDefinition Directives Directive
   Field Alias Arguments ArgumentList Argument
@@ -14,8 +15,8 @@ Nonterminals
   Value EnumValue ListValue Values ObjectValue ObjectFields ObjectField.
 
 Terminals
-  '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '...'
-  'query' 'mutation' 'fragment' 'on' 'type' 'implements' 'interface'
+  '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '|' '...'
+  'query' 'mutation' 'fragment' 'on' 'type' 'implements' 'interface' 'union'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -128,7 +129,7 @@ ObjectField -> Name ':' Value : build_ast_node('ObjectField', [{'name', '$1'}, {
 
 TypeDefinition -> ObjectTypeDefinition : '$1'.
 TypeDefinition -> InterfaceTypeDefinition : '$1'.
-% TypeDefinition -> UnionTypeDefinition : '$1'.
+TypeDefinition -> UnionTypeDefinition : '$1'.
 % TypeDefinition -> ScalarTypeDefinition : '$1'.
 % TypeDefinition -> EnumTypeDefinition : '$1'.
 % TypeDefinition -> InputObjectTypeDefinition : '$1'.
@@ -159,6 +160,12 @@ InputValueDefinition -> Name ':' Type DefaultValue : build_ast_node('InputValueD
 
 InterfaceTypeDefinition -> 'interface' Name '{' FieldDefinitionList '}' :
   build_ast_node('InterfaceTypeDefinition', [{'name', '$2'}, {'fields', '$4'}]).
+
+UnionTypeDefinition -> 'union' Name '=' UnionMembers :
+  build_ast_node('UnionTypeDefinition', [{'name', '$2'}, {'types', '$4'}]).
+
+UnionMembers -> NamedType : ['$1'].
+UnionMembers -> NamedType '|' UnionMembers : ['$1'|'$3'].
 
 Erlang code.
 

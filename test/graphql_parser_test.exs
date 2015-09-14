@@ -367,4 +367,15 @@ defmodule GraphqlParserTest do
                 name: 'id',
                 type: [kind: :NamedType, loc: [start: 0], name: 'ID']]]]]]
   end
+
+  test "UnionTypeDefinition" do
+    assert_parse 'union Actor = User | Business',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :UnionTypeDefinition, loc: [start: 0],
+            name: 'Actor',
+            types: [
+              [kind: :NamedType, loc: [start: 0], name: 'User'],
+              [kind: :NamedType, loc: [start: 0], name: 'Business']]]]]
+  end
 end
