@@ -386,4 +386,13 @@ defmodule GraphqlParserTest do
           [kind: :ScalarTypeDefinition, loc: [start: 0],
             name: 'DateTime']]]
   end
+
+  test "EnumTypeDefinition" do
+    assert_parse 'enum Direction { NORTH EAST SOUTH WEST }',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :EnumTypeDefinition, loc: [start: 0],
+            name: 'Direction',
+            values: ['NORTH', 'EAST', 'SOUTH', 'WEST']]]]
+  end
 end

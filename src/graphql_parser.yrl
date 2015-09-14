@@ -5,6 +5,7 @@ Nonterminals
   ScalarTypeDefinition EnumTypeDefinition InputObjectTypeDefinition TypeExtensionDefinition
   FieldDefinitionList FieldDefinition ImplementsInterfaces ArgumentsDefinition
   InputValueDefinitionList InputValueDefinition UnionMembers
+  EnumValueDefinitionList EnumValueDefinition
   SelectionSet Selections Selection
   OperationType Name VariableDefinitions VariableDefinition Directives Directive
   Field Alias Arguments ArgumentList Argument
@@ -16,7 +17,7 @@ Nonterminals
 Terminals
   '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '|' '...'
   'query' 'mutation' 'fragment' 'on'
-  'type' 'implements' 'interface' 'union' 'scalar'
+  'type' 'implements' 'interface' 'union' 'scalar' 'enum'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -131,7 +132,7 @@ TypeDefinition -> ObjectTypeDefinition : '$1'.
 TypeDefinition -> InterfaceTypeDefinition : '$1'.
 TypeDefinition -> UnionTypeDefinition : '$1'.
 TypeDefinition -> ScalarTypeDefinition : '$1'.
-% TypeDefinition -> EnumTypeDefinition : '$1'.
+TypeDefinition -> EnumTypeDefinition : '$1'.
 % TypeDefinition -> InputObjectTypeDefinition : '$1'.
 % TypeDefinition -> TypeExtensionDefinition : '$1'.
 
@@ -153,7 +154,7 @@ FieldDefinition -> Name ArgumentsDefinition ':' Type : build_ast_node('FieldDefi
 ArgumentsDefinition -> '(' InputValueDefinitionList ')' : '$2'.
 
 InputValueDefinitionList -> InputValueDefinition : ['$1'].
-InputValueDefinitionList -> InputValueDefinition FieldDefinitionList : ['$1'|'$2'].
+InputValueDefinitionList -> InputValueDefinition InputValueDefinitionList : ['$1'|'$2'].
 
 InputValueDefinition -> Name ':' Type : build_ast_node('InputValueDefinition', [{'name', '$1'}, {'type', '$3'}]).
 InputValueDefinition -> Name ':' Type DefaultValue : build_ast_node('InputValueDefinition', [{'name', '$1'}, {'type', '$3'}, {'defaultValue', '$4'}]).
@@ -168,6 +169,14 @@ UnionMembers -> NamedType : ['$1'].
 UnionMembers -> NamedType '|' UnionMembers : ['$1'|'$3'].
 
 ScalarTypeDefinition -> 'scalar' Name : build_ast_node('ScalarTypeDefinition', [{'name', '$2'}]).
+
+EnumTypeDefinition -> 'enum' Name '{' EnumValueDefinitionList '}':
+  build_ast_node('EnumTypeDefinition', [{'name', '$2'}, {'values', '$4'}]).
+
+EnumValueDefinitionList -> EnumValueDefinition : ['$1'].
+EnumValueDefinitionList -> EnumValueDefinition EnumValueDefinitionList : ['$1'|'$2'].
+
+EnumValueDefinition -> EnumValue : '$1'.
 
 Erlang code.
 
