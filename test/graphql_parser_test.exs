@@ -378,4 +378,12 @@ defmodule GraphqlParserTest do
               [kind: :NamedType, loc: [start: 0], name: 'User'],
               [kind: :NamedType, loc: [start: 0], name: 'Business']]]]]
   end
+
+  test "ScalarTypeDefinition" do
+    assert_parse 'scalar DateTime',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :ScalarTypeDefinition, loc: [start: 0],
+            name: 'DateTime']]]
+  end
 end
