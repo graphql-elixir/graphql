@@ -1,16 +1,21 @@
 Nonterminals
   Document
-  Definitions Definition OperationDefinition FragmentDefinition
+  Definitions Definition OperationDefinition FragmentDefinition TypeDefinition
+  ObjectTypeDefinition InterfaceTypeDefinition UnionTypeDefinition
+  ScalarTypeDefinition EnumTypeDefinition InputObjectTypeDefinition TypeExtensionDefinition
+  FieldDefinitionList FieldDefinition ImplementsInterfaces ArgumentsDefinition
+  InputValueDefinitionList InputValueDefinition
   SelectionSet Selections Selection
   OperationType Name VariableDefinitions VariableDefinition Directives Directive
   Field Alias Arguments ArgumentList Argument
   FragmentSpread FragmentName InlineFragment
   VariableDefinitionList Variable DefaultValue
-  Type TypeCondition NamedType ListType NonNullType
+  Type TypeCondition NamedTypeList NamedType ListType NonNullType
   Value EnumValue ListValue Values ObjectValue ObjectFields ObjectField.
 
 Terminals
-  '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '...' 'query' 'mutation' 'fragment' 'on'
+  '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '...'
+  'query' 'mutation' 'fragment' 'on' 'type' 'implements'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -22,6 +27,7 @@ Definitions -> Definition Definitions : ['$1'|'$2'].
 
 Definition -> OperationDefinition : '$1'.
 Definition -> FragmentDefinition : '$1'.
+Definition -> TypeDefinition : '$1'.
 
 OperationType -> 'query' : extract_atom('$1').
 OperationType -> 'mutation' : extract_atom('$1').
@@ -119,6 +125,38 @@ ObjectValue -> '{' ObjectFields '}' : '$2'.
 ObjectFields -> ObjectField : ['$1'].
 ObjectFields -> ObjectField ObjectFields : ['$1'|'$2'].
 ObjectField -> Name ':' Value : build_ast_node('ObjectField', [{'name', '$1'}, {'value', '$3'}]).
+
+% Type definitions
+TypeDefinition -> ObjectTypeDefinition : '$1'.
+% TypeDefinition -> InterfaceTypeDefinition : '$1'.
+% TypeDefinition -> UnionTypeDefinition : '$1'.
+% TypeDefinition -> ScalarTypeDefinition : '$1'.
+% TypeDefinition -> EnumTypeDefinition : '$1'.
+% TypeDefinition -> InputObjectTypeDefinition : '$1'.
+% TypeDefinition -> TypeExtensionDefinition : '$1'.
+
+ObjectTypeDefinition -> 'type' Name '{' FieldDefinitionList '}' :
+  build_ast_node('ObjectTypeDefinition', [{'name', '$2'}, {'fields', '$4'}]).
+ObjectTypeDefinition -> 'type' Name ImplementsInterfaces '{' FieldDefinitionList '}' :
+  build_ast_node('ObjectTypeDefinition', [{'name', '$2'}, {'interfaces', '$3'}, {'fields', '$5'}]).
+
+ImplementsInterfaces -> 'implements' NamedTypeList : '$2'.
+
+NamedTypeList -> NamedType : ['$1'].
+NamedTypeList -> NamedType NamedTypeList : ['$1'|'$2'].
+
+FieldDefinitionList -> FieldDefinition : ['$1'].
+FieldDefinitionList -> FieldDefinition FieldDefinitionList : ['$1'|'$2'].
+FieldDefinition -> Name ':' Type : build_ast_node('FieldDefinition', [{'name', '$1'}, {'type', '$3'}]).
+FieldDefinition -> Name ArgumentsDefinition ':' Type : build_ast_node('FieldDefinition', [{'name', '$1'}, {'arguments', '$2'}, {'type', '$4'}]).
+
+ArgumentsDefinition -> '(' InputValueDefinitionList ')' : '$2'.
+
+InputValueDefinitionList -> InputValueDefinition : ['$1'].
+InputValueDefinitionList -> InputValueDefinition FieldDefinitionList : ['$1'|'$2'].
+
+InputValueDefinition -> Name ':' Type : build_ast_node('InputValueDefinition', [{'name', '$1'}, {'type', '$3'}]).
+InputValueDefinition -> Name ':' Type DefaultValue : build_ast_node('InputValueDefinition', [{'name', '$1'}, {'type', '$3'}, {'defaultValue', '$4'}]).
 
 Erlang code.
 

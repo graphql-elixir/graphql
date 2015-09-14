@@ -313,4 +313,46 @@ defmodule GraphqlParserTest do
                     selectionSet: [kind: :SelectionSet, loc: [start: 0],
                       selections: [[kind: :Field, loc: [start: 0], name: 'age']]]]]]]]]]]]
   end
+
+  test "ObjectTypeDefinition" do
+    assert_parse 'type Human implements Character, Entity { id: String! friends: [Character] }',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :ObjectTypeDefinition, loc: [start: 0], name: 'Human',
+            interfaces: [
+              [kind: :NamedType, loc: [start: 0], name: 'Character'],
+              [kind: :NamedType, loc: [start: 0], name: 'Entity']],
+            fields: [
+              [kind: :FieldDefinition, loc: [start: 0],
+                name: 'id',
+                type: [kind: :NonNullType, loc: [start: 0],
+                  type: [kind: :NamedType, loc: [start: 0], name: 'String']]],
+              [kind: :FieldDefinition, loc: [start: 0], name: 'friends',
+                type: [kind: :ListType, loc: [start: 0],
+                  type: [kind: :NamedType, loc: [start: 0], name: 'Character']]]]]]]
+  end
+
+  test "ObjectTypeDefinition with Arguments" do
+    assert_parse 'type Query { hero(episode: Episode): Character human(id: String!): Human }',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :ObjectTypeDefinition, loc: [start: 0],
+            name: 'Query',
+            fields: [
+              [kind: :FieldDefinition, loc: [start: 0],
+                name: 'hero',
+                arguments: [
+                  [kind: :InputValueDefinition, loc: [start: 0],
+                    name: 'episode',
+                    type: [kind: :NamedType, loc: [start: 0], name: 'Episode']]],
+                type: [kind: :NamedType, loc: [start: 0], name: 'Character']],
+              [kind: :FieldDefinition, loc: [start: 0],
+                name: 'human',
+                arguments: [
+                  [kind: :InputValueDefinition, loc: [start: 0],
+                    name: 'id',
+                    type: [kind: :NonNullType, loc: [start: 0],
+                      type: [kind: :NamedType, loc: [start: 0], name: 'String']]]],
+                type: [kind: :NamedType, loc: [start: 0], name: 'Human']]]]]]
+  end
 end

@@ -41,14 +41,14 @@ StringValue         = "{StringCharacter}*"
 % Boolean Value
 BooleanValue        = true|false
 
-% Literal tokens
-Literal             = query|mutation|fragment|on|type|null
+% Reserved words
+ReservedWord        = query|mutation|fragment|on|type|implements|null
 
 Rules.
 
 {Ignored}           : skip_token.
 {Punctuator}        : {token, {list_to_atom(TokenChars), TokenLine}}.
-{Literal}           : {token, {list_to_atom(TokenChars), TokenLine}}.
+{ReservedWord}      : {token, {list_to_atom(TokenChars), TokenLine}}.
 {IntValue}          : {token, {int_value, TokenLine, TokenChars}}.
 {FloatValue}        : {token, {float_value, TokenLine, TokenChars}}.
 {StringValue}       : {token, {string_value, TokenLine, TokenChars}}.
