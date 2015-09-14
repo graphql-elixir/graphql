@@ -17,7 +17,7 @@ Nonterminals
 Terminals
   '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '|' '...'
   'query' 'mutation' 'fragment' 'on'
-  'type' 'implements' 'interface' 'union' 'scalar' 'enum'
+  'type' 'implements' 'interface' 'union' 'scalar' 'enum' 'input'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -133,7 +133,7 @@ TypeDefinition -> InterfaceTypeDefinition : '$1'.
 TypeDefinition -> UnionTypeDefinition : '$1'.
 TypeDefinition -> ScalarTypeDefinition : '$1'.
 TypeDefinition -> EnumTypeDefinition : '$1'.
-% TypeDefinition -> InputObjectTypeDefinition : '$1'.
+TypeDefinition -> InputObjectTypeDefinition : '$1'.
 % TypeDefinition -> TypeExtensionDefinition : '$1'.
 
 ObjectTypeDefinition -> 'type' Name '{' FieldDefinitionList '}' :
@@ -177,6 +177,9 @@ EnumValueDefinitionList -> EnumValueDefinition : ['$1'].
 EnumValueDefinitionList -> EnumValueDefinition EnumValueDefinitionList : ['$1'|'$2'].
 
 EnumValueDefinition -> EnumValue : '$1'.
+
+InputObjectTypeDefinition -> 'input' Name '{' InputValueDefinitionList '}' :
+  build_ast_node('InputObjectTypeDefinition', [{'name', '$2'}, {'fields', '$4'}]).
 
 Erlang code.
 

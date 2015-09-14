@@ -333,7 +333,7 @@ defmodule GraphqlParserTest do
   end
 
   test "ObjectTypeDefinition with Arguments" do
-    assert_parse 'type Query { hero(episode: Episode): Character human(id: String!): Human }',
+    assert_parse 'type Query { hero(episode: Episode): Character human(id: String! name: String): Human }',
       [kind: :Document, loc: [start: 0],
         definitions: [
           [kind: :ObjectTypeDefinition, loc: [start: 0],
@@ -352,7 +352,9 @@ defmodule GraphqlParserTest do
                   [kind: :InputValueDefinition, loc: [start: 0],
                     name: 'id',
                     type: [kind: :NonNullType, loc: [start: 0],
-                      type: [kind: :NamedType, loc: [start: 0], name: 'String']]]],
+                      type: [kind: :NamedType, loc: [start: 0], name: 'String']]],
+                  [kind: :InputValueDefinition, loc: [start: 0], name: 'name',
+                    type: [kind: :NamedType, loc: [start: 0], name: 'String']]],
                 type: [kind: :NamedType, loc: [start: 0], name: 'Human']]]]]]
   end
 
@@ -394,5 +396,18 @@ defmodule GraphqlParserTest do
           [kind: :EnumTypeDefinition, loc: [start: 0],
             name: 'Direction',
             values: ['NORTH', 'EAST', 'SOUTH', 'WEST']]]]
+  end
+
+  test "InputObjectTypeDefinition" do
+    assert_parse 'input Point2D { x: Float y: Float }',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :InputObjectTypeDefinition, loc: [start: 0],
+            name: 'Point2D',
+            fields: [
+              [kind: :InputValueDefinition, loc: [start: 0], name: 'x',
+                type: [kind: :NamedType, loc: [start: 0], name: 'Float']],
+              [kind: :InputValueDefinition, loc: [start: 0], name: 'y',
+                type: [kind: :NamedType, loc: [start: 0], name: 'Float']]]]]]
   end
 end
