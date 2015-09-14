@@ -410,4 +410,17 @@ defmodule GraphqlParserTest do
               [kind: :InputValueDefinition, loc: [start: 0], name: 'y',
                 type: [kind: :NamedType, loc: [start: 0], name: 'Float']]]]]]
   end
+
+  test "TypeExtensionDefinition" do
+    assert_parse 'extend type Story { isHiddenLocally: Boolean }',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :TypeExtensionDefinition, loc: [start: 0],
+            definition: [kind: :ObjectTypeDefinition, loc: [start: 0],
+              name: 'Story',
+              fields: [
+                [kind: :FieldDefinition, loc: [start: 0],
+                  name: 'isHiddenLocally',
+                  type: [kind: :NamedType, loc: [start: 0], name: 'Boolean']]]]]]]
+  end
 end
