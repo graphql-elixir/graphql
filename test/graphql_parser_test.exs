@@ -355,4 +355,16 @@ defmodule GraphqlParserTest do
                       type: [kind: :NamedType, loc: [start: 0], name: 'String']]]],
                 type: [kind: :NamedType, loc: [start: 0], name: 'Human']]]]]]
   end
+
+  test "InterfaceTypeDefinition" do
+    assert_parse 'interface Node { id: ID }',
+      [kind: :Document, loc: [start: 0],
+        definitions: [
+          [kind: :InterfaceTypeDefinition, loc: [start: 0],
+            name: 'Node',
+            fields: [
+              [kind: :FieldDefinition, loc: [start: 0],
+                name: 'id',
+                type: [kind: :NamedType, loc: [start: 0], name: 'ID']]]]]]
+  end
 end

@@ -15,7 +15,7 @@ Nonterminals
 
 Terminals
   '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '...'
-  'query' 'mutation' 'fragment' 'on' 'type' 'implements'
+  'query' 'mutation' 'fragment' 'on' 'type' 'implements' 'interface'
   name int_value float_value string_value boolean_value.
 
 Rootsymbol Document.
@@ -126,9 +126,8 @@ ObjectFields -> ObjectField : ['$1'].
 ObjectFields -> ObjectField ObjectFields : ['$1'|'$2'].
 ObjectField -> Name ':' Value : build_ast_node('ObjectField', [{'name', '$1'}, {'value', '$3'}]).
 
-% Type definitions
 TypeDefinition -> ObjectTypeDefinition : '$1'.
-% TypeDefinition -> InterfaceTypeDefinition : '$1'.
+TypeDefinition -> InterfaceTypeDefinition : '$1'.
 % TypeDefinition -> UnionTypeDefinition : '$1'.
 % TypeDefinition -> ScalarTypeDefinition : '$1'.
 % TypeDefinition -> EnumTypeDefinition : '$1'.
@@ -157,6 +156,9 @@ InputValueDefinitionList -> InputValueDefinition FieldDefinitionList : ['$1'|'$2
 
 InputValueDefinition -> Name ':' Type : build_ast_node('InputValueDefinition', [{'name', '$1'}, {'type', '$3'}]).
 InputValueDefinition -> Name ':' Type DefaultValue : build_ast_node('InputValueDefinition', [{'name', '$1'}, {'type', '$3'}, {'defaultValue', '$4'}]).
+
+InterfaceTypeDefinition -> 'interface' Name '{' FieldDefinitionList '}' :
+  build_ast_node('InterfaceTypeDefinition', [{'name', '$2'}, {'fields', '$4'}]).
 
 Erlang code.
 
