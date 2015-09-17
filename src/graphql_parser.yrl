@@ -80,9 +80,13 @@ InlineFragment -> '...' 'on' TypeCondition Directives SelectionSet : build_ast_n
 FragmentName -> Name : '$1'.
 
 Field -> Name : build_ast_node('Field', {'name', '$1'}).
-Field -> Name SelectionSet : build_ast_node('Field', [{'name', '$1'}, {'selectionSet', '$2'}]).
 Field -> Name Arguments : build_ast_node('Field', [{'name', '$1'}, {'arguments', '$2'}]).
+Field -> Name Directives : build_ast_node('Field', [{'name', '$1'}, {'directives', '$2'}]).
+Field -> Name SelectionSet : build_ast_node('Field', [{'name', '$1'}, {'selectionSet', '$2'}]).
+Field -> Name Directives SelectionSet : build_ast_node('Field', [{'name', '$1'}, {'directives', '$2'}, {'selectionSet', '$3'}]).
 Field -> Name Arguments SelectionSet : build_ast_node('Field', [{'name', '$1'}, {'arguments', '$2'}, {'selectionSet', '$3'}]).
+Field -> Name Arguments Directives : build_ast_node('Field', [{'name', '$1'}, {'arguments', '$2'}, {'directives', '$3'}]).
+Field -> Name Arguments Directives SelectionSet : build_ast_node('Field', [{'name', '$1'}, {'arguments', '$2'}, {'directives', '$3'}, {'selectionSet', '$4'}]).
 Field -> Alias Name : build_ast_node('Field', [{'alias', '$1'}, {'name', '$2'}]).
 Field -> Alias Name Arguments : build_ast_node('Field', [{'alias', '$1'}, {'name', '$2'}, {'arguments', '$3'}]).
 Field -> Alias Name SelectionSet : build_ast_node('Field', [{'alias', '$1'}, {'name', '$2'}, {'selectionSet', '$3'}]).
