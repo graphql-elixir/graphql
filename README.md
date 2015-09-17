@@ -1,6 +1,8 @@
 GraphQL
 =======
 
+[![Build Status](https://travis-ci.org/joshprice/graphql-elixir.svg)](https://travis-ci.org/joshprice/graphql-elixir)
+
 GraphQL parser for Elixir.
 
 See [GraphQL Spec](http://facebook.github.io/graphql/)
