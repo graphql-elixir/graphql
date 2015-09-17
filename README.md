@@ -1,18 +1,33 @@
-GraphQL
-=======
+GraphQL Elixir
+==============
 
 [![Build Status](https://travis-ci.org/joshprice/graphql-elixir.svg)](https://travis-ci.org/joshprice/graphql-elixir)
+[![Public Slack Discussion](https://graphql-slack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
 
-GraphQL parser for Elixir.
+An Elixir implementation of Facebook's GraphQL.
 
-See [GraphQL Spec](http://facebook.github.io/graphql/)
+Status
+------
+
+This is a work in progress, right now here's what is done:
+
+- [x] Parser for GraphQL (including Type definitions)
+- [x] AST matching the `graphql-js` types as closely as possible
+- [ ] Schema definition
+- [ ] Query execution
+- [ ] Introspection
+
+Resources
+---------
+
+See the incredible [GraphQL Spec](http://facebook.github.io/graphql/). This incredibly well written spec made writing the GraphQL parser pretty straightforward.
 
 Implementation
 --------------
 
-Plan is to see whether [leex](http://erlang.org/doc/man/leex.html) and [yecc](http://erlang.org/doc/man/yecc.html) will fit the bill.
+Tokenisation is done with [leex](http://erlang.org/doc/man/leex.html) and parsing with [yecc](http://erlang.org/doc/man/yecc.html). Both very useful Erlang tools for parsing. Yecc in particular is used by Elixir itself.
 
-Some resources on using leex and yecc
+Some resources on using leex and yecc:
 
 * http://relops.com/blog/2014/01/13/leex_and_yecc/
 * http://andrealeopardi.com/posts/tokenizing-and-parsing-in-elixir-using-leex-and-yecc/
@@ -32,3 +47,13 @@ Just open the `atom-language-erlang` package code in Atom and make the change de
 https://github.com/jonathanmarvens/atom-language-erlang/pull/11
 
 however if that PR has been merged then just grab the latest version of the plugin!
+
+Contributing
+------------
+
+We actively welcome pull requests, bug reports, feedback, issues, questions. Come and chat in the [#erlang channel on Slack](https://graphql-slack.herokuapp.com/)
+
+License
+-------
+
+GraphQL is [BSD-licensed](https://github.com/joshprice/graphql-elixir/blob/master/LICENSE).
