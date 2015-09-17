@@ -56,4 +56,4 @@ We actively welcome pull requests, bug reports, feedback, issues, questions. Com
 License
 -------
 
-GraphQL is [BSD-licensed](https://github.com/joshprice/graphql-elixir/blob/master/LICENSE).
+[BSD](https://github.com/joshprice/graphql-elixir/blob/master/LICENSE).

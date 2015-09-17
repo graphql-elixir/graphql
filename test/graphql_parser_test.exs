@@ -423,4 +423,17 @@ defmodule GraphqlParserTest do
                   name: 'isHiddenLocally',
                   type: [kind: :NamedType, loc: [start: 0], name: 'Boolean']]]]]]]
   end
+
+  # test "Use reserved words as fields" do
+  #   assert_parse "{ query fragment on }",
+  #     [kind: :Document, loc: [start: 0],
+  #       definitions: [[kind: :OperationDefinition, loc: [start: 0],
+  #         operation: :query,
+  #         selectionSet: [kind: :SelectionSet, loc: [start: 0],
+  #           selections: [
+  #             [kind: :Field, loc: [start: 0], name: 'query'],
+  #             [kind: :Field, loc: [start: 0], name: 'fragment'],
+  #             [kind: :Field, loc: [start: 0], name: 'on']]]]]]
+  #
+  # end
 end
