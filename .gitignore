@@ -5,5 +5,3 @@
 erl_crash.dump
 *.ez
 *.beam
-src/graphql_lexer.erl
-src/graphql_parser.erl
