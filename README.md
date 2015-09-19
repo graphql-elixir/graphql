@@ -60,6 +60,17 @@ Some resources on using leex and yecc:
 
 ## Developers
 
+### Getting Started
+
+Clone the repo and fetch its dependencies:
+
+```
+$ git clone https://github.com/joshprice/graphql-elixir.git
+$ cd graphql-elixir
+$ mix deps.get
+$ mix test
+```
+
 ### Atom Editor Support
 
 >  Using the `language-erlang` package? `.xrl` and `.yrl` files not syntax highlighting?
