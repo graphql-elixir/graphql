@@ -1,10 +1,8 @@
 defmodule GraphqlTest do
   use ExUnit.Case, async: true
 
-  def assert_parse(input_string, expected_output) do
-    assert GraphQL.parse(input_string) == expected_output
-  end
-
+  import ExUnit.TestHelpers
+  
   test "parse char list" do
     assert_parse '{ hero }',
       [kind: :Document, loc: [start: 0],
