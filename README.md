@@ -11,8 +11,8 @@ An Elixir implementation of Facebook's GraphQL.
 First, add GraphQL to your `mix.exs` dependencies:
 
 ```elixir
-def deps do
-  [{:graphql, "~> 0.0.1"}]
+defp deps do
+  [{:graphql, "~> 0.0.2"}]
 end
 ```
 
@@ -27,12 +27,11 @@ $ mix deps.get
 Parse a simple GraphQL query
 
 ```elixir
-GraphQL.parse("{ name }")
+iex> GraphQL.parse "{ hello }"
 #=> [kind: :Document, loc: [start: 0],
-#        definitions: [[kind: :OperationDefinition, loc: [start: 0],
-#          operation: :query,
-#          selectionSet: [kind: :SelectionSet, loc: [start: 0],
-#            selections: [[kind: :Field, loc: [start: 0], name: 'hero']]]]]]
+#  definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
+#    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+#     selections: [[kind: :Field, loc: [start: 0], name: 'hello']]]]]]
 ```
 
 ## Status
