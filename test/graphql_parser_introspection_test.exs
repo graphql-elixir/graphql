@@ -39,7 +39,7 @@ defmodule GraphqlParserIntrospectionTest do
           args {
             ...InputValue
           }
-          type {
+          _type {
             ...TypeRef
           }
           isDeprecated
@@ -64,7 +64,7 @@ defmodule GraphqlParserIntrospectionTest do
       fragment InputValue on __InputValue {
         name
         description
-        type { ...TypeRef }
+        _type { ...TypeRef }
         defaultValue
       }
       fragment TypeRef on __Type {
