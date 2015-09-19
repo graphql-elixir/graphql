@@ -1,13 +1,21 @@
-defmodule Graphql.Mixfile do
+defmodule GraphQL.Mixfile do
   use Mix.Project
 
   def project do
     [app: :graphql,
      version: "0.0.1",
      elixir: "~> 1.0",
+     description: description,
+     package: package,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps]
+  end
+
+  defp description do
+    """
+    An Elixir implementation of GraphQL
+    """
   end
 
   # Configuration for the OTP application
@@ -29,4 +37,13 @@ defmodule Graphql.Mixfile do
   defp deps do
     []
   end
+
+  defp package do
+    [# These are the default files included in the package
+     files: ["lib", "priv", "mix.exs", "README*", "readme*", "LICENSE*", "license*"],
+     contributors: ["Josh Price", "James Sadler"],
+     licenses: ["BSD"],
+     links: %{"GitHub" => "https://github.com/joshprice/graphql-elixir"}]
+  end
+
 end
