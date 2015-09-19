@@ -62,7 +62,7 @@ Some resources on using leex and yecc:
 
 ### Atom Editor Support
 
->  Using the `language-babel` package? `.xrl` and `.yrl` files not syntax highlighting?
+>  Using the `language-erlang` package? `.xrl` and `.yrl` files not syntax highlighting?
 
 Syntax highlighting in Atom for `leex` (`.xrl`) and `yecc` (`yrl`) can be added by modifying `grammars/erlang.cson`.
 
