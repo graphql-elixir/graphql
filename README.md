@@ -6,8 +6,36 @@ GraphQL Elixir
 
 An Elixir implementation of Facebook's GraphQL.
 
-Status
-------
+## Installation
+
+First, add GraphQL to your `mix.exs` dependencies:
+
+```elixir
+def deps do
+  [{:graphql, "~> 0.0.1"}]
+end
+```
+
+Then, update your dependencies:
+
+```sh-session
+$ mix deps.get
+```
+
+## Usage
+
+Parse a simple GraphQL query
+
+```elixir
+GraphQL.parse("{ name }")
+#=> [kind: :Document, loc: [start: 0],
+#        definitions: [[kind: :OperationDefinition, loc: [start: 0],
+#          operation: :query,
+#          selectionSet: [kind: :SelectionSet, loc: [start: 0],
+#            selections: [[kind: :Field, loc: [start: 0], name: 'hero']]]]]]
+```
+
+## Status
 
 This is a work in progress, right now here's what is done:
 
@@ -17,13 +45,11 @@ This is a work in progress, right now here's what is done:
 - [ ] Query execution
 - [ ] Introspection
 
-Resources
----------
+## Resources
 
 See the incredible [GraphQL Spec](http://facebook.github.io/graphql/). This incredibly well written spec made writing the GraphQL parser pretty straightforward.
 
-Implementation
---------------
+## Implementation
 
 Tokenisation is done with [leex](http://erlang.org/doc/man/leex.html) and parsing with [yecc](http://erlang.org/doc/man/yecc.html). Both very useful Erlang tools for parsing. Yecc in particular is used by Elixir itself.
 
@@ -32,9 +58,7 @@ Some resources on using leex and yecc:
 * http://relops.com/blog/2014/01/13/leex_and_yecc/
 * http://andrealeopardi.com/posts/tokenizing-and-parsing-in-elixir-using-leex-and-yecc/
 
-
-Developers
-----------
+## Developers
 
 ### Atom Editor Support
 
