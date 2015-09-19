@@ -9,7 +9,6 @@ defmodule GraphQL do
 
   Parse a GraphQL query
 
-
       GraphQL.parse "{ hello }"
       #=> [kind: :Document, loc: [start: 0],
       #  definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
@@ -20,11 +19,21 @@ defmodule GraphQL do
 
   Execute a GraphQL query against a given schema / datastore.
 
-  ```elixir
-  iex> GraphQL.execute schema, "{ hello }"
-  ```
+      GraphQL.execute schema, "{ hello }"
 
   """
+
+  defmodule Schema do
+    defstruct query: nil, mutation: nil
+  end
+
+  defmodule ObjectType do
+    defstruct name: "RootQueryType", description: "", fields: []
+  end
+
+  defmodule FieldDefinition do
+    defstruct name: nil, type: "String", resolve: nil
+  end
 
   @doc """
   Tokenize the input string into a stream of tokens.
@@ -74,6 +83,16 @@ defmodule GraphQL do
       #=> [data: [hello: world]]
   """
   def execute(schema, query) do
+    # document = parse(query)
+    %Schema{
+      query: query_root = %ObjectType{
+        name: "RootQueryType",
+        fields: fields = [%FieldDefinition{}]
+      }
+    } = schema
+
+    result = for fd <- fields, do: {String.to_atom(fd.name), fd.resolve}
+    [data: result]
   end
 end
 
