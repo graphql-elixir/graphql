@@ -36,7 +36,7 @@ defmodule GraphqlParserKitchenSinkTest do
 
       {
         unnamed(truthy: true, falsey: false),
-        qry
+        query
       }
     """,
       [kind: :Document, loc: [start: 0],
