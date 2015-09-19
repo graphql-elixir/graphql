@@ -3,13 +3,17 @@ defmodule GraphQL.Mixfile do
 
   def project do
     [app: :graphql,
+     name: "GraphQL",
      version: "0.0.1",
      elixir: "~> 1.0",
      description: description,
      package: package,
+     source_url: "https://github.com/joshprice/graphql-elixir",
+     homepage_url: "https://github.com/joshprice/graphql-elixir",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps,
+     docs: [extras: ["README.md"]]]
   end
 
   defp description do
@@ -35,7 +39,8 @@ defmodule GraphQL.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    []
+    [{:earmark, "~> 0.1", only: :dev},
+    {:ex_doc, "~> 0.8", only: :dev}]
   end
 
   defp package do
