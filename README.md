@@ -46,7 +46,9 @@ This is a work in progress, right now here's what is done:
 
 ## Resources
 
-See the incredible [GraphQL Spec](http://facebook.github.io/graphql/). This incredibly well written spec made writing the GraphQL parser pretty straightforward.
+- [GraphQL Spec](http://facebook.github.io/graphql/) This incredibly well written spec made writing the GraphQL parser pretty straightforward.
+- [GraphQL JS Reference Implementation](https://github.com/graphql/graphql-js)
+
 
 ## Implementation
 
