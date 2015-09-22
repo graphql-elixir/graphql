@@ -423,7 +423,7 @@ defmodule GraphqlParserTest do
   end
 
   test "Use reserved words as fields" do
-    assert_parse "{ query mutation fragment on type implements interface union scalar enum input extend null }",
+    assert_parse "{ query mutation fragment type implements interface union scalar enum input extend null }",
       [kind: :Document, loc: [start: 0],
         definitions: [[kind: :OperationDefinition, loc: [start: 0],
           operation: :query,
@@ -432,7 +432,6 @@ defmodule GraphqlParserTest do
               [kind: :Field, loc: [start: 0], name: 'query'],
               [kind: :Field, loc: [start: 0], name: 'mutation'],
               [kind: :Field, loc: [start: 0], name: 'fragment'],
-              [kind: :Field, loc: [start: 0], name: 'on'],
               [kind: :Field, loc: [start: 0], name: 'type'],
               [kind: :Field, loc: [start: 0], name: 'implements'],
               [kind: :Field, loc: [start: 0], name: 'interface'],

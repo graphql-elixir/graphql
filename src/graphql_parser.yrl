@@ -112,7 +112,7 @@ Name -> name : extract_token('$1').
 Name -> 'query' : extract_keyword('$1').
 Name -> 'mutation' : extract_keyword('$1').
 Name -> 'fragment' : extract_keyword('$1').
-Name -> 'on' : extract_keyword('$1').
+% Name -> 'on' : extract_keyword('$1').
 Name -> 'type' : extract_keyword('$1').
 Name -> 'implements' : extract_keyword('$1').
 Name -> 'interface' : extract_keyword('$1').
