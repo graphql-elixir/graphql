@@ -422,16 +422,26 @@ defmodule GraphqlParserTest do
                   type: [kind: :NamedType, loc: [start: 0], name: 'Boolean']]]]]]]
   end
 
-  # test "Use reserved words as fields" do
-  #   assert_parse "{ query fragment on }",
-  #     [kind: :Document, loc: [start: 0],
-  #       definitions: [[kind: :OperationDefinition, loc: [start: 0],
-  #         operation: :query,
-  #         selectionSet: [kind: :SelectionSet, loc: [start: 0],
-  #           selections: [
-  #             [kind: :Field, loc: [start: 0], name: 'query'],
-  #             [kind: :Field, loc: [start: 0], name: 'fragment'],
-  #             [kind: :Field, loc: [start: 0], name: 'on']]]]]]
-  #
-  # end
+  test "Use reserved words as fields" do
+    assert_parse "{ query mutation fragment on type implements interface union scalar enum input extend null }",
+      [kind: :Document, loc: [start: 0],
+        definitions: [[kind: :OperationDefinition, loc: [start: 0],
+          operation: :query,
+          selectionSet: [kind: :SelectionSet, loc: [start: 0],
+            selections: [
+              [kind: :Field, loc: [start: 0], name: 'query'],
+              [kind: :Field, loc: [start: 0], name: 'mutation'],
+              [kind: :Field, loc: [start: 0], name: 'fragment'],
+              [kind: :Field, loc: [start: 0], name: 'on'],
+              [kind: :Field, loc: [start: 0], name: 'type'],
+              [kind: :Field, loc: [start: 0], name: 'implements'],
+              [kind: :Field, loc: [start: 0], name: 'interface'],
+              [kind: :Field, loc: [start: 0], name: 'union'],
+              [kind: :Field, loc: [start: 0], name: 'scalar'],
+              [kind: :Field, loc: [start: 0], name: 'enum'],
+              [kind: :Field, loc: [start: 0], name: 'input'],
+              [kind: :Field, loc: [start: 0], name: 'extend'],
+              [kind: :Field, loc: [start: 0], name: 'null']]]]]]
+
+  end
 end

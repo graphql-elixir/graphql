@@ -7,7 +7,7 @@ Nonterminals
   InputValueDefinitionList InputValueDefinition UnionMembers
   EnumValueDefinitionList EnumValueDefinition
   SelectionSet Selections Selection
-  OperationType Name VariableDefinitions VariableDefinition Directives Directive
+  OperationType Name NameWithoutOn VariableDefinitions VariableDefinition Directives Directive
   Field Alias Arguments ArgumentList Argument
   FragmentSpread FragmentName InlineFragment
   VariableDefinitionList Variable DefaultValue
@@ -16,7 +16,7 @@ Nonterminals
 
 Terminals
   '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '|' '...'
-  'query' 'mutation' 'fragment' 'on'
+  'query' 'mutation' 'fragment' 'on' 'null'
   'type' 'implements' 'interface' 'union' 'scalar' 'enum' 'input' 'extend'
   name int_value float_value string_value boolean_value.
 
@@ -77,7 +77,7 @@ FragmentSpread -> '...' FragmentName Directives : build_ast_node('FragmentSpread
 InlineFragment -> '...' 'on' TypeCondition SelectionSet : build_ast_node('InlineFragment', [{'typeCondition', '$3'}, {'selectionSet', '$4'}]).
 InlineFragment -> '...' 'on' TypeCondition Directives SelectionSet : build_ast_node('InlineFragment', [{'typeCondition', '$3'}, {'directives', '$4'}, {'selectionSet', '$5'}]).
 
-FragmentName -> Name : '$1'.
+FragmentName -> NameWithoutOn : '$1'.
 
 Field -> Name : build_ast_node('Field', {'name', '$1'}).
 Field -> Name Arguments : build_ast_node('Field', [{'name', '$1'}, {'arguments', '$2'}]).
@@ -108,7 +108,22 @@ Directives -> Directive Directives : ['$1'|'$2'].
 Directive -> '@' Name : build_ast_node('Directive', [{name, '$2'}]).
 Directive -> '@' Name Arguments : build_ast_node('Directive', [{name, '$2'}, {'arguments', '$3'}]).
 
-Name -> name : extract_token('$1').
+NameWithoutOn -> name : extract_token('$1').
+NameWithoutOn -> 'query' : extract_keyword('$1').
+NameWithoutOn -> 'mutation' : extract_keyword('$1').
+NameWithoutOn -> 'fragment' : extract_keyword('$1').
+NameWithoutOn -> 'type' : extract_keyword('$1').
+NameWithoutOn -> 'implements' : extract_keyword('$1').
+NameWithoutOn -> 'interface' : extract_keyword('$1').
+NameWithoutOn -> 'union' : extract_keyword('$1').
+NameWithoutOn -> 'scalar' : extract_keyword('$1').
+NameWithoutOn -> 'enum' : extract_keyword('$1').
+NameWithoutOn -> 'input' : extract_keyword('$1').
+NameWithoutOn -> 'extend' : extract_keyword('$1').
+NameWithoutOn -> 'null' : extract_keyword('$1').
+
+Name -> NameWithoutOn : '$1'.
+Name -> 'on' : extract_keyword('$1').
 
 Value -> Variable : '$1'.
 Value -> int_value : build_ast_node('IntValue', [{'value', extract_integer('$1')}]).
@@ -198,6 +213,7 @@ extract_float({_Token, _Line, Value}) ->
   {Float, []} = string:to_float(Value), Float.
 extract_boolean({_Token, _Line, "true"}) -> true;
 extract_boolean({_Token, _Line, "false"}) -> false.
+extract_keyword({Value, _Line}) -> atom_to_list(Value).
 
 build_ast_node(Type, Tuple) when is_list(Tuple) ->
   [{kind, Type}, {loc, [{start, 0}]}] ++ Tuple;
