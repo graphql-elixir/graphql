@@ -12,7 +12,6 @@ defmodule GraphQL do
     defstruct name: nil, type: "String", resolve: nil
   end
 
-
   def tokenize(input_string) do
     {:ok, tokens, _} = :graphql_lexer.string input_string
     tokens
@@ -32,15 +31,21 @@ defmodule GraphQL do
   end
 
   def execute(schema, query) do
-    # document = parse(query)
+    document = parse(query)
+    query_fields = hd(document[:definitions])[:selectionSet][:selections]
+    query_field_names = for field <- query_fields, do: to_string(field[:name])
+
     %Schema{
       query: query_root = %ObjectType{
         name: "RootQueryType",
-        fields: fields = [%FieldDefinition{}]
+        fields: fields
       }
     } = schema
 
-    result = for fd <- fields, do: {String.to_atom(fd.name), fd.resolve}
+    result = for fd <- fields,
+      qf <- query_field_names,
+      qf == fd.name,
+      do: {String.to_atom(fd.name), fd.resolve.()}
     [data: result]
   end
 end
