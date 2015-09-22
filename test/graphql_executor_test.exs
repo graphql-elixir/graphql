@@ -29,15 +29,15 @@ defmodule GraphqlExecutorTest do
       query: %GraphQL.ObjectType{
         name: "RootQueryType",
         fields: [
-          # %GraphQL.FieldDefinition{
-          #   name: "planet",
-          #   type: "String",
-          #   resolve: "mars"
-          # },
+          %GraphQL.FieldDefinition{
+            name: "planet",
+            type: "String",
+            resolve: fn -> "mars" end
+          },
           %GraphQL.FieldDefinition{
             name: "hello",
             type: "String",
-            resolve: "world"
+            resolve: fn -> "world" end
           }
         ]
       }
