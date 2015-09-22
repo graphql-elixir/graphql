@@ -104,6 +104,6 @@ defmodule GraphqlParserKitchenSinkTest do
                value: [kind: :BooleanValue, loc: [start: 0], value: true]],
               [kind: :Argument, loc: [start: 0], name: 'falsey',
                value: [kind: :BooleanValue, loc: [start: 0], value: false]]]],
-            [kind: :Field, loc: [start: 0], name: 'qry']]]]]]
+            [kind: :Field, loc: [start: 0], name: 'query']]]]]]
   end
 end

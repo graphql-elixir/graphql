@@ -39,7 +39,7 @@ defmodule GraphqlParserIntrospectionTest do
           args {
             ...InputValue
           }
-          _type {
+          type {
             ...TypeRef
           }
           isDeprecated
@@ -64,7 +64,7 @@ defmodule GraphqlParserIntrospectionTest do
       fragment InputValue on __InputValue {
         name
         description
-        _type { ...TypeRef }
+        type { ...TypeRef }
         defaultValue
       }
       fragment TypeRef on __Type {
@@ -83,6 +83,90 @@ defmodule GraphqlParserIntrospectionTest do
           }
         }
       }
-    """, []
+    """,
+    [kind: :Document, loc: [start: 0],
+            definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
+              name: 'IntrospectionQuery',
+              selectionSet: [kind: :SelectionSet, loc: [start: 0],
+               selections: [[kind: :Field, loc: [start: 0], name: '__schema',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :Field, loc: [start: 0], name: 'queryType',
+                    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                     selections: [[kind: :Field, loc: [start: 0], name: 'name']]]],
+                   [kind: :Field, loc: [start: 0], name: 'mutationType',
+                    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                     selections: [[kind: :Field, loc: [start: 0], name: 'name']]]],
+                   [kind: :Field, loc: [start: 0], name: 'types',
+                    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                     selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'FullType']]]],
+                   [kind: :Field, loc: [start: 0], name: 'directives',
+                    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                     selections: [[kind: :Field, loc: [start: 0], name: 'name'],
+                      [kind: :Field, loc: [start: 0], name: 'description'],
+                      [kind: :Field, loc: [start: 0], name: 'args',
+                       selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                        selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'InputValue']]]],
+                      [kind: :Field, loc: [start: 0], name: 'onOperation'],
+                      [kind: :Field, loc: [start: 0], name: 'onFragment'],
+                      [kind: :Field, loc: [start: 0], name: 'onField']]]]]]]]]],
+             [kind: :FragmentDefinition, loc: [start: 0], name: 'FullType',
+              typeCondition: [kind: :NamedType, loc: [start: 0], name: '__Type'],
+              selectionSet: [kind: :SelectionSet, loc: [start: 0],
+               selections: [[kind: :Field, loc: [start: 0], name: 'kind'],
+                [kind: :Field, loc: [start: 0], name: 'name'],
+                [kind: :Field, loc: [start: 0], name: 'description'],
+                [kind: :Field, loc: [start: 0], name: 'fields',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :Field, loc: [start: 0], name: 'name'],
+                   [kind: :Field, loc: [start: 0], name: 'description'],
+                   [kind: :Field, loc: [start: 0], name: 'args',
+                    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                     selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'InputValue']]]],
+                   [kind: :Field, loc: [start: 0], name: 'type',
+                    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                     selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'TypeRef']]]],
+                   [kind: :Field, loc: [start: 0], name: 'isDeprecated'],
+                   [kind: :Field, loc: [start: 0], name: 'deprecationReason']]]],
+                [kind: :Field, loc: [start: 0], name: 'inputFields',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'InputValue']]]],
+                [kind: :Field, loc: [start: 0], name: 'interfaces',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'TypeRef']]]],
+                [kind: :Field, loc: [start: 0], name: 'enumValues',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :Field, loc: [start: 0], name: 'name'],
+                   [kind: :Field, loc: [start: 0], name: 'description'],
+                   [kind: :Field, loc: [start: 0], name: 'isDeprecated'],
+                   [kind: :Field, loc: [start: 0], name: 'deprecationReason']]]],
+                [kind: :Field, loc: [start: 0], name: 'possibleTypes',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'TypeRef']]]]]]],
+             [kind: :FragmentDefinition, loc: [start: 0], name: 'InputValue',
+              typeCondition: [kind: :NamedType, loc: [start: 0], name: '__InputValue'],
+              selectionSet: [kind: :SelectionSet, loc: [start: 0],
+               selections: [[kind: :Field, loc: [start: 0], name: 'name'],
+                [kind: :Field, loc: [start: 0], name: 'description'],
+                [kind: :Field, loc: [start: 0], name: 'type',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :FragmentSpread, loc: [start: 0], name: 'TypeRef']]]],
+                [kind: :Field, loc: [start: 0], name: 'defaultValue']]]],
+             [kind: :FragmentDefinition, loc: [start: 0], name: 'TypeRef',
+              typeCondition: [kind: :NamedType, loc: [start: 0], name: '__Type'],
+              selectionSet: [kind: :SelectionSet, loc: [start: 0],
+               selections: [[kind: :Field, loc: [start: 0], name: 'kind'],
+                [kind: :Field, loc: [start: 0], name: 'name'],
+                [kind: :Field, loc: [start: 0], name: 'ofType',
+                 selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                  selections: [[kind: :Field, loc: [start: 0], name: 'kind'],
+                   [kind: :Field, loc: [start: 0], name: 'name'],
+                   [kind: :Field, loc: [start: 0], name: 'ofType',
+                    selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                     selections: [[kind: :Field, loc: [start: 0], name: 'kind'],
+                      [kind: :Field, loc: [start: 0], name: 'name'],
+                      [kind: :Field, loc: [start: 0], name: 'ofType',
+                       selectionSet: [kind: :SelectionSet, loc: [start: 0],
+                        selections: [[kind: :Field, loc: [start: 0], name: 'kind'],
+                         [kind: :Field, loc: [start: 0], name: 'name']]]]]]]]]]]]]]]
   end
 end

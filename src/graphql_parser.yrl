@@ -16,7 +16,7 @@ Nonterminals
 
 Terminals
   '{' '}' '(' ')' '[' ']' '!' ':' '@' '$' '=' '|' '...'
-  'query' 'mutation' 'fragment' 'on'
+  'query' 'mutation' 'fragment' 'on' 'null'
   'type' 'implements' 'interface' 'union' 'scalar' 'enum' 'input' 'extend'
   name int_value float_value string_value boolean_value.
 
@@ -109,6 +109,19 @@ Directive -> '@' Name : build_ast_node('Directive', [{name, '$2'}]).
 Directive -> '@' Name Arguments : build_ast_node('Directive', [{name, '$2'}, {'arguments', '$3'}]).
 
 Name -> name : extract_token('$1').
+Name -> 'query' : extract_keyword('$1').
+Name -> 'mutation' : extract_keyword('$1').
+Name -> 'fragment' : extract_keyword('$1').
+Name -> 'on' : extract_keyword('$1').
+Name -> 'type' : extract_keyword('$1').
+Name -> 'implements' : extract_keyword('$1').
+Name -> 'interface' : extract_keyword('$1').
+Name -> 'union' : extract_keyword('$1').
+Name -> 'scalar' : extract_keyword('$1').
+Name -> 'enum' : extract_keyword('$1').
+Name -> 'input' : extract_keyword('$1').
+Name -> 'extend' : extract_keyword('$1').
+Name -> 'null' : extract_keyword('$1').
 
 Value -> Variable : '$1'.
 Value -> int_value : build_ast_node('IntValue', [{'value', extract_integer('$1')}]).
@@ -198,6 +211,7 @@ extract_float({_Token, _Line, Value}) ->
   {Float, []} = string:to_float(Value), Float.
 extract_boolean({_Token, _Line, "true"}) -> true;
 extract_boolean({_Token, _Line, "false"}) -> false.
+extract_keyword({Value, _Line}) -> atom_to_list(Value).
 
 build_ast_node(Type, Tuple) when is_list(Tuple) ->
   [{kind, Type}, {loc, [{start, 0}]}] ++ Tuple;
