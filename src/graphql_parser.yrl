@@ -7,7 +7,7 @@ Nonterminals
   InputValueDefinitionList InputValueDefinition UnionMembers
   EnumValueDefinitionList EnumValueDefinition
   SelectionSet Selections Selection
-  OperationType Name VariableDefinitions VariableDefinition Directives Directive
+  OperationType Name NameWithoutOn VariableDefinitions VariableDefinition Directives Directive
   Field Alias Arguments ArgumentList Argument
   FragmentSpread FragmentName InlineFragment
   VariableDefinitionList Variable DefaultValue
@@ -77,7 +77,7 @@ FragmentSpread -> '...' FragmentName Directives : build_ast_node('FragmentSpread
 InlineFragment -> '...' 'on' TypeCondition SelectionSet : build_ast_node('InlineFragment', [{'typeCondition', '$3'}, {'selectionSet', '$4'}]).
 InlineFragment -> '...' 'on' TypeCondition Directives SelectionSet : build_ast_node('InlineFragment', [{'typeCondition', '$3'}, {'directives', '$4'}, {'selectionSet', '$5'}]).
 
-FragmentName -> Name : '$1'.
+FragmentName -> NameWithoutOn : '$1'.
 
 Field -> Name : build_ast_node('Field', {'name', '$1'}).
 Field -> Name Arguments : build_ast_node('Field', [{'name', '$1'}, {'arguments', '$2'}]).
@@ -108,20 +108,22 @@ Directives -> Directive Directives : ['$1'|'$2'].
 Directive -> '@' Name : build_ast_node('Directive', [{name, '$2'}]).
 Directive -> '@' Name Arguments : build_ast_node('Directive', [{name, '$2'}, {'arguments', '$3'}]).
 
-Name -> name : extract_token('$1').
-Name -> 'query' : extract_keyword('$1').
-Name -> 'mutation' : extract_keyword('$1').
-Name -> 'fragment' : extract_keyword('$1').
-% Name -> 'on' : extract_keyword('$1').
-Name -> 'type' : extract_keyword('$1').
-Name -> 'implements' : extract_keyword('$1').
-Name -> 'interface' : extract_keyword('$1').
-Name -> 'union' : extract_keyword('$1').
-Name -> 'scalar' : extract_keyword('$1').
-Name -> 'enum' : extract_keyword('$1').
-Name -> 'input' : extract_keyword('$1').
-Name -> 'extend' : extract_keyword('$1').
-Name -> 'null' : extract_keyword('$1').
+NameWithoutOn -> name : extract_token('$1').
+NameWithoutOn -> 'query' : extract_keyword('$1').
+NameWithoutOn -> 'mutation' : extract_keyword('$1').
+NameWithoutOn -> 'fragment' : extract_keyword('$1').
+NameWithoutOn -> 'type' : extract_keyword('$1').
+NameWithoutOn -> 'implements' : extract_keyword('$1').
+NameWithoutOn -> 'interface' : extract_keyword('$1').
+NameWithoutOn -> 'union' : extract_keyword('$1').
+NameWithoutOn -> 'scalar' : extract_keyword('$1').
+NameWithoutOn -> 'enum' : extract_keyword('$1').
+NameWithoutOn -> 'input' : extract_keyword('$1').
+NameWithoutOn -> 'extend' : extract_keyword('$1').
+NameWithoutOn -> 'null' : extract_keyword('$1').
+
+Name -> NameWithoutOn : '$1'.
+Name -> 'on' : extract_keyword('$1').
 
 Value -> Variable : '$1'.
 Value -> int_value : build_ast_node('IntValue', [{'value', extract_integer('$1')}]).
