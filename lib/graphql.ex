@@ -35,7 +35,6 @@ defmodule GraphQL do
     defstruct name: nil, type: "String", resolve: nil
   end
 
-<<<<<<< 71f7d6965102b795bc58dc53464a6d8d607c8ebf
   @doc """
   Tokenize the input string into a stream of tokens.
 
@@ -45,8 +44,6 @@ defmodule GraphQL do
       #=> [{ :"{", 1 }, { :name, 1, 'hello' }, { :"}", 1 }]
 
   """
-=======
->>>>>>> Hello world schema def + query execution by brute force
   def tokenize(input_string) do
     {:ok, tokens, _} = :graphql_lexer.string input_string
     tokens
