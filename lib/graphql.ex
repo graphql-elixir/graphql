@@ -23,9 +23,8 @@ defmodule GraphQL do
 
   """
 
-  defmodule Schema do
-    defstruct query: nil, mutation: nil
-  end
+  alias GraphQL.Schema
+  alias GraphQL.SyntaxError
 
   defmodule ObjectType do
     defstruct name: "RootQueryType", description: "", fields: []
@@ -70,7 +69,7 @@ defmodule GraphQL do
       {:ok, parse_result} ->
         parse_result
       {:error, {line_number, _, errors}} ->
-        raise GraphQL.SyntaxError, line: line_number, errors: errors
+        raise SyntaxError, line: line_number, errors: errors
     end
   end
 
@@ -99,13 +98,5 @@ defmodule GraphQL do
       qf == fd.name,
       do: {String.to_atom(fd.name), fd.resolve.()}
     [data: result]
-  end
-end
-
-defmodule GraphQL.SyntaxError do
-  defexception line: nil, errors: "Syntax error"
-
-  def message(exception) do
-    "#{exception.errors} on line #{exception.line}"
   end
 end
