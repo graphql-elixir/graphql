@@ -128,7 +128,7 @@ Name -> 'on' : extract_keyword('$1').
 Value -> Variable : '$1'.
 Value -> int_value : build_ast_node('IntValue', [{'value', extract_integer('$1')}]).
 Value -> float_value : build_ast_node('FloatValue', [{'value', extract_float('$1')}]).
-Value -> string_value : build_ast_node('StringValue', [{'value', extract_token('$1')}]).
+Value -> string_value : build_ast_node('StringValue', [{'value', extract_quoted_string_token('$1')}]).
 Value -> boolean_value : build_ast_node('BooleanValue', [{'value', extract_boolean('$1')}]).
 Value -> EnumValue : build_ast_node('EnumValue', [{'value', '$1'}]).
 Value -> ListValue : build_ast_node('ListValue', [{'values', '$1'}]).
@@ -206,14 +206,15 @@ TypeExtensionDefinition -> 'extend' ObjectTypeDefinition :
 Erlang code.
 
 extract_atom({Value, _Line}) -> Value.
-extract_token({_Token, _Line, Value}) -> Value.
+extract_token({_Token, _Line, Value}) -> list_to_binary(Value).
+extract_quoted_string_token({_Token, _Line, Value}) -> list_to_binary(lists:sublist(Value, 2, length(Value) - 2)).
 extract_integer({_Token, _Line, Value}) ->
   {Int, []} = string:to_integer(Value), Int.
 extract_float({_Token, _Line, Value}) ->
   {Float, []} = string:to_float(Value), Float.
 extract_boolean({_Token, _Line, "true"}) -> true;
 extract_boolean({_Token, _Line, "false"}) -> false.
-extract_keyword({Value, _Line}) -> atom_to_list(Value).
+extract_keyword({Value, _Line}) -> list_to_binary(atom_to_list(Value)).
 
 build_ast_node(Type, Tuple) when is_list(Tuple) ->
   [{kind, Type}, {loc, [{start, 0}]}] ++ Tuple;

@@ -13,7 +13,7 @@ defmodule GraphQL do
       #=> [kind: :Document, loc: [start: 0],
       #  definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
       #    selectionSet: [kind: :SelectionSet, loc: [start: 0],
-      #     selections: [[kind: :Field, loc: [start: 0], name: 'hello']]]]]]
+      #     selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
 
   ## Execute a query
 
@@ -41,7 +41,7 @@ defmodule GraphQL do
   ## Examples
 
       GraphQL.tokenize("{ hello }")
-      #=> [{ :"{", 1 }, { :name, 1, 'hello' }, { :"}", 1 }]
+      #=> [{ :"{", 1 }, { :name, 1, "hello" }, { :"}", 1 }]
 
   """
   def tokenize(input_string) do
@@ -58,7 +58,7 @@ defmodule GraphQL do
       #=> [kind: :Document, loc: [start: 1],
       #  definitions: [[kind: :OperationDefinition, loc: [start: 1], operation: :query,
       #    selectionSet: [kind: :SelectionSet, loc: [start: 1],
-      #     selections: [[kind: :Field, loc: [start: 1], name: 'hello']]]]]]
+      #     selections: [[kind: :Field, loc: [start: 1], name: "hello"]]]]]]
 
   """
   def parse(input_string) when is_binary(input_string) do
@@ -88,7 +88,7 @@ defmodule GraphQL do
     query_field_names = for field <- query_fields, do: to_string(field[:name])
 
     %Schema{
-      query: query_root = %ObjectType{
+      query: _query_root = %ObjectType{
         name: "RootQueryType",
         fields: fields
       }
