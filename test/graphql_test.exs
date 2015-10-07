@@ -2,13 +2,13 @@ defmodule GraphqlTest do
   use ExUnit.Case, async: true
 
   import ExUnit.TestHelpers
-  
+
   test "parse char list" do
-    assert_parse '{ hero }',
+    assert_parse "{ hero }",
       [kind: :Document, loc: [start: 0],
         definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
           selectionSet: [kind: :SelectionSet, loc: [start: 0],
-           selections: [[kind: :Field, loc: [start: 0], name: 'hero']]]]]]
+           selections: [[kind: :Field, loc: [start: 0], name: "hero"]]]]]]
   end
 
   test "parse string" do
@@ -16,7 +16,7 @@ defmodule GraphqlTest do
       [kind: :Document, loc: [start: 0],
         definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
           selectionSet: [kind: :SelectionSet, loc: [start: 0],
-           selections: [[kind: :Field, loc: [start: 0], name: 'hero']]]]]]
+           selections: [[kind: :Field, loc: [start: 0], name: "hero"]]]]]]
   end
 
   test "ReportError with message" do

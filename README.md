@@ -31,7 +31,7 @@ iex> GraphQL.parse "{ hello }"
 #=> [kind: :Document, loc: [start: 0],
 #  definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
 #    selectionSet: [kind: :SelectionSet, loc: [start: 0],
-#     selections: [[kind: :Field, loc: [start: 0], name: 'hello']]]]]]
+#     selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
 ```
 
 ## Status

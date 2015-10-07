@@ -3,36 +3,38 @@
 -file("src/graphql_parser.yrl", 206).
 
 extract_atom({Value, _Line}) -> Value.
-extract_token({_Token, _Line, Value}) -> Value.
+extract_token({_Token, _Line, Value}) -> list_to_binary(Value).
+extract_quoted_string_token({_Token, _Line, Value}) -> list_to_binary(lists:sublist(Value, 2, length(Value) - 2)).
 extract_integer({_Token, _Line, Value}) ->
   {Int, []} = string:to_integer(Value), Int.
 extract_float({_Token, _Line, Value}) ->
   {Float, []} = string:to_float(Value), Float.
 extract_boolean({_Token, _Line, "true"}) -> true;
 extract_boolean({_Token, _Line, "false"}) -> false.
-extract_keyword({Value, _Line}) -> atom_to_list(Value).
+extract_keyword({Value, _Line}) -> list_to_binary(atom_to_list(Value)).
 
 build_ast_node(Type, Tuple) when is_list(Tuple) ->
   [{kind, Type}, {loc, [{start, 0}]}] ++ Tuple;
 build_ast_node(Type, Tuple) when is_tuple(Tuple) ->
   [{kind, Type}, {loc, [{start, 0}]}, Tuple].
 
--file("/usr/local/Cellar/erlang/17.5/lib/erlang/lib/parsetools-2.0.12/include/yeccpre.hrl", 0).
+-file("/opt/boxen/homebrew/Cellar/erlang/18.1/lib/erlang/lib/parsetools-2.1/include/yeccpre.hrl", 0).
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 1996-2013. All Rights Reserved.
+%% Copyright Ericsson AB 1996-2015. All Rights Reserved.
 %%
-%% The contents of this file are subject to the Erlang Public License,
-%% Version 1.1, (the "License"); you may not use this file except in
-%% compliance with the License. You should have received a copy of the
-%% Erlang Public License along with this software. If not, it can be
-%% retrieved online at http://www.erlang.org/.
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
 %%
-%% Software distributed under the License is distributed on an "AS IS"
-%% basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-%% the License for the specific language governing rights and limitations
-%% under the License.
+%%     http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
 %%
 %% %CopyrightEnd%
 %%
@@ -144,21 +146,10 @@ yecc_end(Line) ->
     {'$end', Line}.
 
 yecctoken_end_location(Token) ->
-    try
-        {text, Str} = erl_scan:token_info(Token, text),
-        {line, Line} = erl_scan:token_info(Token, line),
-        Parts = re:split(Str, "\n"),
-        Dline = length(Parts) - 1,
-        Yline = Line + Dline,
-        case erl_scan:token_info(Token, column) of
-            {column, Column} ->
-                Col = byte_size(lists:last(Parts)),
-                {Yline, Col + if Dline =:= 0 -> Column; true -> 1 end};
-            undefined ->
-                Yline
-        end
-    catch _:_ ->
-        yecctoken_location(Token)
+    try erl_anno:end_location(element(2, Token)) of
+        undefined -> yecctoken_location(Token);
+        Loc -> Loc
+    catch _:_ -> yecctoken_location(Token)
     end.
 
 -compile({nowarn_unused_function, yeccerror/1}).
@@ -169,15 +160,15 @@ yeccerror(Token) ->
 
 -compile({nowarn_unused_function, yecctoken_to_string/1}).
 yecctoken_to_string(Token) ->
-    case catch erl_scan:token_info(Token, text) of
-        {text, Txt} -> Txt;
-        _ -> yecctoken2string(Token)
+    try erl_scan:text(Token) of
+        undefined -> yecctoken2string(Token);
+        Txt -> Txt
+    catch _:_ -> yecctoken2string(Token)
     end.
 
 yecctoken_location(Token) ->
-    case catch erl_scan:token_info(Token, location) of
-        {location, Loc} -> Loc;
-        _ -> element(2, Token)
+    try erl_scan:location(Token)
+    catch _:_ -> element(2, Token)
     end.
 
 -compile({nowarn_unused_function, yecctoken2string/1}).
@@ -201,8 +192,9 @@ yecctoken2string(Other) ->
 
 
 
--file("src/graphql_parser.erl", 204).
+-file("src/graphql_parser.erl", 195).
 
+-dialyzer({nowarn_function, yeccpars2/7}).
 yeccpars2(0=S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_0(S, Cat, Ss, Stack, T, Ts, Tzr);
 %% yeccpars2(1=S, Cat, Ss, Stack, T, Ts, Tzr) ->
@@ -612,6 +604,7 @@ yeccpars2(198=S, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccpars2(Other, _, _, _, _, _, _) ->
  erlang:error({yecc_bug,"1.4",{missing_state_in_action_table, Other}}).
 
+-dialyzer({nowarn_function, yeccpars2_0/7}).
 yeccpars2_0(S, enum, Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 16, Ss, Stack, T, Ts, Tzr);
 yeccpars2_0(S, extend, Ss, Stack, T, Ts, Tzr) ->
@@ -676,6 +669,7 @@ yeccpars2_11(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 yeccpars2_12(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  'yeccgoto_\'TypeDefinition\''(hd(Ss), Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_13/7}).
 yeccpars2_13(_S, '$end', _Ss, Stack, _T, _Ts, _Tzr) ->
  {ok, hd(Stack)};
 yeccpars2_13(_, _, _, _, T, _, _) ->
@@ -713,11 +707,13 @@ yeccpars2_15(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 
 %% yeccpars2_16: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_17/7}).
 yeccpars2_17(S, type, Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 24, Ss, Stack, T, Ts, Tzr);
 yeccpars2_17(_, _, _, _, T, _, _) ->
  yeccerror(T).
 
+-dialyzer({nowarn_function, yeccpars2_18/7}).
 yeccpars2_18(S, enum, Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 36, Ss, Stack, T, Ts, Tzr);
 yeccpars2_18(S, extend, Ss, Stack, T, Ts, Tzr) ->
@@ -772,6 +768,7 @@ yeccpars2_26(S, on, Ss, Stack, T, Ts, Tzr) ->
 yeccpars2_26(S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_18(S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_27/7}).
 yeccpars2_27(S, '}', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 116, Ss, Stack, T, Ts, Tzr);
 yeccpars2_27(_, _, _, _, T, _, _) ->
@@ -910,6 +907,7 @@ yeccpars2_51(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 
 %% yeccpars2_52: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_53/7}).
 yeccpars2_53(S, '@', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 59, Ss, Stack, T, Ts, Tzr);
 yeccpars2_53(S, '{', Ss, Stack, T, Ts, Tzr) ->
@@ -929,6 +927,7 @@ yeccpars2_56(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_56_(Stack),
  'yeccgoto_\'InlineFragment\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_57/7}).
 yeccpars2_57(S, '{', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 26, Ss, Stack, T, Ts, Tzr);
 yeccpars2_57(_, _, _, _, T, _, _) ->
@@ -956,11 +955,13 @@ yeccpars2_61(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 
 %% yeccpars2_62: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_63/7}).
 yeccpars2_63(S, ':', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 68, Ss, Stack, T, Ts, Tzr);
 yeccpars2_63(_, _, _, _, T, _, _) ->
  yeccerror(T).
 
+-dialyzer({nowarn_function, yeccpars2_64/7}).
 yeccpars2_64(S, ')', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 67, Ss, Stack, T, Ts, Tzr);
 yeccpars2_64(_, _, _, _, T, _, _) ->
@@ -1096,6 +1097,7 @@ yeccpars2_81(S, '}', Ss, Stack, T, Ts, Tzr) ->
 yeccpars2_81(S, Cat, Ss, Stack, T, Ts, Tzr) ->
  yeccpars2_18(S, Cat, Ss, Stack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_82/7}).
 yeccpars2_82(S, '}', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 89, Ss, Stack, T, Ts, Tzr);
 yeccpars2_82(_, _, _, _, T, _, _) ->
@@ -1133,6 +1135,7 @@ yeccpars2_83(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_83_(Stack),
  'yeccgoto_\'ObjectFields\''(hd(Ss), Cat, Ss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_84/7}).
 yeccpars2_84(S, ':', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 86, Ss, Stack, T, Ts, Tzr);
 yeccpars2_84(_, _, _, _, T, _, _) ->
@@ -1160,6 +1163,7 @@ yeccpars2_89(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_89_(Stack),
  'yeccgoto_\'ObjectValue\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_90/7}).
 yeccpars2_90(S, ']', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 94, Ss, Stack, T, Ts, Tzr);
 yeccpars2_90(_, _, _, _, T, _, _) ->
@@ -1358,6 +1362,7 @@ yeccpars2_116(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_116_(Stack),
  'yeccgoto_\'SelectionSet\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_117/7}).
 yeccpars2_117(S, '=', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 118, Ss, Stack, T, Ts, Tzr);
 yeccpars2_117(_, _, _, _, T, _, _) ->
@@ -1383,6 +1388,7 @@ yeccpars2_122(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_122_(Stack),
  'yeccgoto_\'UnionMembers\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_123/7}).
 yeccpars2_123(S, implements, Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 125, Ss, Stack, T, Ts, Tzr);
 yeccpars2_123(S, '{', Ss, Stack, T, Ts, Tzr) ->
@@ -1390,6 +1396,7 @@ yeccpars2_123(S, '{', Ss, Stack, T, Ts, Tzr) ->
 yeccpars2_123(_, _, _, _, T, _, _) ->
  yeccerror(T).
 
+-dialyzer({nowarn_function, yeccpars2_124/7}).
 yeccpars2_124(S, '{', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 159, Ss, Stack, T, Ts, Tzr);
 yeccpars2_124(_, _, _, _, T, _, _) ->
@@ -1399,6 +1406,7 @@ yeccpars2_124(_, _, _, _, T, _, _) ->
 
 %% yeccpars2_126: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_127/7}).
 yeccpars2_127(S, '(', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 133, Ss, Stack, T, Ts, Tzr);
 yeccpars2_127(S, ':', Ss, Stack, T, Ts, Tzr) ->
@@ -1406,6 +1414,7 @@ yeccpars2_127(S, ':', Ss, Stack, T, Ts, Tzr) ->
 yeccpars2_127(_, _, _, _, T, _, _) ->
  yeccerror(T).
 
+-dialyzer({nowarn_function, yeccpars2_128/7}).
 yeccpars2_128(S, '}', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 131, Ss, Stack, T, Ts, Tzr);
 yeccpars2_128(_, _, _, _, T, _, _) ->
@@ -1453,6 +1462,7 @@ yeccpars2_131(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_131_(Stack),
  'yeccgoto_\'ObjectTypeDefinition\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_132/7}).
 yeccpars2_132(S, ':', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 154, Ss, Stack, T, Ts, Tzr);
 yeccpars2_132(_, _, _, _, T, _, _) ->
@@ -1487,6 +1497,7 @@ yeccpars2_138(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 
 %% yeccpars2_139: see yeccpars2_134
 
+-dialyzer({nowarn_function, yeccpars2_140/7}).
 yeccpars2_140(S, ']', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 141, Ss, Stack, T, Ts, Tzr);
 yeccpars2_140(_, _, _, _, T, _, _) ->
@@ -1507,11 +1518,13 @@ yeccpars2_143(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_143_(Stack),
  'yeccgoto_\'NonNullType\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_144/7}).
 yeccpars2_144(S, ':', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 149, Ss, Stack, T, Ts, Tzr);
 yeccpars2_144(_, _, _, _, T, _, _) ->
  yeccerror(T).
 
+-dialyzer({nowarn_function, yeccpars2_145/7}).
 yeccpars2_145(S, ')', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 148, Ss, Stack, T, Ts, Tzr);
 yeccpars2_145(_, _, _, _, T, _, _) ->
@@ -1631,6 +1644,7 @@ yeccpars2_158(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 
 %% yeccpars2_159: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_160/7}).
 yeccpars2_160(S, '}', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 161, Ss, Stack, T, Ts, Tzr);
 yeccpars2_160(_, _, _, _, T, _, _) ->
@@ -1646,6 +1660,7 @@ yeccpars2_162(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_162_(Stack),
  'yeccgoto_\'ScalarTypeDefinition\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_163/7}).
 yeccpars2_163(S, '{', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 164, Ss, Stack, T, Ts, Tzr);
 yeccpars2_163(_, _, _, _, T, _, _) ->
@@ -1653,6 +1668,7 @@ yeccpars2_163(_, _, _, _, T, _, _) ->
 
 %% yeccpars2_164: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_165/7}).
 yeccpars2_165(S, '}', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 166, Ss, Stack, T, Ts, Tzr);
 yeccpars2_165(_, _, _, _, T, _, _) ->
@@ -1663,6 +1679,7 @@ yeccpars2_166(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_166_(Stack),
  'yeccgoto_\'InterfaceTypeDefinition\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_167/7}).
 yeccpars2_167(S, '{', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 168, Ss, Stack, T, Ts, Tzr);
 yeccpars2_167(_, _, _, _, T, _, _) ->
@@ -1670,6 +1687,7 @@ yeccpars2_167(_, _, _, _, T, _, _) ->
 
 %% yeccpars2_168: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_169/7}).
 yeccpars2_169(S, '}', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 170, Ss, Stack, T, Ts, Tzr);
 yeccpars2_169(_, _, _, _, T, _, _) ->
@@ -1680,6 +1698,7 @@ yeccpars2_170(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_170_(Stack),
  'yeccgoto_\'InputObjectTypeDefinition\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_171/7}).
 yeccpars2_171(S, on, Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 172, Ss, Stack, T, Ts, Tzr);
 yeccpars2_171(_, _, _, _, T, _, _) ->
@@ -1706,6 +1725,7 @@ yeccpars2_177(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_177_(Stack),
  'yeccgoto_\'TypeExtensionDefinition\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_178/7}).
 yeccpars2_178(S, '{', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 179, Ss, Stack, T, Ts, Tzr);
 yeccpars2_178(_, _, _, _, T, _, _) ->
@@ -1713,6 +1733,7 @@ yeccpars2_178(_, _, _, _, T, _, _) ->
 
 %% yeccpars2_179: see yeccpars2_6
 
+-dialyzer({nowarn_function, yeccpars2_180/7}).
 yeccpars2_180(S, '}', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 184, Ss, Stack, T, Ts, Tzr);
 yeccpars2_180(_, _, _, _, T, _, _) ->
@@ -1768,6 +1789,7 @@ yeccpars2_185(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_185_(Stack),
  'yeccgoto_\'Definitions\''(hd(Nss), Cat, Nss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_186/7}).
 yeccpars2_186(S, '(', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 190, Ss, Stack, T, Ts, Tzr);
 yeccpars2_186(S, '@', Ss, Stack, T, Ts, Tzr) ->
@@ -1786,11 +1808,13 @@ yeccpars2_188(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
 
 %% yeccpars2_189: see yeccpars2_57
 
+-dialyzer({nowarn_function, yeccpars2_190/7}).
 yeccpars2_190(S, '$', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 75, Ss, Stack, T, Ts, Tzr);
 yeccpars2_190(_, _, _, _, T, _, _) ->
  yeccerror(T).
 
+-dialyzer({nowarn_function, yeccpars2_191/7}).
 yeccpars2_191(S, ')', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 198, Ss, Stack, T, Ts, Tzr);
 yeccpars2_191(_, _, _, _, T, _, _) ->
@@ -1802,6 +1826,7 @@ yeccpars2_192(_S, Cat, Ss, Stack, T, Ts, Tzr) ->
  NewStack = yeccpars2_192_(Stack),
  'yeccgoto_\'VariableDefinitionList\''(hd(Ss), Cat, Ss, NewStack, T, Ts, Tzr).
 
+-dialyzer({nowarn_function, yeccpars2_193/7}).
 yeccpars2_193(S, ':', Ss, Stack, T, Ts, Tzr) ->
  yeccpars1(S, 194, Ss, Stack, T, Ts, Tzr);
 yeccpars2_193(_, _, _, _, T, _, _) ->
@@ -2735,7 +2760,7 @@ yeccpars2_79_(__Stack0) ->
 yeccpars2_80_(__Stack0) ->
  [__1 | __Stack] = __Stack0,
  [begin
-   build_ast_node ( 'StringValue' , [ { value , extract_token ( __1 ) } ] )
+   build_ast_node ( 'StringValue' , [ { value , extract_quoted_string_token ( __1 ) } ] )
   end | __Stack].
 
 -compile({inline,yeccpars2_83_/1}).
@@ -3307,4 +3332,4 @@ yeccpars2_202_(__Stack0) ->
   end | __Stack].
 
 
--file("src/graphql_parser.yrl", 222).
+-file("src/graphql_parser.yrl", 223).
