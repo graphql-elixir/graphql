@@ -49,7 +49,7 @@ defmodule GraphQL.Mixfile do
 
   defp package do
     [# These are the default files included in the package
-     files: ["lib", "src/*.xrl", "src/*.yrl", "priv", "mix.exs", "README*", "readme*", "LICENSE*", "license*"],
+     files: ["lib", "src/*.xrl", "src/*.yrl", "mix.exs", "README*", "LICENSE*"],
      maintainers: ["Josh Price", "James Sadler"],
      licenses: ["BSD"],
      links: %{"GitHub" => "https://github.com/joshprice/graphql-elixir"}]
