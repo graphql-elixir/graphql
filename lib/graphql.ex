@@ -13,7 +13,7 @@ defmodule GraphQL do
       [kind: :Document, loc: [start: 0],
         definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
          selectionSet: [kind: :SelectionSet, loc: [start: 0],
-          selections: [[kind: :Field, loc: [start: 0], name: 'hello']]]]]]
+          selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
 
   ## Execute a query
 
@@ -41,6 +41,10 @@ defmodule GraphQL do
       [{ :"{", 1 }, { :name, 1, 'hello' }, { :"}", 1 }]
 
   """
+  def tokenize(input_string) when is_binary(input_string) do
+    input_string |> to_char_list |> tokenize
+  end
+
   def tokenize(input_string) do
     {:ok, tokens, _} = :graphql_lexer.string input_string
     tokens
@@ -50,10 +54,10 @@ defmodule GraphQL do
   Parse the input string into a Document AST.
 
       iex> GraphQL.parse("{ hello }")
-      [kind: :Document, loc: [start: 1],
-       definitions: [[kind: :OperationDefinition, loc: [start: 1], operation: :query,
-         selectionSet: [kind: :SelectionSet, loc: [start: 1],
-          selections: [[kind: :Field, loc: [start: 1], name: 'hello']]]]]]
+      [kind: :Document, loc: [start: 0],
+       definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
+         selectionSet: [kind: :SelectionSet, loc: [start: 0],
+          selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
   """
   def parse(input_string) when is_binary(input_string) do
     input_string |> to_char_list |> parse
