@@ -1,5 +1,6 @@
-defmodule GraphqlTest do
+defmodule GraphQLTest do
   use ExUnit.Case, async: true
+  doctest GraphQL
 
   import ExUnit.TestHelpers
 
@@ -37,5 +38,4 @@ defmodule GraphqlTest do
     assert_raise GraphQL.SyntaxError, "syntax error before:  on line 1", fn -> GraphQL.parse("{ a") end
     assert_raise GraphQL.SyntaxError, "syntax error before: \"a\" on line 1", fn -> GraphQL.parse("a }") end
   end
-
 end

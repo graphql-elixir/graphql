@@ -9,18 +9,18 @@ defmodule GraphQL do
 
   Parse a GraphQL query
 
-      GraphQL.parse "{ hello }"
-      #=> [kind: :Document, loc: [start: 0],
-      #  definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
-      #    selectionSet: [kind: :SelectionSet, loc: [start: 0],
-      #     selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
+      iex> GraphQL.parse "{ hello }"
+      [kind: :Document, loc: [start: 0],
+        definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
+         selectionSet: [kind: :SelectionSet, loc: [start: 0],
+          selections: [[kind: :Field, loc: [start: 0], name: 'hello']]]]]]
 
   ## Execute a query
 
   Execute a GraphQL query against a given schema / datastore.
 
-      GraphQL.execute schema, "{ hello }"
-
+      # iex> GraphQL.execute schema, "{ hello }"
+      # [data: [hello: world]]
   """
 
   alias GraphQL.Schema
@@ -37,10 +37,8 @@ defmodule GraphQL do
   @doc """
   Tokenize the input string into a stream of tokens.
 
-  ## Examples
-
-      GraphQL.tokenize("{ hello }")
-      #=> [{ :"{", 1 }, { :name, 1, "hello" }, { :"}", 1 }]
+      iex> GraphQL.tokenize("{ hello }")
+      [{ :"{", 1 }, { :name, 1, 'hello' }, { :"}", 1 }]
 
   """
   def tokenize(input_string) do
@@ -51,14 +49,11 @@ defmodule GraphQL do
   @doc """
   Parse the input string into a Document AST.
 
-  ## Examples
-
-      GraphQL.parse("{ hello }")
-      #=> [kind: :Document, loc: [start: 1],
-      #  definitions: [[kind: :OperationDefinition, loc: [start: 1], operation: :query,
-      #    selectionSet: [kind: :SelectionSet, loc: [start: 1],
-      #     selections: [[kind: :Field, loc: [start: 1], name: "hello"]]]]]]
-
+      iex> GraphQL.parse("{ hello }")
+      [kind: :Document, loc: [start: 1],
+       definitions: [[kind: :OperationDefinition, loc: [start: 1], operation: :query,
+         selectionSet: [kind: :SelectionSet, loc: [start: 1],
+          selections: [[kind: :Field, loc: [start: 1], name: 'hello']]]]]]
   """
   def parse(input_string) when is_binary(input_string) do
     input_string |> to_char_list |> parse
@@ -76,10 +71,8 @@ defmodule GraphQL do
   @doc """
   Execute a query against a schema.
 
-  ## Examples
-
-      GraphQL.execute(schema, "{ hello }")
-      #=> [data: [hello: world]]
+      # iex> GraphQL.execute(schema, "{ hello }")
+      # [data: [hello: world]]
   """
   def execute(schema, query) do
     document = parse(query)
