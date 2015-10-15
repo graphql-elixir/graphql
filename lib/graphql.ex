@@ -103,7 +103,7 @@ defmodule GraphQL do
     [data: result]
   end
 
-  defp parse_argument([kind: :Argument, loc: _, name: name, value: [kind: :StringValue, loc: _, value: value]]) do
+  defp parse_argument([kind: :Argument, loc: _, name: name, value: [kind: _, loc: _, value: value]]) do
     {String.to_atom(name), value}
   end
 end
