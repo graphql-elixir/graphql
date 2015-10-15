@@ -85,7 +85,6 @@ defmodule GraphQL do
   def execute(schema, query) do
     document = parse(query)
     query_fields = hd(document[:definitions])[:selectionSet][:selections]
-    query_field_names = for field <- query_fields, do: to_string(field[:name])
 
     %Schema{
       query: _query_root = %ObjectType{
@@ -94,11 +93,18 @@ defmodule GraphQL do
       }
     } = schema
 
-    result = for fd <- fields,
-      qf <- query_field_names,
-      qf == fd.name,
-      do: {String.to_atom(fd.name), fd.resolve.()}
+    result = for fd <- fields, qf <- query_fields, qf[:name] == fd.name do
+      arguments = Keyword.get(qf, :arguments, [])
+                  |> Enum.map(&parse_argument/1)
+
+      {String.to_atom(fd.name), fd.resolve.(arguments)}
+    end
+
     [data: result]
+  end
+
+  defp parse_argument([kind: :Argument, loc: _, name: name, value: [kind: :StringValue, loc: _, value: value]]) do
+    {String.to_atom(name), value}
   end
 end
 
