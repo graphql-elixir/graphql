@@ -40,6 +40,7 @@ defmodule GraphQL.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
+      {:poison, "~> 1.5.0"},
       {:earmark, "~> 0.1", only: :dev},
       {:ex_doc, "~> 0.8", only: :dev},
       {:mix_test_watch, "~> 0.2", only: :dev},

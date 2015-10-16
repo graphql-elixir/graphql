@@ -9,23 +9,22 @@ defmodule GraphQL do
 
   Parse a GraphQL query
 
-      GraphQL.parse "{ hello }"
-      #=> [kind: :Document, loc: [start: 0],
-      #  definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
-      #    selectionSet: [kind: :SelectionSet, loc: [start: 0],
-      #     selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
+      iex> GraphQL.parse "{ hello }"
+      [kind: :Document, loc: [start: 0],
+        definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
+         selectionSet: [kind: :SelectionSet, loc: [start: 0],
+          selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
 
   ## Execute a query
 
   Execute a GraphQL query against a given schema / datastore.
 
-      GraphQL.execute schema, "{ hello }"
-
+      # iex> GraphQL.execute schema, "{ hello }"
+      # [data: [hello: world]]
   """
 
-  defmodule Schema do
-    defstruct query: nil, mutation: nil
-  end
+  alias GraphQL.Schema
+  alias GraphQL.SyntaxError
 
   defmodule ObjectType do
     defstruct name: "RootQueryType", description: "", fields: []
@@ -38,12 +37,14 @@ defmodule GraphQL do
   @doc """
   Tokenize the input string into a stream of tokens.
 
-  ## Examples
-
-      GraphQL.tokenize("{ hello }")
-      #=> [{ :"{", 1 }, { :name, 1, "hello" }, { :"}", 1 }]
+      iex> GraphQL.tokenize("{ hello }")
+      [{ :"{", 1 }, { :name, 1, 'hello' }, { :"}", 1 }]
 
   """
+  def tokenize(input_string) when is_binary(input_string) do
+    input_string |> to_char_list |> tokenize
+  end
+
   def tokenize(input_string) do
     {:ok, tokens, _} = :graphql_lexer.string input_string
     tokens
@@ -52,14 +53,11 @@ defmodule GraphQL do
   @doc """
   Parse the input string into a Document AST.
 
-  ## Examples
-
-      GraphQL.parse("{ hello }")
-      #=> [kind: :Document, loc: [start: 1],
-      #  definitions: [[kind: :OperationDefinition, loc: [start: 1], operation: :query,
-      #    selectionSet: [kind: :SelectionSet, loc: [start: 1],
-      #     selections: [[kind: :Field, loc: [start: 1], name: "hello"]]]]]]
-
+      iex> GraphQL.parse("{ hello }")
+      [kind: :Document, loc: [start: 0],
+       definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
+         selectionSet: [kind: :SelectionSet, loc: [start: 0],
+          selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
   """
   def parse(input_string) when is_binary(input_string) do
     input_string |> to_char_list |> parse
@@ -70,17 +68,15 @@ defmodule GraphQL do
       {:ok, parse_result} ->
         parse_result
       {:error, {line_number, _, errors}} ->
-        raise GraphQL.SyntaxError, line: line_number, errors: errors
+        raise SyntaxError, line: line_number, errors: errors
     end
   end
 
   @doc """
   Execute a query against a schema.
 
-  ## Examples
-
-      GraphQL.execute(schema, "{ hello }")
-      #=> [data: [hello: world]]
+      # iex> GraphQL.execute(schema, "{ hello }")
+      # [data: [hello: world]]
   """
   def execute(schema, query) do
     document = parse(query)
@@ -94,18 +90,10 @@ defmodule GraphQL do
       }
     } = schema
 
-    result = for fd <- fields,
+    result = for field <- fields,
       qf <- query_field_names,
-      qf == fd.name,
-      do: {String.to_atom(fd.name), fd.resolve.()}
+      qf == field.name,
+      do: {String.to_atom(field.name), field.resolve.()}
     [data: result]
-  end
-end
-
-defmodule GraphQL.SyntaxError do
-  defexception line: nil, errors: "Syntax error"
-
-  def message(exception) do
-    "#{exception.errors} on line #{exception.line}"
   end
 end

@@ -22,7 +22,7 @@ Terminals
 
 Rootsymbol Document.
 
-Document -> Definitions : build_ast_node('Document', {'definitions', '$1'}).
+Document -> Definitions : #document{definitions='$1'}.
 
 Definitions -> Definition : ['$1'].
 Definitions -> Definition Definitions : ['$1'|'$2'].
@@ -34,11 +34,11 @@ Definition -> TypeDefinition : '$1'.
 OperationType -> 'query' : extract_atom('$1').
 OperationType -> 'mutation' : extract_atom('$1').
 
-OperationDefinition -> SelectionSet : build_ast_node('OperationDefinition', [{'operation', 'query'}, {'selectionSet', '$1'}]).
-OperationDefinition -> OperationType Name SelectionSet : build_ast_node('OperationDefinition', [{'operation', '$1'}, {'name', '$2'}, {'selectionSet', '$3'}]).
-OperationDefinition -> OperationType Name VariableDefinitions SelectionSet : build_ast_node('OperationDefinition', [{'operation', '$1'}, {'name', '$2'}, {'variableDefinitions', '$3'}, {'selectionSet', '$4'}]).
-OperationDefinition -> OperationType Name Directives SelectionSet : build_ast_node('OperationDefinition', [{'operation', '$1'}, {'name', '$2'}, {'directives', '$3'}, {'selectionSet', '$4'}]).
-OperationDefinition -> OperationType Name VariableDefinitions Directives SelectionSet : build_ast_node('OperationDefinition', [{'operation', '$1'}, {'name', '$2'}, {'variableDefinitions', '$3'}, {'directives', '$4'}, {'selectionSet', '$5'}]).
+OperationDefinition -> SelectionSet : #operation_definition{operation='query', selection_set='$1'}.
+OperationDefinition -> OperationType Name SelectionSet : #operation_definition{operation='$1', name='$2', selection_set='$3'}.
+OperationDefinition -> OperationType Name VariableDefinitions SelectionSet : #operation_definition{operation='$1', name='$2', variable_definitions='$3', selection_set='$4'}.
+OperationDefinition -> OperationType Name Directives SelectionSet : #operation_definition{operation='$1', name='$2', directives='$3', selection_set='$4'}.
+OperationDefinition -> OperationType Name VariableDefinitions Directives SelectionSet : #operation_definition{operation='$1', name='$2', variable_definitions='$3', directives='$4', selection_set='$5'}.
 
 FragmentDefinition -> 'fragment' FragmentName 'on' TypeCondition SelectionSet : build_ast_node('FragmentDefinition', [{'name', '$2'}, {'typeCondition', '$4'}, {'selectionSet', '$5'}]).
 FragmentDefinition -> 'fragment' FragmentName 'on' TypeCondition Directives SelectionSet : build_ast_node('FragmentDefinition', [{'name', '$2'}, {'typeCondition', '$4'}, {'directives', '$5'}, {'selectionSet', '$6'}]).
@@ -62,7 +62,7 @@ ListType -> '[' Type ']' : build_ast_node('ListType', [{'type', '$2'}]).
 NonNullType -> NamedType '!' : build_ast_node('NonNullType', [{'type', '$1'}]).
 NonNullType -> ListType '!' : build_ast_node('NonNullType', [{'type', '$1'}]).
 
-SelectionSet -> '{' Selections '}' : build_ast_node('SelectionSet', {'selections', '$2'}).
+SelectionSet -> '{' Selections '}' : #selection_set{selections='$2'}.
 
 Selections -> Selection : ['$1'].
 Selections -> Selection Selections : ['$1'|'$2'].
@@ -79,7 +79,7 @@ InlineFragment -> '...' 'on' TypeCondition Directives SelectionSet : build_ast_n
 
 FragmentName -> NameWithoutOn : '$1'.
 
-Field -> Name : build_ast_node('Field', {'name', '$1'}).
+Field -> Name : #field{name='$1'}.
 Field -> Name Arguments : build_ast_node('Field', [{'name', '$1'}, {'arguments', '$2'}]).
 Field -> Name Directives : build_ast_node('Field', [{'name', '$1'}, {'directives', '$2'}]).
 Field -> Name SelectionSet : build_ast_node('Field', [{'name', '$1'}, {'selectionSet', '$2'}]).
@@ -215,8 +215,15 @@ extract_float({_Token, _Line, Value}) ->
 extract_boolean({_Token, _Line, "true"}) -> true;
 extract_boolean({_Token, _Line, "false"}) -> false.
 extract_keyword({Value, _Line}) -> list_to_binary(atom_to_list(Value)).
+extract_line({_Value, Line}) -> Line.
 
 build_ast_node(Type, Tuple) when is_list(Tuple) ->
   [{kind, Type}, {loc, [{start, 0}]}] ++ Tuple;
 build_ast_node(Type, Tuple) when is_tuple(Tuple) ->
   [{kind, Type}, {loc, [{start, 0}]}, Tuple].
+
+-record(location,             {start=0}).
+-record(document,             {definitions=[], loc=nil}).
+-record(selection_set,        {selections=[], loc=nil}).
+-record(operation_definition, {operation=nil, name=nil, variable_definitions=nil, directives=nil, selection_set=#selection_set{}, loc=nil}).
+-record(field,                {name=nil, loc=nil}).
