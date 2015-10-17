@@ -2,10 +2,6 @@
 defmodule GraphqlExecutorTest do
   use ExUnit.Case, async: true
 
-  defmodule Person do
-    defstruct name: "John", age: 27, id: 0
-  end
-
   def assert_execute(query, schema, data_store, expected_output) do
     assert GraphQL.execute(query, schema, data_store) == expected_output
   end
@@ -24,27 +20,34 @@ defmodule GraphqlExecutorTest do
   #   })
   # });
 
-  test "hello world" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
-        name: "RootQueryType",
-        fields: [
-          %GraphQL.FieldDefinition{
-            name: "planet",
-            type: "String",
-            resolve: fn -> "mars" end
-          },
-          %GraphQL.FieldDefinition{
-            name: "hello",
-            type: "String",
-            resolve: fn -> "world" end
-          }
-        ]
+  defmodule TestSchema do
+    def schema do
+      %GraphQL.Schema{
+        query: %GraphQL.ObjectType{
+          name: "RootQueryType",
+          fields: [
+            %GraphQL.FieldDefinition{
+              name: "greeting",
+              type: "String",
+              resolve: &greeting/1,
+            }
+          ]
+        }
       }
-    }
-    query = "{ hello }"
-    assert GraphQL.execute(schema, query) == [data: [hello: "world"]]
+    end
+    
+    def greeting(name: name), do: "Hello, #{name}!"
+    def greeting(_), do: greeting(name: "world")
   end
+      
+  test "query arguments" do
+    query = "{ greeting }"
+    assert GraphQL.execute(TestSchema.schema, query) == [data: [greeting: "Hello, world!"]]
+
+    query = "{ greeting(name: \"Elixir\") }"
+    assert GraphQL.execute(TestSchema.schema, query) == [data: [greeting: "Hello, Elixir!"]]
+  end
+    
 
   # test "simple selection set" do
   #
