@@ -104,7 +104,7 @@ defmodule GraphQL do
     } = schema
 
     result = for fd <- fields, qf <- query_fields, qf[:name] == fd.name do
-      arguments = Keyword.get(qf, :arguments, [])
+      arguments = Map.get(qf, :arguments, [])
                   |> Enum.map(&parse_argument/1)
 
       {String.to_atom(fd.name), fd.resolve.(arguments)}
@@ -113,7 +113,7 @@ defmodule GraphQL do
     [data: result]
   end
 
-  defp parse_argument([kind: :Argument, loc: _, name: name, value: [kind: _, loc: _, value: value]]) do
+  defp parse_argument(%{kind: :Argument, loc: _, name: name, value: %{kind: _, loc: _, value: value}}) do
     {String.to_atom(name), value}
   end
 end
