@@ -104,10 +104,10 @@ defmodule GraphQL do
       }
     } = schema
 
-    result = for field <- fields,
+    result = for fd <- fields,
       qf <- query_field_names,
-      qf == field.name,
-      do: {String.to_atom(field.name), field.resolve.()}
+      qf == fd.name,
+      do: {String.to_atom(fd.name), fd.resolve.()}
     [data: result]
   end
 end
