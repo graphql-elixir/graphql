@@ -1,8 +1,7 @@
 defmodule GraphQL.Object do
-
-  defmacro __using__(_options) do
+  defmacro __using__(opts) do
     quote do
-      Module.register_attribute __MODULE__, :fields, accumulate: true, persist: false
+      Module.register_attribute __MODULE__, :fields, accumulate: true, persist: true
 
       import unquote(__MODULE__), only: [field: 1, field: 2]
       @before_compile unquote(__MODULE__)
@@ -12,18 +11,34 @@ defmodule GraphQL.Object do
   defmacro __before_compile__(env) do
     fields = Module.get_attribute(env.module, :fields)
 
-    # generate the structure fields
-    gen_struct(fields)
+    quote do
+      # generate the struct
+      unquote(gen_struct(fields))
+
+      # generate the metadata module
+      unquote(gen_metadata(fields))
+    end
   end
 
-  def gen_struct(fields) do
+  defp gen_struct(fields) do
     field_names = Enum.map(fields, fn {name, _} -> name end)
 
     quote do
       defstruct unquote(field_names)
     end
   end
+
+  defp gen_metadata(fields) do
+    quote do
+      defmodule Meta do
+        def fields do
+          unquote(fields)
+        end
+      end
+    end
+  end
   
+      
   # Public API
   
   defmacro field(name, options \\ []) do
