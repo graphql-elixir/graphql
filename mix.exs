@@ -4,7 +4,7 @@ defmodule GraphQL.Mixfile do
   def project do
     [app: :graphql,
      name: "GraphQL",
-     version: "0.0.3",
+     version: "0.0.4",
      elixir: "~> 1.0",
      description: description,
      package: package,
