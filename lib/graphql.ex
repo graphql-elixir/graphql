@@ -10,7 +10,7 @@ defmodule GraphQL do
   Parse a GraphQL query
 
       iex> GraphQL.parse "{ hello }"
-      %{definitions: [
+      {:ok, %{definitions: [
         %{kind: :OperationDefinition, loc: %{start: 0},
           operation: :query,
           selectionSet: %{kind: :SelectionSet, loc: %{start: 0},
@@ -20,14 +20,14 @@ defmodule GraphQL do
           }}
         ],
         kind: :Document, loc: %{start: 0}
-      }
+      }}
 
   ## Execute a query
 
   Execute a GraphQL query against a given schema / datastore.
 
       # iex> GraphQL.execute schema, "{ hello }"
-      # [data: [hello: world]]
+      # {:ok, %{hello: "world"}}
   """
 
   alias GraphQL.Schema
@@ -61,16 +61,18 @@ defmodule GraphQL do
   Parse the input string into a Document AST.
 
       iex> GraphQL.parse("{ hello }")
-      %{definitions: [
-        %{kind: :OperationDefinition, loc: %{start: 0},
-          operation: :query,
-          selectionSet: %{kind: :SelectionSet, loc: %{start: 0},
-            selections: [
-              %{kind: :Field, loc: %{start: 0}, name: "hello"}
-            ]
-          }}
-        ],
-        kind: :Document, loc: %{start: 0}
+      {:ok,
+        %{definitions: [
+          %{kind: :OperationDefinition, loc: %{start: 0},
+            operation: :query,
+            selectionSet: %{kind: :SelectionSet, loc: %{start: 0},
+              selections: [
+                %{kind: :Field, loc: %{start: 0}, name: "hello"}
+              ]
+            }}
+          ],
+          kind: :Document, loc: %{start: 0}
+        }
       }
   """
   def parse(input_string) when is_binary(input_string) do
@@ -80,9 +82,9 @@ defmodule GraphQL do
   def parse(input_string) do
     case input_string |> tokenize |> :graphql_parser.parse do
       {:ok, parse_result} ->
-        parse_result
+        {:ok, parse_result}
       {:error, {line_number, _, errors}} ->
-        raise SyntaxError, line: line_number, errors: errors
+        {:error, %{errors: [%{message: "GraphQL: #{errors} on line #{line_number}", line_number: line_number}]}}
     end
   end
 
@@ -90,27 +92,30 @@ defmodule GraphQL do
   Execute a query against a schema.
 
       # iex> GraphQL.execute(schema, "{ hello }")
-      # [data: [hello: world]]
+      # {:ok, %{hello: world}}
   """
   def execute(schema, query) do
-    document = parse(query)
-    query_fields = hd(document[:definitions])[:selectionSet][:selections]
+    case parse(query) do
+      {:ok, document} ->
+        query_fields = hd(document[:definitions])[:selectionSet][:selections]
 
-    %Schema{
-      query: _query_root = %ObjectType{
-        name: "RootQueryType",
-        fields: fields
-      }
-    } = schema
+        %Schema{
+          query: _query_root = %ObjectType{
+            name: "RootQueryType",
+            fields: fields
+          }
+        } = schema
 
-    result = for fd <- fields, qf <- query_fields, qf[:name] == fd.name do
-      arguments = Map.get(qf, :arguments, [])
-                  |> Enum.map(&parse_argument/1)
+        result = for fd <- fields, qf <- query_fields, qf[:name] == fd.name do
+          arguments = Map.get(qf, :arguments, [])
+                      |> Enum.map(&parse_argument/1)
 
-      {String.to_atom(fd.name), fd.resolve.(arguments)}
+          {String.to_atom(fd.name), fd.resolve.(arguments)}
+        end
+
+        {:ok, Enum.into(result, %{})}
+      {:error, error} -> {:error, error}
     end
-
-    [data: result]
   end
 
   defp parse_argument(%{kind: :Argument, loc: _, name: name, value: %{kind: _, loc: _, value: value}}) do

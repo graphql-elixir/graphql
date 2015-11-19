@@ -6,20 +6,6 @@ defmodule GraphqlExecutorTest do
     assert GraphQL.execute(query, schema, data_store) == expected_output
   end
 
-  # var schema = new GraphQLSchema({
-  #   query: new GraphQLObjectType({
-  #     name: 'RootQueryType',
-  #     fields: {
-  #       hello: {
-  #         type: GraphQLString,
-  #         resolve() {
-  #           return 'world';
-  #         }
-  #       }
-  #     }
-  #   })
-  # });
-
   defmodule TestSchema do
     def schema do
       %GraphQL.Schema{
@@ -35,19 +21,21 @@ defmodule GraphqlExecutorTest do
         }
       }
     end
-    
+
     def greeting(name: name), do: "Hello, #{name}!"
     def greeting(_), do: greeting(name: "world")
   end
-      
-  test "query arguments" do
-    query = "{ greeting }"
-    assert GraphQL.execute(TestSchema.schema, query) == [data: [greeting: "Hello, world!"]]
 
-    query = "{ greeting(name: \"Elixir\") }"
-    assert GraphQL.execute(TestSchema.schema, query) == [data: [greeting: "Hello, Elixir!"]]
+  test "basic query execution" do
+    query = "{ greeting }"
+    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, world!"}}
   end
-    
+
+  test "query arguments" do
+    query = "{ greeting(name: \"Elixir\") }"
+    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, Elixir!"}}
+  end
+
 
   # test "simple selection set" do
   #

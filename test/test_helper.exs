@@ -12,7 +12,7 @@ defmodule ExUnit.TestHelpers do
     end
   end
 
-  def assert_parse(input_string, expected_output) do
-    assert GraphQL.parse(input_string) == expected_output
+  def assert_parse(input_string, expected_output, type \\ :ok) do
+    assert GraphQL.parse(input_string) == {type, expected_output}
   end
 end
