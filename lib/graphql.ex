@@ -90,7 +90,7 @@ defmodule GraphQL do
   Execute a query against a schema.
 
       # iex> GraphQL.execute(schema, "{ hello }")
-      # [data: [hello: world]]
+      # %{data: %{hello: world}}
   """
   def execute(schema, query) do
     document = parse(query)
@@ -110,7 +110,7 @@ defmodule GraphQL do
       {String.to_atom(fd.name), fd.resolve.(arguments)}
     end
 
-    [data: result]
+    %{data: Enum.into(result, %{})}
   end
 
   defp parse_argument(%{kind: :Argument, loc: _, name: name, value: %{kind: _, loc: _, value: value}}) do
