@@ -1,9 +1,7 @@
 defmodule GraphqlParserIntrospectionTest do
   use ExUnit.Case, async: true
 
-  def assert_parse(input_string, expected_output) do
-    assert GraphQL.parse(input_string) == expected_output
-  end
+  import ExUnit.TestHelpers
 
   test "Introspection Query" do
     assert_parse """

@@ -28,12 +28,12 @@ defmodule GraphqlExecutorTest do
 
   test "basic query execution" do
     query = "{ greeting }"
-    assert GraphQL.execute(TestSchema.schema, query) == %{data: %{greeting: "Hello, world!"}}
+    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, world!"}}
   end
 
   test "query arguments" do
     query = "{ greeting(name: \"Elixir\") }"
-    assert GraphQL.execute(TestSchema.schema, query) == %{data: %{greeting: "Hello, Elixir!"}}
+    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, Elixir!"}}
   end
 
 
