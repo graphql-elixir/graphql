@@ -3,7 +3,7 @@ defmodule GraphQL.Object do
     quote do
       Module.register_attribute __MODULE__, :fields, accumulate: true, persist: true
 
-      import unquote(__MODULE__), only: [field: 1, field: 2]
+      import unquote(__MODULE__), only: [field: 1, field: 2, extend: 1]
       @before_compile unquote(__MODULE__)
     end
   end
@@ -46,4 +46,12 @@ defmodule GraphQL.Object do
       @fields {name, options}
     end
   end
+
+  defmacro extend(parent_module) do
+    quote do
+      fields = Module.concat(unquote(parent_module), Meta).fields
+      Enum.map(fields, fn {name, options} -> field(name, options) end)
+    end
+  end
+
 end

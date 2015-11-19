@@ -9,11 +9,12 @@ defmodule GraphQL.ObjectTest do
     field :sex
   end
 
-  # defmodule Employee do
-  #   use GraphQL.Object, deriving: Person
+  defmodule Employee do
+    use GraphQL.Object
+    extend Person
 
-  #   field :salary
-  # end
+    field :salary
+  end
 
   test "a GraphQL object behaves like a struct" do
     p = %Person{name: "James", age: 28}
@@ -26,12 +27,12 @@ defmodule GraphQL.ObjectTest do
     assert Person.Meta.fields == [sex: [], age: [], name: []]
   end
 
-  # test "a GraphQL object can inherit fields from another object" do
-  #   e = %Employee{name: "Anna", age: 32, sex: "F", salary: 175000}
-  #   assert e.name == "Anna"
-  #   assert e.age == 32
-  #   assert e.salary == 175000
-  #   assert e.sex == "F"
-  #   assert Employee.Meta.fields == [salary: [], sex: [], age: [], name: []]
-  # end
+  test "a GraphQL object can inherit fields from another object" do
+    e = %Employee{name: "Anna", age: 32, sex: "F", salary: 175000}
+    assert e.name == "Anna"
+    assert e.age == 32
+    assert e.salary == 175000
+    assert e.sex == "F"
+    assert Employee.Meta.fields == [salary: [], name: [], age: [], sex: []]
+  end
 end
