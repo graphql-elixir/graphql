@@ -30,15 +30,12 @@ defmodule GraphQL do
       # {:ok, %{hello: "world"}}
   """
 
-  alias GraphQL.Schema
-  alias GraphQL.SyntaxError
-
   defmodule ObjectType do
     defstruct name: "RootQueryType", description: "", fields: []
   end
 
   defmodule FieldDefinition do
-    defstruct name: nil, type: "String", resolve: nil
+    defstruct name: nil, type: "String", args: %{}, resolve: nil
   end
 
   @doc """
@@ -94,31 +91,106 @@ defmodule GraphQL do
       # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
   """
-  def execute(schema, query) do
-    case parse(query) do
-      {:ok, document} ->
-        query_fields = hd(document[:definitions])[:selectionSet][:selections]
+  def execute(schema, document, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
+    context = build_execution_context(schema, document, root_value, variable_values, operation_name)
+    {:ok, {data, errors}} = execute_operation(context, context.operation, root_value)
+    {:ok, data}
+  end
 
-        %Schema{
-          query: _query_root = %ObjectType{
-            name: "RootQueryType",
-            fields: fields
-          }
-        } = schema
+  defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
+    %{
+      schema: schema,
+      fragments: %{},
+      root_value: root_value,
+      operation: find_operation(document, operation_name),
+      variable_values: variable_values,
+      errors: []
+    }
+  end
 
-        result = for fd <- fields, qf <- query_fields, qf[:name] == fd.name do
-          arguments = Map.get(qf, :arguments, [])
-                      |> Enum.map(&parse_argument/1)
+  defp execute_operation(context, operation, root_value) do
+    type = get_operation_root_type(context.schema, operation)
+    fields = collect_fields(context, type, operation.selectionSet)
+    result = case operation.operation do
+      'mutation' -> execute_fields_serially(context, type, root_value, fields)
+      _ -> execute_fields(context, type, root_value, fields)
+    end
+    {:ok, {result, nil}}
+  end
 
-          {String.to_atom(fd.name), fd.resolve.(arguments)}
-        end
+  defp find_operation(document, operation_name) do
+    hd(document.definitions)
+  end
 
-        {:ok, Enum.into(result, %{})}
-      {:error, error} -> {:error, error}
+  defp get_operation_root_type(schema, operation) do
+    schema.query
+  end
+
+  defp collect_fields(context, runtime_type, selection_set, fields \\ %{}, visited_fragment_names \\ %{}) do
+    Enum.reduce selection_set[:selections], fields, fn(selection, fields) ->
+      case selection do
+        %{kind: :Field} -> Map.put fields, field_entry_key(selection), [selection]
+        _ -> fields
+      end
     end
   end
 
-  defp parse_argument(%{kind: :Argument, loc: _, name: name, value: %{kind: _, loc: _, value: value}}) do
-    {String.to_atom(name), value}
+  # source_value -> root_value
+  defp execute_fields(context, parent_type, source_value, fields) do
+    Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
+      Map.put results, field_name, resolve_field(context, parent_type, source_value, field_asts)
+    end
+  end
+
+  defp execute_fields_serially(context, type, root_value, fields) do
+    {:error, "not implemented"}
+  end
+
+  defp resolve_field(context, parent_type, source, field_asts) do
+    field_ast = hd(field_asts)
+    field_name = field_ast.name
+    field_def = field_definition(context.schema, parent_type, field_name)
+    return_type = field_def.type
+    resolve_fn = field_def.resolve || fn(_, _, _) -> "default resolve" end
+    args = argument_values(field_def.args, Map.get(field_ast, :arguments, %{}), context.variable_values)
+    info = %{
+      field_name: field_name,
+      field_asts: field_asts,
+      return_type: return_type,
+      parent_type: parent_type,
+      schema: context.schema,
+      fragments: context.fragments,
+      root_value: context.root_value,
+      operation: context.operation,
+      variable_values: context.variable_values
+    }
+    resolve_fn.(source, args, info)
+  end
+
+  defp field_definition(schema, parent_type, field_name) do
+    Enum.find parent_type.fields, fn(field_def) -> field_def.name == field_name end
+  end
+
+  defp argument_values(arg_defs, arg_asts, variable_values) do
+    arg_ast_map = Enum.reduce arg_asts, %{}, fn(arg_ast, result) ->
+      Map.put result, String.to_atom(arg_ast.name), arg_ast
+    end
+    Enum.reduce arg_defs, %{}, fn(arg_def, result) ->
+      {arg_def_name, arg_def_type} = arg_def
+      if value_ast = arg_ast_map[arg_def_name] do
+        Map.put result, arg_def_name, value_from_ast(value_ast, arg_def_type, variable_values)
+      else
+        result
+      end
+    end
+  end
+
+  defp value_from_ast(value_ast, type, variable_values) do
+    value_ast.value.value
+  end
+
+  defp field_entry_key(field) do
+    # field.alias || field.name
+    field.name
   end
 end

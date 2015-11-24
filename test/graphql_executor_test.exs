@@ -2,8 +2,8 @@
 defmodule GraphqlExecutorTest do
   use ExUnit.Case, async: true
 
-  def assert_execute(query, schema, data_store, expected_output) do
-    assert GraphQL.execute(query, schema, data_store) == expected_output
+  def assert_execute(query, schema, data, expected_output) do
+    assert GraphQL.execute(query, schema, data) == expected_output
   end
 
   defmodule TestSchema do
@@ -15,37 +15,82 @@ defmodule GraphqlExecutorTest do
             %GraphQL.FieldDefinition{
               name: "greeting",
               type: "String",
-              resolve: &greeting/1,
+              args: %{
+                name: %{ type: "String" }
+              },
+              resolve: &greeting/3,
             }
           ]
         }
       }
     end
 
-    def greeting(name: name), do: "Hello, #{name}!"
-    def greeting(_), do: greeting(name: "world")
+    def greeting(_, %{name: name}, _), do: "Hello, #{name}!"
+    def greeting(_, _, _), do: "Hello, world!"
   end
 
   test "basic query execution" do
     query = "{ greeting }"
-    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, world!"}}
+    {:ok, doc} = GraphQL.parse query
+    assert GraphQL.execute(TestSchema.schema, doc) == {:ok, %{"greeting" => "Hello, world!"}}
   end
 
   test "query arguments" do
     query = "{ greeting(name: \"Elixir\") }"
-    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, Elixir!"}}
+    {:ok, doc} = GraphQL.parse query
+    assert GraphQL.execute(TestSchema.schema, doc) == {:ok, %{"greeting" => "Hello, Elixir!"}}
   end
 
-
   # test "simple selection set" do
+  #   schema = %GraphQL.Schema{
+  #     query: %GraphQL.ObjectType{
+  #       name: "Q",
+  #       fields: [
+  #         %GraphQL.FieldDefinition{name: "id",   type: "Int",    resolve: fn(p) -> p.id   end},
+  #         %GraphQL.FieldDefinition{name: "name", type: "String", resolve: fn(p) -> p.name end},
+  #         %GraphQL.FieldDefinition{name: "age",  type: "Int",    resolve: fn(p) -> p.age  end}
+  #       ]
+  #     }
+  #   }
   #
-  #   data_store = [
-  #     %Person{id: 0, name: 'Kate', age: '25'},
-  #     %Person{id: 1, name: 'Dave', age: '34'},
-  #     %Person{id: 2, name: 'Jeni', age: '45'}
+  #   data = [
+  #     %{id: 0, name: 'Kate', age: 25},
+  #     %{id: 1, name: 'Dave', age: 34},
+  #     %{id: 2, name: 'Jeni', age: 45}
   #   ]
   #
-  #   assert_execute 'query dave { Person(id:1) { name } }', schema, data_store,
-  #     ~S({"name": "Dave"})
+  #   {:ok, doc} = GraphQL.parse("query Q { Person(id:1) { name } }")
+  #   assert GraphQL.execute(schema, doc, nil, nil, "Q") == {:ok, %{name: "Dave"}}
   # end
+
+  # it('uses the query schema for queries', async () => {
+  #   var doc = `query Q { a } mutation M { c } subscription S { a }`;
+  #   var data = { a: 'b', c: 'd' };
+  #   var ast = parse(doc);
+  #   var schema = new GraphQLSchema({
+  #     query: new GraphQLObjectType({
+  #       name: 'Q',
+  #       fields: {
+  #         a: { type: GraphQLString },
+  #       }
+  #     }),
+  #     mutation: new GraphQLObjectType({
+  #       name: 'M',
+  #       fields: {
+  #         c: { type: GraphQLString },
+  #       }
+  #     }),
+  #     subscription: new GraphQLObjectType({
+  #       name: 'S',
+  #       fields: {
+  #         a: { type: GraphQLString },
+  #       }
+  #     })
+  #   });
+  #
+  #   var queryResult = await execute(schema, ast, data, {}, 'Q');
+  #
+  #   expect(queryResult).to.deep.equal({ data: { a: 'b' } });
+  # });
+
 end

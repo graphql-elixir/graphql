@@ -39,11 +39,7 @@ defmodule TestSchema do
       query: %GraphQL.ObjectType{
         name: "RootQueryType",
         fields: [
-          %GraphQL.FieldDefinition{
-            name: "greeting",
-            type: "String",
-            resolve: &greeting/1,
-          }
+          %GraphQL.FieldDefinition{name: "greeting", type: "String", resolve: &greeting/1}
         ]
       }
     }
