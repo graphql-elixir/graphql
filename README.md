@@ -8,7 +8,7 @@ An Elixir implementation of Facebook's GraphQL.
 This is the core GraphQL query parsing and execution engine whose goal is to be
 transport, server and datastore agnostic.
 
-In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will need (plug_graphql)[https://github.com/joshprice/plug_graphql].
+In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will need [plug_graphql](https://github.com/joshprice/plug_graphql).
 
 Other ways of handling queries will be added in due course.
 
