@@ -9,14 +9,3 @@ defmodule GraphQL.SyntaxError do
   end
 end
 
-defmodule GraphQL.QueryError do 
-  @moduledoc """
-  An error raised when a field is queried that does not exist
-  """
-
-  defexception line: nil, errors: "Query error", param: nil
-  def message(exception) do
-    ""
-  end
-end
-
