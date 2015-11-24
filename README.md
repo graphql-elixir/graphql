@@ -1,5 +1,4 @@
-GraphQL Elixir
-==============
+# GraphQL Elixir
 
 [![Build Status](https://travis-ci.org/joshprice/graphql-elixir.svg)](https://travis-ci.org/joshprice/graphql-elixir)
 [![Public Slack Discussion](https://graphql-slack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
@@ -12,7 +11,7 @@ First, add GraphQL to your `mix.exs` dependencies:
 
 ```elixir
 defp deps do
-  [{:graphql, "~> 0.0.2"}]
+  [{:graphql, "~> 0.0.4"}]
 end
 ```
 
@@ -28,10 +27,17 @@ Parse a simple GraphQL query
 
 ```elixir
 iex> GraphQL.parse "{ hello }"
-#=> [kind: :Document, loc: [start: 0],
-#  definitions: [[kind: :OperationDefinition, loc: [start: 0], operation: :query,
-#    selectionSet: [kind: :SelectionSet, loc: [start: 0],
-#     selections: [[kind: :Field, loc: [start: 0], name: "hello"]]]]]]
+{:ok, %{definitions: [
+  %{kind: :OperationDefinition, loc: %{start: 0},
+    operation: :query,
+    selectionSet: %{kind: :SelectionSet, loc: %{start: 0},
+      selections: [
+        %{kind: :Field, loc: %{start: 0}, name: "hello"}
+      ]
+    }}
+  ],
+  kind: :Document, loc: %{start: 0}
+}}
 ```
 
 ## Status
@@ -40,15 +46,15 @@ This is a work in progress, right now here's what is done:
 
 - [x] Parser for GraphQL (including Type definitions)
 - [x] AST matching the `graphql-js` types as closely as possible
-- [ ] Schema definition
-- [ ] Query execution
+- [x] Schema definition
+- [WIP] Query execution
+- [WIP] Query validation
 - [ ] Introspection
 
 ## Resources
 
 - [GraphQL Spec](http://facebook.github.io/graphql/) This incredibly well written spec made writing the GraphQL parser pretty straightforward.
 - [GraphQL JS Reference Implementation](https://github.com/graphql/graphql-js)
-
 
 ## Implementation
 
@@ -84,12 +90,10 @@ https://github.com/jonathanmarvens/atom-language-erlang/pull/11
 
 however if that PR has been merged then just grab the latest version of the plugin!
 
-Contributing
-------------
+## Contributing
 
 We actively welcome pull requests, bug reports, feedback, issues, questions. Come and chat in the [#erlang channel on Slack](https://graphql-slack.herokuapp.com/)
 
-License
--------
+## License
 
 [BSD](https://github.com/joshprice/graphql-elixir/blob/master/LICENSE).
