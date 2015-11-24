@@ -1,58 +1,43 @@
 defmodule GraphQL.Mixfile do
   use Mix.Project
 
+  @version "0.0.5"
+
+  @description "An Elixir implementation of Facebook's GraphQL core engine"
+  @repo_url "https://github.com/joshprice/graphql-elixir"
+
   def project do
     [app: :graphql,
-     name: "GraphQL",
-     version: "0.0.4",
+     version: @version,
      elixir: "~> 1.0",
-     description: description,
+     description: @description,
      package: package,
-     source_url: "https://github.com/joshprice/graphql-elixir",
-     homepage_url: "https://github.com/joshprice/graphql-elixir",
+     source_url: @repo_url,
+     homepage_url: @repo_url,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps,
-     docs: [extras: ["README.md"]]]
+     name: "GraphQL",
+     docs: [main: "README", extras: ["README.md"]]]
   end
 
-  defp description do
-    """
-    An Elixir implementation of GraphQL
-    """
-  end
-
-  # Configuration for the OTP application
-  #
-  # Type `mix help compile.app` for more information
   def application do
     [applications: [:logger]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # Type `mix help deps` for more examples and options
   defp deps do
     [
-      {:earmark, "~> 0.1", only: :dev},
-      {:ex_doc, "~> 0.8", only: :dev},
       {:mix_test_watch, "~> 0.2", only: :dev},
+      {:earmark, "~> 0.1", only: :docs},
+      {:ex_doc, "~> 0.8", only: :docs},
       {:inch_ex, only: :docs}
     ]
   end
 
   defp package do
-    [# These are the default files included in the package
-     files: ["lib", "src/*.xrl", "src/*.yrl", "mix.exs", "README*", "LICENSE*"],
-     maintainers: ["Josh Price", "James Sadler"],
+    [maintainers: ["Josh Price", "James Sadler"],
      licenses: ["BSD"],
-     links: %{"GitHub" => "https://github.com/joshprice/graphql-elixir"}]
+     links: %{"GitHub" => @repo_url},
+     files: ~w(lib src/*.xrl src/*.yrl mix.exs *.md LICENSE)]
   end
-
 end
