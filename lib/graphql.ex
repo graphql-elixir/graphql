@@ -30,9 +30,6 @@ defmodule GraphQL do
       # {:ok, %{hello: "world"}}
   """
 
-  alias GraphQL.Schema
-  alias GraphQL.SyntaxError
-
   defmodule ObjectType do
     defstruct name: "RootQueryType", description: "", fields: []
   end
@@ -96,28 +93,47 @@ defmodule GraphQL do
   """
   def execute(schema, query) do
     case parse(query) do
-      {:ok, document} ->
-        query_fields = hd(document[:definitions])[:selectionSet][:selections]
-
-        %Schema{
-          query: _query_root = %ObjectType{
-            name: "RootQueryType",
-            fields: fields
-          }
-        } = schema
-
-        result = for fd <- fields, qf <- query_fields, qf[:name] == fd.name do
-          arguments = Map.get(qf, :arguments, [])
-                      |> Enum.map(&parse_argument/1)
-
-          {String.to_atom(fd.name), fd.resolve.(arguments)}
-        end
-
-        {:ok, Enum.into(result, %{})}
+      {:ok, document} -> execute_definition(hd(document[:definitions]), schema)
       {:error, error} -> {:error, error}
     end
   end
 
+  defp execute_definition(%{operation: :query}=definition, schema) do
+    {:ok, Enum.map(definition[:selectionSet][:selections], fn(selection) -> execute_field(selection, schema.query) end)
+          |> Enum.filter(fn(item) -> item != nil end)
+          |> Enum.into(%{})}
+  end
+
+  defp execute_field(%{kind: :Field, selectionSet: selection_set}=field, schema) do
+    fields = Enum.map(selection_set[:selections], fn(selection) -> 
+        schema_fragment = Enum.find(schema.fields, fn(fd) -> fd.name == field[:name] end)
+        execute_field(selection, schema_fragment) 
+      end)
+
+    fields = Enum.filter(fields, fn(item) -> item != nil end)
+
+    if Enum.count(fields) > 0 do
+      {String.to_atom(field[:name]), Enum.into(fields, %{})}
+    else
+      nil
+    end
+
+  end
+
+  defp execute_field(%{kind: :Field}=field, schema) do
+    arguments = Map.get(field, :arguments, []) |> Enum.map(&parse_argument/1)
+    schema_fragment = Enum.find(schema.fields, fn(fd) -> fd.name == field[:name] end)
+    case resolve(schema_fragment, arguments) do
+      {:ok, value} -> {String.to_atom(field[:name]), value}
+      {:error, _} -> nil
+    end
+  end
+
+  defp resolve(nil, _), do: {:error, nil}
+  defp resolve(field, arguments) do
+    {:ok, field.resolve.(arguments)}
+  end
+  
   defp parse_argument(%{kind: :Argument, loc: _, name: name, value: %{kind: _, loc: _, value: value}}) do
     {String.to_atom(name), value}
   end

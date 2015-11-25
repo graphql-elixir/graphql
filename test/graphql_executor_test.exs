@@ -16,6 +16,16 @@ defmodule GraphqlExecutorTest do
               name: "greeting",
               type: "String",
               resolve: &greeting/1,
+            },
+            %GraphQL.ObjectType{
+              name: "person",
+              fields: [
+                %GraphQL.FieldDefinition{
+                  name: "name",
+                  type: "String",
+                  resolve: &person_name/1
+                }
+              ]
             }
           ]
         }
@@ -24,6 +34,8 @@ defmodule GraphqlExecutorTest do
 
     def greeting(name: name), do: "Hello, #{name}!"
     def greeting(_), do: greeting(name: "world")
+
+    def person_name(_), do: "Nick"
   end
 
   test "basic query execution" do
@@ -35,6 +47,22 @@ defmodule GraphqlExecutorTest do
     query = "{ greeting(name: \"Elixir\") }"
     assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, Elixir!"}}
   end
+
+  test "query object type fields" do
+    query = "{ greeting, person { name } }"
+    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, world!", person: %{name: "Nick"} }}
+  end
+
+  test "query undefined field" do
+    query = "{ undefined }"
+    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{}}
+  end
+
+  test "query nested undefined field" do 
+    query = "{ greeting, person { title } }"
+    assert GraphQL.execute(TestSchema.schema, query) == {:ok, %{greeting: "Hello, world!"}}
+  end
+
 
 
   # test "simple selection set" do
