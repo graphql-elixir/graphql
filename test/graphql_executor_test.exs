@@ -75,34 +75,21 @@ defmodule GraphqlExecutorTest do
     assert GraphQL.execute(schema, doc, data) == {:ok, %{"person" => %{"name" => "Dave"}}}
   end
 
-  # it('uses the query schema for queries', async () => {
-  #   var doc = `query Q { a } mutation M { c } subscription S { a }`;
-  #   var data = { a: 'b', c: 'd' };
-  #   var ast = parse(doc);
-  #   var schema = new GraphQLSchema({
-  #     query: new GraphQLObjectType({
-  #       name: 'Q',
-  #       fields: {
-  #         a: { type: GraphQLString },
-  #       }
-  #     }),
-  #     mutation: new GraphQLObjectType({
-  #       name: 'M',
-  #       fields: {
-  #         c: { type: GraphQLString },
-  #       }
-  #     }),
-  #     subscription: new GraphQLObjectType({
-  #       name: 'S',
-  #       fields: {
-  #         a: { type: GraphQLString },
-  #       }
-  #     })
-  #   });
-  #
-  #   var queryResult = await execute(schema, ast, data, {}, 'Q');
-  #
-  #   expect(queryResult).to.deep.equal({ data: { a: 'b' } });
-  # });
-
+  test "use specified query operation" do
+    schema = %GraphQL.Schema{
+      query: %GraphQL.ObjectType{
+        name: "Q",
+        fields: %{a: %{ type: "String"}}
+      },
+      mutation: %GraphQL.ObjectType{
+        name: "M",
+        fields: %{b: %{ type: "String"}}
+      }
+    }
+    data = %{"a" => "A", "b" => "B"}
+    {:ok, doc} = GraphQL.parse "query Q { a } mutation M { c }"
+    assert GraphQL.execute(schema, doc, data, nil, "Q") == {:ok,
+      %{"a" => "A"}
+    }
+  end
 end

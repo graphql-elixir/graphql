@@ -31,7 +31,7 @@ defmodule GraphQL do
   """
 
   defmodule ObjectType do
-    defstruct name: "RootQueryType", description: "", fields: [], args: %{}
+    defstruct name: "RootQueryType", description: "", fields: []
   end
 
   defmodule FieldDefinition do
@@ -129,7 +129,7 @@ defmodule GraphQL do
   defp collect_fields(context, runtime_type, selection_set, fields \\ %{}, visited_fragment_names \\ %{}) do
     Enum.reduce selection_set[:selections], fields, fn(selection, fields) ->
       case selection do
-        %{kind: :Field} -> Map.put fields, field_entry_key(selection), [selection]
+        %{kind: :Field} -> Map.put(fields, field_entry_key(selection), [selection])
         _ -> fields
       end
     end
@@ -151,8 +151,9 @@ defmodule GraphQL do
     field_name = field_ast.name
     field_def = field_definition(context.schema, parent_type, field_name)
     return_type = field_def.type
-    resolve_fn = field_def.resolve || fn(_, _, _) -> "default resolve fn value" end
-    args = argument_values(field_def.args, Map.get(field_ast, :arguments, %{}), context.variable_values)
+
+    resolve_fn = Map.get(field_def, :resolve, &default_resolve_fn/3)
+    args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
     info = %{
       field_name: field_name,
       field_asts: field_asts,
@@ -166,6 +167,10 @@ defmodule GraphQL do
     }
     result = resolve_fn.(source, args, info)
     complete_value(context, return_type, field_asts, info, result)
+  end
+
+  defp default_resolve_fn(source, _args, %{field_name: field_name}) do
+    source[field_name]
   end
 
   # defp complete_value_catching_error(context, return_type, field_asts, info, result) do
@@ -195,7 +200,7 @@ defmodule GraphQL do
 
   defp argument_values(arg_defs, arg_asts, variable_values) do
     arg_ast_map = Enum.reduce arg_asts, %{}, fn(arg_ast, result) ->
-      Map.put result, String.to_atom(arg_ast.name), arg_ast
+      Map.put(result, String.to_atom(arg_ast.name), arg_ast)
     end
     Enum.reduce arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def
@@ -212,7 +217,6 @@ defmodule GraphQL do
   end
 
   defp field_entry_key(field) do
-    # field.alias || field.name
-    field.name
+    Map.get(field, :alias, field.name)
   end
 end
