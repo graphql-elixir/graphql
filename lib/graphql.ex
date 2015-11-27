@@ -31,7 +31,7 @@ defmodule GraphQL do
   """
 
   defmodule ObjectType do
-    defstruct name: "RootQueryType", description: "", fields: []
+    defstruct name: "RootQueryType", description: "", fields: [], args: %{}
   end
 
   defmodule FieldDefinition do
@@ -135,7 +135,7 @@ defmodule GraphQL do
     end
   end
 
-  # source_value -> root_value
+  # source_value -> root_value?
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
       Map.put results, field_name, resolve_field(context, parent_type, source_value, field_asts)
@@ -143,7 +143,7 @@ defmodule GraphQL do
   end
 
   defp execute_fields_serially(context, type, root_value, fields) do
-    {:error, "not implemented"}
+    {:error, "not yet implemented"}
   end
 
   defp resolve_field(context, parent_type, source, field_asts) do
@@ -151,7 +151,7 @@ defmodule GraphQL do
     field_name = field_ast.name
     field_def = field_definition(context.schema, parent_type, field_name)
     return_type = field_def.type
-    resolve_fn = field_def.resolve || fn(_, _, _) -> "default resolve" end
+    resolve_fn = field_def.resolve || fn(_, _, _) -> "default resolve fn value" end
     args = argument_values(field_def.args, Map.get(field_ast, :arguments, %{}), context.variable_values)
     info = %{
       field_name: field_name,
@@ -164,7 +164,28 @@ defmodule GraphQL do
       operation: context.operation,
       variable_values: context.variable_values
     }
-    resolve_fn.(source, args, info)
+    result = resolve_fn.(source, args, info)
+    complete_value(context, return_type, field_asts, info, result)
+  end
+
+  # defp complete_value_catching_error(context, return_type, field_asts, info, result) do
+  #   # TODO lots of error checking
+  #   complete_value(context, return_type, field_asts, info, result)
+  # end
+
+  defp complete_value(context, %GraphQL.ObjectType{} = return_type, field_asts, info, result) do
+    sub_field_asts = Enum.reduce field_asts, %{}, fn(field_ast, sub_field_asts) ->
+      if selection_set = Map.get(field_ast, :selectionSet) do
+        collect_fields(context, return_type, selection_set, sub_field_asts)
+      else
+        sub_field_asts
+      end
+    end
+    execute_fields(context, return_type, result, sub_field_asts)
+  end
+
+  defp complete_value(_context, _return_type, _field_asts, _info, result) do
+    result
   end
 
   defp field_definition(schema, parent_type, field_name) do
