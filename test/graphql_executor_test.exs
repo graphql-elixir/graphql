@@ -11,16 +11,15 @@ defmodule GraphqlExecutorTest do
       %GraphQL.Schema{
         query: %GraphQL.ObjectType{
           name: "RootQueryType",
-          fields: [
-            %GraphQL.FieldDefinition{
-              name: "greeting",
+          fields: %{
+            greeting: %GraphQL.FieldDefinition{
               type: "String",
               args: %{
                 name: %{ type: "String" }
               },
               resolve: &greeting/3,
             }
-          ]
+          }
         }
       }
     end

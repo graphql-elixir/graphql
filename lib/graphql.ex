@@ -168,7 +168,8 @@ defmodule GraphQL do
   end
 
   defp field_definition(schema, parent_type, field_name) do
-    Enum.find parent_type.fields, fn(field_def) -> field_def.name == field_name end
+    # TODO deal with introspection
+    parent_type.fields[String.to_atom field_name]
   end
 
   defp argument_values(arg_defs, arg_asts, variable_values) do
