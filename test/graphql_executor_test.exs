@@ -87,9 +87,23 @@ defmodule GraphqlExecutorTest do
       }
     }
     data = %{"a" => "A", "b" => "B"}
-    {:ok, doc} = GraphQL.parse "query Q { a } mutation M { c }"
-    assert GraphQL.execute(schema, doc, data, nil, "Q") == {:ok,
-      %{"a" => "A"}
+    {:ok, doc} = GraphQL.parse "query Q { a } mutation M { b }"
+    assert GraphQL.execute(schema, doc, data, nil, "Q") == {:ok, %{"a" => "A"}}
+  end
+
+  test "use specified mutation operation" do
+    schema = %GraphQL.Schema{
+      query: %GraphQL.ObjectType{
+        name: "Q",
+        fields: %{a: %{ type: "String"}}
+      },
+      mutation: %GraphQL.ObjectType{
+        name: "M",
+        fields: %{b: %{ type: "String"}}
+      }
     }
+    data = %{"a" => "A", "b" => "B"}
+    {:ok, doc} = GraphQL.parse "query Q { a } mutation M { b }"
+    assert GraphQL.execute(schema, doc, data, nil, "M") == {:ok, %{"b" => "B"}}
   end
 end

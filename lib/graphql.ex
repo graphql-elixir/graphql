@@ -31,7 +31,7 @@ defmodule GraphQL do
   """
 
   defmodule ObjectType do
-    defstruct name: "RootQueryType", description: "", fields: []
+    defstruct name: "RootQueryType", description: "", fields: %{}
   end
 
   defmodule FieldDefinition do
@@ -109,21 +109,25 @@ defmodule GraphQL do
   end
 
   defp execute_operation(context, operation, root_value) do
-    type = get_operation_root_type(context.schema, operation)
+    type = operation_root_type(context.schema, operation)
     fields = collect_fields(context, type, operation.selectionSet)
     result = case operation.operation do
-      'mutation' -> execute_fields_serially(context, type, root_value, fields)
+      :mutation -> execute_fields_serially(context, type, root_value, fields)
       _ -> execute_fields(context, type, root_value, fields)
     end
     {:ok, {result, nil}}
   end
 
   defp find_operation(document, operation_name) do
-    hd(document.definitions)
+    if operation_name do
+      Enum.find(document.definitions, fn(definition) -> definition.name == operation_name end)
+    else
+      hd(document.definitions)
+    end
   end
 
-  defp get_operation_root_type(schema, operation) do
-    schema.query
+  defp operation_root_type(schema, operation) do
+    Map.get(schema, operation.operation)
   end
 
   defp collect_fields(context, runtime_type, selection_set, fields \\ %{}, visited_fragment_names \\ %{}) do
@@ -142,8 +146,9 @@ defmodule GraphQL do
     end
   end
 
-  defp execute_fields_serially(context, type, root_value, fields) do
-    {:error, "not yet implemented"}
+  defp execute_fields_serially(context, parent_type, source_value, fields) do
+    # call execute_fields because no async operations yet
+    execute_fields(context, parent_type, source_value, fields)
   end
 
   defp resolve_field(context, parent_type, source, field_asts) do
@@ -166,17 +171,17 @@ defmodule GraphQL do
       variable_values: context.variable_values
     }
     result = resolve_fn.(source, args, info)
-    complete_value(context, return_type, field_asts, info, result)
+    complete_value_catching_error(context, return_type, field_asts, info, result)
   end
 
   defp default_resolve_fn(source, _args, %{field_name: field_name}) do
     source[field_name]
   end
 
-  # defp complete_value_catching_error(context, return_type, field_asts, info, result) do
-  #   # TODO lots of error checking
-  #   complete_value(context, return_type, field_asts, info, result)
-  # end
+  defp complete_value_catching_error(context, return_type, field_asts, info, result) do
+    # TODO lots of error checking
+    complete_value(context, return_type, field_asts, info, result)
+  end
 
   defp complete_value(context, %GraphQL.ObjectType{} = return_type, field_asts, info, result) do
     sub_field_asts = Enum.reduce field_asts, %{}, fn(field_ast, sub_field_asts) ->
@@ -193,7 +198,7 @@ defmodule GraphQL do
     result
   end
 
-  defp field_definition(schema, parent_type, field_name) do
+  defp field_definition(_schema, parent_type, field_name) do
     # TODO deal with introspection
     parent_type.fields[String.to_atom field_name]
   end
