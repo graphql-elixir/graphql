@@ -2,8 +2,17 @@
 defmodule GraphqlExecutorTest do
   use ExUnit.Case, async: true
 
-  def assert_execute(query, schema, data, expected_output) do
-    assert GraphQL.execute(query, schema, data) == expected_output
+  alias GraphQL.Lang.Parser
+  alias GraphQL.Execution.Executor
+
+  def assert_execute({query, schema}, expected_output) do
+    {:ok, doc} = Parser.parse(query)
+    assert Executor.execute(schema, doc) == {:ok, expected_output}
+  end
+
+  def assert_execute({query, schema, data}, expected_output) do
+    {:ok, doc} = Parser.parse(query)
+    assert Executor.execute(schema, doc, data) == {:ok, expected_output}
   end
 
   defmodule TestSchema do
@@ -29,15 +38,11 @@ defmodule GraphqlExecutorTest do
   end
 
   test "basic query execution" do
-    query = "{ greeting }"
-    {:ok, doc} = GraphQL.parse query
-    assert GraphQL.execute(TestSchema.schema, doc) == {:ok, %{"greeting" => "Hello, world!"}}
+    assert_execute {"{ greeting }", TestSchema.schema}, %{"greeting" => "Hello, world!"}
   end
 
   test "query arguments" do
-    query = "{ greeting(name: \"Elixir\") }"
-    {:ok, doc} = GraphQL.parse query
-    assert GraphQL.execute(TestSchema.schema, doc) == {:ok, %{"greeting" => "Hello, Elixir!"}}
+    assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, %{"greeting" => "Hello, Elixir!"}
   end
 
   test "simple selection set" do
@@ -71,8 +76,7 @@ defmodule GraphqlExecutorTest do
       %{id: "2", name: "Jeni", age: 45}
     ]
 
-    {:ok, doc} = GraphQL.parse ~S[{ person(id: "1") { name } }]
-    assert GraphQL.execute(schema, doc, data) == {:ok, %{"person" => %{"name" => "Dave"}}}
+    assert_execute {~S[{ person(id: "1") { name } }], schema, data}, %{"person" => %{"name" => "Dave"}}
   end
 
   test "use specified query operation" do
@@ -87,8 +91,8 @@ defmodule GraphqlExecutorTest do
       }
     }
     data = %{"a" => "A", "b" => "B"}
-    {:ok, doc} = GraphQL.parse "query Q { a } mutation M { b }"
-    assert GraphQL.execute(schema, doc, data, nil, "Q") == {:ok, %{"a" => "A"}}
+    {:ok, doc} = Parser.parse "query Q { a } mutation M { b }"
+    assert Executor.execute(schema, doc, data, nil, "Q") == {:ok, %{"a" => "A"}}
   end
 
   test "use specified mutation operation" do
@@ -103,7 +107,7 @@ defmodule GraphqlExecutorTest do
       }
     }
     data = %{"a" => "A", "b" => "B"}
-    {:ok, doc} = GraphQL.parse "query Q { a } mutation M { b }"
-    assert GraphQL.execute(schema, doc, data, nil, "M") == {:ok, %{"b" => "B"}}
+    {:ok, doc} = Parser.parse "query Q { a } mutation M { b }"
+    assert Executor.execute(schema, doc, data, nil, "M") == {:ok, %{"b" => "B"}}
   end
 end
