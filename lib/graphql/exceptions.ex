@@ -8,4 +8,3 @@ defmodule GraphQL.SyntaxError do
     "#{exception.errors} on line #{exception.line}"
   end
 end
-
