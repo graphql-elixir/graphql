@@ -1,7 +1,14 @@
-defmodule GraphqlLexerTest do
+defmodule GraphQL.Lang.Lexer.LexerTest do
   use ExUnit.Case, async: true
 
-  import ExUnit.TestHelpers
+  def assert_tokens(input, tokens) do
+    case :graphql_lexer.string(input) do
+      {:ok, output, _} ->
+        assert output == tokens
+      {:error, {_, :graphql_lexer, output}, _} ->
+        assert output == tokens
+    end
+  end
 
   # Ignored tokens
   test "WhiteSpace is ignored" do

@@ -1,4 +1,4 @@
-defmodule GraphqlParserKitchenSinkTest do
+defmodule GraphQL.Lang.Parser.KitchenSinkTest do
   use ExUnit.Case, async: true
 
   import ExUnit.TestHelpers

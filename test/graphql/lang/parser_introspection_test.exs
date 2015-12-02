@@ -1,4 +1,4 @@
-defmodule GraphqlParserIntrospectionTest do
+defmodule GraphQL.Lang.Parser.IntrospectionTest do
   use ExUnit.Case, async: true
 
   import ExUnit.TestHelpers
