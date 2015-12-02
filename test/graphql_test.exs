@@ -2,8 +2,6 @@ defmodule GraphQLTest do
   use ExUnit.Case, async: true
   doctest GraphQL
 
-  import ExUnit.TestHelpers
-
   test "Execute simple query" do
     schema = %GraphQL.Schema{query: %GraphQL.ObjectType{fields: %{a: %{type: "String"}}}}
     assert GraphQL.execute(schema, "{ a }", %{"a" => "A"}) == {:ok, %{"a" => "A"}}
