@@ -1,5 +1,5 @@
 
-defmodule GraphqlExecutorTest do
+defmodule GraphQL.Execution.Executor.ExecutorTest do
   use ExUnit.Case, async: true
 
   alias GraphQL.Lang.Parser

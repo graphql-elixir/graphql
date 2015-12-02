@@ -1,4 +1,4 @@
-defmodule GraphqlLexerTest do
+defmodule GraphQL.Lang.Lexer.LexerTest do
   use ExUnit.Case, async: true
 
   def assert_tokens(input, tokens) do
