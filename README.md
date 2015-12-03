@@ -18,7 +18,7 @@ First, add GraphQL to your `mix.exs` dependencies:
 
 ```elixir
 defp deps do
-  [{:graphql, "~> 0.0.5"}]
+  [{:graphql, "~> 0.0.6"}]
 end
 ```
 
@@ -38,15 +38,18 @@ defmodule TestSchema do
     %GraphQL.Schema{
       query: %GraphQL.ObjectType{
         name: "RootQueryType",
-        fields: [
-          %GraphQL.FieldDefinition{name: "greeting", type: "String", resolve: &greeting/1}
-        ]
+        fields: %{
+          greeting: %GraphQL.FieldDefinition{
+            type: "String",
+            resolve: &TestSchema.greeting/3
+          }
+        }
       }
     }
   end
 
-  def greeting(name: name), do: "Hello, #{name}!"
-  def greeting(_), do: greeting(name: "world")
+  def greeting(_, %{name: name}, _), do: "Hello, #{name}!"
+  def greeting(_, _, _), do: "Hello, world!"
 end
 ```
 
