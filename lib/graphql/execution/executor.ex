@@ -78,7 +78,6 @@ defmodule GraphQL.Execution.Executor do
     field_def = field_definition(context.schema, parent_type, field_name)
     return_type = field_def.type
 
-    resolve_fn = Map.get(field_def, :resolve, &default_resolve_fn/3)
     args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
     info = %{
       field_name: field_name,
@@ -91,7 +90,13 @@ defmodule GraphQL.Execution.Executor do
       operation: context.operation,
       variable_values: context.variable_values
     }
-    result = resolve_fn.(source, args, info)
+    resolve_fn = Map.get(field_def, :resolve, &default_resolve_fn/3)
+    result = case resolve_fn do
+      {mod, fun}    -> apply(mod, fun, [source, args, info])
+      {mod, fun, _} -> apply(mod, fun, [source, args, info])
+      resolve when is_function(resolve) -> resolve.(source, args, info)
+      _ -> {:error, "Resolve function must be a {module, function} tuple (or a lambda)"}
+    end
     complete_value_catching_error(context, return_type, field_asts, info, result)
   end
 

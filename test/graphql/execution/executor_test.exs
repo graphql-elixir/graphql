@@ -45,6 +45,16 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, %{"greeting" => "Hello, Elixir!"}
   end
 
+  test "allow {module, function, args} style of resolve" do
+    schema = %GraphQL.Schema{
+      query: %GraphQL.ObjectType{
+        name: "Q",
+        fields: %{ g: %{ type: "String", resolve: {TestSchema, :greeting, []} }}
+      }
+    }
+    assert_execute {"query Q { g }", schema}, %{"g" => "Hello, world!"}
+  end
+
   test "simple selection set" do
     schema = %GraphQL.Schema{
       query: %GraphQL.ObjectType{
