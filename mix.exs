@@ -18,7 +18,7 @@ defmodule GraphQL.Mixfile do
      start_permanent: Mix.env == :prod,
      deps: deps,
      name: "GraphQL",
-     docs: [main: "readme", extras: ["README.md"]]]
+     docs: [main: "README", extras: ["README.md"]]]
   end
 
   def application do
