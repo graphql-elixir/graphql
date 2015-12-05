@@ -21,7 +21,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         query: %GraphQL.ObjectType{
           name: "RootQueryType",
           fields: %{
-            greeting: %GraphQL.FieldDefinition{
+            greeting: %{
               type: "String",
               args: %{
                 name: %{ type: "String" }
@@ -41,6 +41,10 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute {"{ greeting }", TestSchema.schema}, %{"greeting" => "Hello, world!"}
   end
 
+  # test "error can't find field" do
+  #   assert_execute {"{ a }", TestSchema.schema}, %{error: "can't find field..."}
+  # end
+
   test "query arguments" do
     assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, %{"greeting" => "Hello, Elixir!"}
   end
@@ -49,10 +53,13 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     schema = %GraphQL.Schema{
       query: %GraphQL.ObjectType{
         name: "Q",
-        fields: %{ g: %{ type: "String", resolve: {TestSchema, :greeting, []} }}
+        fields: %{
+          g: %{ type: "String", resolve: {TestSchema, :greeting} },
+          h: %{ type: "String", args: %{name: %{type: "String" }}, resolve: {TestSchema, :greeting, []} }
+        }
       }
     }
-    assert_execute {"query Q { g }", schema}, %{"g" => "Hello, world!"}
+    assert_execute {~S[query Q {g, h(name:"Joe")}], schema}, %{"g" => "Hello, world!", "h" => "Hello, Joe!"}
   end
 
   test "simple selection set" do
@@ -64,9 +71,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
             type: %GraphQL.ObjectType{
               name: "Person",
               fields: %{
-                id:   %GraphQL.FieldDefinition{name: "id",   type: "String", resolve: fn(p, _, _) -> p.id   end},
-                name: %GraphQL.FieldDefinition{name: "name", type: "String", resolve: fn(p, _, _) -> p.name end},
-                age:  %GraphQL.FieldDefinition{name: "age",  type: "Int",    resolve: fn(p, _, _) -> p.age  end}
+                id:   %{name: "id",   type: "String", resolve: fn(p, _, _) -> p.id   end},
+                name: %{name: "name", type: "String", resolve: fn(p, _, _) -> p.name end},
+                age:  %{name: "age",  type: "Int",    resolve: fn(p, _, _) -> p.age  end}
               }
             },
             args: %{
@@ -87,6 +94,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     ]
 
     assert_execute {~S[{ person(id: "1") { name } }], schema, data}, %{"person" => %{"name" => "Dave"}}
+    assert_execute {~S[{ person(id: "1") { id name age } }], schema, data}, %{"person" => %{"id" => "1", "name" => "Dave", "age" => 34}}
   end
 
   test "use specified query operation" do
@@ -119,5 +127,41 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     data = %{"a" => "A", "b" => "B"}
     {:ok, doc} = Parser.parse "query Q { a } mutation M { b }"
     assert Executor.execute(schema, doc, data, nil, "M") == {:ok, %{"b" => "B"}}
+  end
+
+  test "lists of things" do
+    schema = %GraphQL.Schema{
+      query: %GraphQL.ObjectType{
+        name: "ListsOfThings",
+        fields: %{
+          numbers: %{
+            type: %{of: "Int"},
+            resolve: fn(_, _, _) -> [1, 2] end
+          },
+          books: %{
+            type: %{
+              of: %GraphQL.ObjectType{
+                name: "Book",
+                fields: %{
+                  title: %{ type: "String" }
+                }
+              }
+            },
+            resolve: fn(_, _, _) ->
+              [%{title: "A"}, %{title: "B"}]
+            end
+          }
+        }
+      }
+    }
+
+    assert_execute {"{numbers books}", schema},
+      %{
+        "numbers" => [1, 2],
+        "books" => [
+          %{title: "A"},
+          %{title: "B"}
+        ]
+      }
   end
 end
