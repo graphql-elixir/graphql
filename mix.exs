@@ -18,7 +18,7 @@ defmodule GraphQL.Mixfile do
      start_permanent: Mix.env == :prod,
      deps: deps,
      name: "GraphQL",
-     docs: [main: "extra-readme", extras: ["README.md"]]]
+     docs: [main: "README", extras: ["README.md"]]]
   end
 
   def application do
@@ -29,7 +29,7 @@ defmodule GraphQL.Mixfile do
     [
       {:mix_test_watch, "~> 0.2", only: :dev},
       {:credo, "~> 0.1.9", only: [:dev, :test]},
-      
+
       # Doc dependencies
       {:earmark, "~> 0.1", only: :dev},
       {:ex_doc, "~> 0.8", only: :dev},
