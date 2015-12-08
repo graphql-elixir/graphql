@@ -143,24 +143,28 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
               of: %GraphQL.ObjectType{
                 name: "Book",
                 fields: %{
-                  title: %{ type: "String" }
+                  title: %{name: "title", type: "String", resolve: fn(p, _, _) -> p.title end},
+                  isbn:  %{name: "isbn",  type: "String", resolve: fn(p, _, _) -> p.isbn end}
                 }
               }
             },
             resolve: fn(_, _, _) ->
-              [%{title: "A"}, %{title: "B"}]
+              [
+                %{title: "A", isbn: "978-3-86680-192-9"},
+                %{title: "B", isbn: "978-3-86680-255-1"}
+              ]
             end
           }
         }
       }
     }
 
-    assert_execute {"{numbers books}", schema},
+    assert_execute {"{numbers books{title}}", schema},
       %{
         "numbers" => [1, 2],
         "books" => [
-          %{title: "A"},
-          %{title: "B"}
+          %{"title" => "A"},
+          %{"title" => "B"}
         ]
       }
   end
