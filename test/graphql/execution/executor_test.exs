@@ -2,18 +2,10 @@
 defmodule GraphQL.Execution.Executor.ExecutorTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.TestHelpers
+
   alias GraphQL.Lang.Parser
   alias GraphQL.Execution.Executor
-
-  def assert_execute({query, schema}, expected_output) do
-    {:ok, doc} = Parser.parse(query)
-    assert Executor.execute(schema, doc) == {:ok, expected_output}
-  end
-
-  def assert_execute({query, schema, data}, expected_output) do
-    {:ok, doc} = Parser.parse(query)
-    assert Executor.execute(schema, doc, data) == {:ok, expected_output}
-  end
 
   defmodule TestSchema do
     def schema do
@@ -133,8 +125,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     book = %GraphQL.ObjectType{
       name: "Book",
       fields: %{
-        isbn:  %{ type: "Int",    resolve: fn(p, _, _) -> p.isbn end},
-        title: %{ type: "String", resolve: fn(p, _, _) -> p.title end}
+        isbn:  %{type: "Int",    resolve: fn(p, _, _) -> p.isbn end},
+        title: %{type: "String", resolve: fn(p, _, _) -> p.title end}
       }
     }
 
