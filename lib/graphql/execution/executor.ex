@@ -114,9 +114,9 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, return_type, result, sub_field_asts)
   end
 
-  defp complete_value(context, %GraphQL.List{of_type: list_type} = return_type, field_asts, info, result) do
+  defp complete_value(context, %GraphQL.List{of_type: list_type}, field_asts, info, result) do
     Enum.map result, fn(item) ->
-      complete_value_catching_error(context, return_type.of_type, field_asts, info, item)
+      complete_value_catching_error(context, list_type, field_asts, info, item)
     end
   end
 
