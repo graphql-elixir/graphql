@@ -1,7 +1,7 @@
 defmodule GraphQL.Mixfile do
   use Mix.Project
 
-  @version "0.0.7"
+  @version "0.0.8"
 
   @description "An Elixir implementation of Facebook's GraphQL core engine"
   @repo_url "https://github.com/joshprice/graphql-elixir"
