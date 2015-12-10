@@ -13,14 +13,6 @@ defmodule GraphQL do
       # {:ok, %{hello: "world"}}
   """
 
-  defmodule ObjectType do
-    defstruct name: "RootQueryType", description: "", fields: %{}
-  end
-
-  defmodule FieldDefinition do
-    defstruct name: nil, type: "String", args: %{}, resolve: nil
-  end
-
   @doc """
   Execute a query against a schema.
 
