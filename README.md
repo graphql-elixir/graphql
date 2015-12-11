@@ -71,7 +71,7 @@ This is a work in progress, right now here's what is done:
   - [x] Scalar types
   - [x] Arguments
   - [x] Multiple forms of resolution
-  - [ ] Complex types (List, Object, etc)
+  - [x] Complex types (List, Object, etc)
   - [ ] Fragments in queries
   - [ ] Extract variable values
 - [ ] Query validation
