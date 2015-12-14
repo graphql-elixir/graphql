@@ -33,10 +33,6 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute {"{ greeting }", TestSchema.schema}, %{"greeting" => "Hello, world!"}
   end
 
-  # test "error can't find field" do
-  #   assert_execute {"{ a }", TestSchema.schema}, %{error: "can't find field..."}
-  # end
-
   test "query arguments" do
     assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, %{"greeting" => "Hello, Elixir!"}
   end
@@ -53,6 +49,16 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     }
     assert_execute {~S[query Q {g, h(name:"Joe")}], schema}, %{"g" => "Hello, world!", "h" => "Hello, Joe!"}
   end
+
+  test "must specify operation name when multiple operations exist" do
+    assert_execute_error {"query a {a} query b {b}", TestSchema.schema}, %{errors: [
+      %{message: "Must provide operation name if query contains multiple operations."}
+    ]}
+  end
+
+  # test "error can't find field" do
+  #   assert_execute {"{ a }", TestSchema.schema}, %{error: "can't find field..."}
+  # end
 
   test "simple selection set" do
     schema = %GraphQL.Schema{

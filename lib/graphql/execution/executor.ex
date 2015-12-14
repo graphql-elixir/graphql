@@ -14,19 +14,40 @@ defmodule GraphQL.Execution.Executor do
   """
   def execute(schema, document, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
     context = build_execution_context(schema, document, root_value, variable_values, operation_name)
-    {:ok, {data, _errors}} = execute_operation(context, context.operation, root_value)
-    {:ok, data}
+    case context.errors do
+      [] ->
+        {:ok, {data, _errors}} = execute_operation(context, context.operation, root_value)
+        {:ok, data}
+      _ ->
+        {:error, %{errors: context.errors}}
+    end
+  end
+
+  defp report_error(context, msg) do
+    put_in(context.errors, [%{message: msg} | context.errors])
   end
 
   defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
-    %{
+    Enum.reduce document.definitions, %{
       schema: schema,
       fragments: %{},
       root_value: root_value,
-      operation: find_operation(document, operation_name),
+      operation: nil,
       variable_values: variable_values,
       errors: []
-    }
+    }, fn(definition, context) ->
+      case definition do
+        %{kind: :OperationDefinition} -> context
+          cond do
+            !operation_name && context.operation ->
+              report_error(context, "Must provide operation name if query contains multiple operations.")
+            !operation_name || definition.name === operation_name ->
+              put_in(context.operation, definition)
+            true -> context
+          end
+        %{kind: :FragmentDefinition} -> context
+      end
+    end
   end
 
   defp execute_operation(context, operation, root_value) do
@@ -37,14 +58,6 @@ defmodule GraphQL.Execution.Executor do
       _ -> execute_fields(context, type, root_value, fields)
     end
     {:ok, {result, nil}}
-  end
-
-  defp find_operation(document, operation_name) do
-    if operation_name do
-      Enum.find(document.definitions, fn(definition) -> definition.name == operation_name end)
-    else
-      hd(document.definitions)
-    end
   end
 
   defp operation_root_type(schema, operation) do
