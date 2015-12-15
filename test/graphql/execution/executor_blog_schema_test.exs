@@ -16,7 +16,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       author: %{
         id: "123",
         name: "John Smith",
-        pic: fn(width, height) -> get_pic("123", width, height) end,
+        pic: fn(w, h) -> %{url: "cdn://123", width: w, height: h} end,
         recentArticle: %{
           id: "1000",
           isPublished: true,
@@ -29,14 +29,6 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       body: "This is a post",
       hidden: "This data is not exposed in the schema",
       keywords: ["tech", "elixir", "graphql", 1, true, nil]
-    }
-  end
-
-  def get_pic(uid, width, height) do
-    %{
-      url: "cdn://#{uid}",
-      width: "#{width}",
-      height: "#{height}"
     }
   end
 
@@ -63,7 +55,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
             height: %{type: "Int"}
           },
           type: image,
-          resolve: fn(o, %{width: w, height: h}, _) -> o.pic(w, h) end
+          resolve: fn(o, %{width: w, height: h}, _) -> o.pic.(w, h) end
         },
         recentArticle: nil
       }
@@ -113,11 +105,11 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
         author {
           id,
           name,
-          # pic(width: 640, height: 480) {
-          #   url,
-          #   width,
-          #   height
-          # },
+          pic(width: 640, height: 480) {
+            url,
+            width,
+            height
+          },
           recentArticle {
             ...articleFields,
             keywords
@@ -148,11 +140,11 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
           author: %{
             id: "123",
             name: "John Smith",
-            # pic: %{
-            #   url: "cdn://123",
-            #   width: 640,
-            #   height: 480
-            # },
+            pic: %{
+              url: "cdn://123",
+              width: 640,
+              height: 480
+            },
             recentArticle: %{
               id: "1000",
               isPublished: true,
