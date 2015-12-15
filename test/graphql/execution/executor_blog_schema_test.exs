@@ -8,8 +8,6 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
   alias GraphQL.ObjectType
   alias GraphQL.List
   alias GraphQL.Type.NonNull
-  # alias GraphQL.Type.String
-  # alias GraphQL.Type.Int
 
   def make_article(id) do
     %{
