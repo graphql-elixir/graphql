@@ -16,13 +16,19 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       author: %{
         id: "123",
         name: "John Smith",
-        pic: fn(width, height) -> get_pic("123", width, height) end
-        # recentArticle: 1
+        pic: fn(width, height) -> get_pic("123", width, height) end,
+        recentArticle: %{
+          id: "1000",
+          isPublished: true,
+          title: "GraphQL and Elixir: A powerful pair",
+          body: "Elixir is fast, GraphQL is awesome!",
+          keywords: ["elixir", "graphql"]
+        }
       },
       title: "My Article #{id}",
       body: "This is a post",
       hidden: "This data is not exposed in the schema",
-      keywords: ["foo", "bar", 1, true, nil]
+      keywords: ["tech", "elixir", "graphql", 1, true, nil]
     }
   end
 
@@ -58,7 +64,8 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
           },
           type: image,
           resolve: fn(o, %{width: w, height: h}, _) -> o.pic(w, h) end
-        }
+        },
+        recentArticle: nil
       }
     }
 
@@ -73,6 +80,10 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
         keywords: %{type: %List{of_type: "String"}}
       }
     }
+
+    # resolve circular dependency
+    author  = put_in author.fields.recentArticle, %{type: article}
+    article = put_in article.fields.author, %{type: author}
 
     blog_query = %ObjectType{
       name: "Query",
@@ -107,10 +118,10 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
           #   width,
           #   height
           # },
-          # recentArticle {
-          #   ...articleFields,
-          #   keywords
-          # }
+          recentArticle {
+            ...articleFields,
+            keywords
+          }
         }
       }
     }
@@ -142,13 +153,13 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
             #   width: 640,
             #   height: 480
             # },
-            # recentArticle: %{
-            #   id: "1",
-            #   isPublished: true,
-            #   title: "My Article 1",
-            #   body: "This is a post",
-            #   keywords: ["foo", "bar", "1", "true", nil]
-            # }
+            recentArticle: %{
+              id: "1000",
+              isPublished: true,
+              title: "GraphQL and Elixir: A powerful pair",
+              body: "Elixir is fast, GraphQL is awesome!",
+              keywords: ["elixir", "graphql"]
+            }
           }
         }
       }
