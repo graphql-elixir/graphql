@@ -8,7 +8,9 @@ An Elixir implementation of Facebook's GraphQL.
 This is the core GraphQL query parsing and execution engine whose goal is to be
 transport, server and datastore agnostic.
 
-In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will need [plug_graphql](https://github.com/joshprice/plug_graphql).
+In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will
+need [plug_graphql](https://github.com/joshprice/plug_graphql).
+Examples for Phoenix can be found at [hello_graphql_phoenix](https://github.com/joshprice/hello_graphql_phoenix_graphql)
 
 Other ways of handling queries will be added in due course.
 
@@ -18,7 +20,7 @@ First, add GraphQL to your `mix.exs` dependencies:
 
 ```elixir
 defp deps do
-  [{:graphql, "~> 0.0.8"}]
+  [{:graphql, "~> 0.0.9"}]
 end
 ```
 
@@ -72,7 +74,7 @@ This is a work in progress, right now here's what is done:
   - [x] Arguments
   - [x] Multiple forms of resolution
   - [x] Complex types (List, Object, etc)
-  - [ ] Fragments in queries
+  - [x] Fragments in queries
   - [ ] Extract variable values
 - [ ] Query validation
 - [ ] Introspection
