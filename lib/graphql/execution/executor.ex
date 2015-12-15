@@ -34,7 +34,7 @@ defmodule GraphQL.Execution.Executor do
       errors: []
     }, fn(definition, context) ->
       case definition do
-        %{kind: :OperationDefinition} -> context
+        %{kind: :OperationDefinition} ->
           cond do
             !operation_name && context.operation ->
               report_error(context, "Must provide operation name if query contains multiple operations.")
@@ -51,7 +51,7 @@ defmodule GraphQL.Execution.Executor do
   defp execute_operation(context, operation, root_value) do
     type = operation_root_type(context.schema, operation)
     %{fields: fields} = collect_fields(context, type, operation.selectionSet)
-    result = case operation.operation do
+    case operation.operation do
       :query        -> {:ok, execute_fields(context, type, root_value, fields)}
       :mutation     -> {:ok, execute_fields_serially(context, type, root_value, fields)}
       :subscription -> {:error, "Subscriptions not currently supported"}
