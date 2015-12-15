@@ -83,7 +83,10 @@ defmodule GraphQL.Execution.Executor do
 
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
-      Map.put results, String.to_atom(field_name), resolve_field(context, parent_type, source_value, field_asts)
+      case resolve_field(context, parent_type, source_value, field_asts) do
+        nil -> results
+        value -> Map.put results, String.to_atom(field_name), value
+      end
     end
   end
 
@@ -95,29 +98,30 @@ defmodule GraphQL.Execution.Executor do
   defp resolve_field(context, parent_type, source, field_asts) do
     field_ast = hd(field_asts)
     field_name = String.to_atom(field_ast.name)
-    field_def = field_definition(context.schema, parent_type, field_name)
-    return_type = field_def.type
+    if field_def = field_definition(context.schema, parent_type, field_name) do
+      return_type = field_def.type
 
-    args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
-    info = %{
-      field_name: field_name,
-      field_asts: field_asts,
-      return_type: return_type,
-      parent_type: parent_type,
-      schema: context.schema,
-      fragments: context.fragments,
-      root_value: context.root_value,
-      operation: context.operation,
-      variable_values: context.variable_values
-    }
-    resolution = Map.get(field_def, :resolve, source[field_name])
-    result = case resolution do
-      {mod, fun}    -> apply(mod, fun, [source, args, info])
-      {mod, fun, _} -> apply(mod, fun, [source, args, info])
-      resolve when is_function(resolve) -> resolve.(source, args, info)
-      _ -> resolution
+      args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
+      info = %{
+        field_name: field_name,
+        field_asts: field_asts,
+        return_type: return_type,
+        parent_type: parent_type,
+        schema: context.schema,
+        fragments: context.fragments,
+        root_value: context.root_value,
+        operation: context.operation,
+        variable_values: context.variable_values
+      }
+      resolution = Map.get(field_def, :resolve, source[field_name])
+      result = case resolution do
+        {mod, fun}    -> apply(mod, fun, [source, args, info])
+        {mod, fun, _} -> apply(mod, fun, [source, args, info])
+        resolve when is_function(resolve) -> resolve.(source, args, info)
+        _ -> resolution
+      end
+      complete_value_catching_error(context, return_type, field_asts, info, result)
     end
-    complete_value_catching_error(context, return_type, field_asts, info, result)
   end
 
   defp complete_value_catching_error(context, return_type, field_asts, info, result) do

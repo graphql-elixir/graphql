@@ -56,9 +56,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     ]}
   end
 
-  # test "error can't find field" do
-  #   assert_execute {"{ a }", TestSchema.schema}, %{error: "can't find field..."}
-  # end
+  test "do not inlcude illegal fields in output" do
+    assert_execute {"{ a }", TestSchema.schema}, %{}
+  end
 
   test "simple selection set" do
     schema = %GraphQL.Schema{
