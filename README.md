@@ -10,7 +10,7 @@ transport, server and datastore agnostic.
 
 In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will
 need [plug_graphql](https://github.com/joshprice/plug_graphql).
-Examples for Phoenix can be found at [hello_graphql_phoenix](https://github.com/joshprice/hello_graphql_phoenix_graphql)
+Examples for Phoenix can be found at [hello_graphql_phoenix](https://github.com/joshprice/hello_graphql_phoenix)
 
 Other ways of handling queries will be added in due course.
 
