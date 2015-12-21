@@ -38,12 +38,12 @@ defmodule GraphQL.Execution.Executor do
           cond do
             !operation_name && context.operation ->
               report_error(context, "Must provide operation name if query contains multiple operations.")
-            !operation_name || definition.name === operation_name ->
+            !operation_name || definition.name.value === operation_name ->
               put_in(context.operation, definition)
             true -> context
           end
         %{kind: :FragmentDefinition} ->
-          put_in(context.fragments[definition.name], definition)
+          put_in(context.fragments[definition.name.value], definition)
       end
     end
   end
@@ -69,7 +69,7 @@ defmodule GraphQL.Execution.Executor do
         %{kind: :Field} -> put_in(field_fragment_map.fields[field_entry_key(selection)], [selection])
         %{kind: :InlineFragment} -> field_fragment_map
         %{kind: :FragmentSpread} ->
-          fragment_name = selection.name
+          fragment_name = selection.name.value
           if !field_fragment_map.fragments[fragment_name] do
             field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
             collect_fields(context, runtime_type, context.fragments[fragment_name].selectionSet, field_fragment_map)
@@ -85,7 +85,7 @@ defmodule GraphQL.Execution.Executor do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
         nil -> results
-        value -> Map.put results, String.to_atom(field_name), value
+        value -> Map.put results, String.to_atom(field_name.value), value
       end
     end
   end
@@ -97,7 +97,8 @@ defmodule GraphQL.Execution.Executor do
 
   defp resolve_field(context, parent_type, source, field_asts) do
     field_ast = hd(field_asts)
-    field_name = String.to_atom(field_ast.name)
+    field_name = String.to_atom(field_ast.name.value)
+
     if field_def = field_definition(context.schema, parent_type, field_name) do
       return_type = field_def.type
 
@@ -161,7 +162,7 @@ defmodule GraphQL.Execution.Executor do
 
   defp argument_values(arg_defs, arg_asts, variable_values) do
     arg_ast_map = Enum.reduce arg_asts, %{}, fn(arg_ast, result) ->
-      Map.put(result, String.to_atom(arg_ast.name), arg_ast)
+      Map.put(result, String.to_atom(arg_ast.name.value), arg_ast)
     end
     Enum.reduce arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def

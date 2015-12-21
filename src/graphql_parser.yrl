@@ -101,12 +101,12 @@ Alias -> Name ':' : '$1'.
 Arguments -> '(' ArgumentList ')' : '$2'.
 ArgumentList -> Argument : ['$1'].
 ArgumentList -> Argument ArgumentList : ['$1'|'$2'].
-Argument -> Name ':' Value : build_ast_node('Argument', #{name => '$1', value => '$3'}).
+Argument -> Name ':' Value : build_ast_node('Argument', #{name => extract_name('$1'), value => '$3'}).
 
 Directives -> Directive : ['$1'].
 Directives -> Directive Directives : ['$1'|'$2'].
 Directive -> '@' Name : build_ast_node('Directive', #{name => '$2'}).
-Directive -> '@' Name Arguments : build_ast_node('Directive', #{name => '$2', 'arguments' => '$3'}).
+Directive -> '@' Name Arguments : build_ast_node('Directive', #{name => extract_name('$2'), 'arguments' => '$3'}).
 
 NameWithoutOn -> name : extract_token('$1').
 NameWithoutOn -> 'query' : extract_keyword('$1').
