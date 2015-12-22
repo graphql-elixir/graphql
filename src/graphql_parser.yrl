@@ -105,7 +105,7 @@ Argument -> Name ':' Value : build_ast_node('Argument', #{name => extract_name('
 
 Directives -> Directive : ['$1'].
 Directives -> Directive Directives : ['$1'|'$2'].
-Directive -> '@' Name : build_ast_node('Directive', #{name => '$2'}).
+Directive -> '@' Name : build_ast_node('Directive', #{name => extract_name('$2')}).
 Directive -> '@' Name Arguments : build_ast_node('Directive', #{name => extract_name('$2'), 'arguments' => '$3'}).
 
 NameWithoutOn -> name : extract_token('$1').
