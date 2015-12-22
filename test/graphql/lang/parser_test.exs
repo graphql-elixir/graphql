@@ -56,7 +56,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     alias: "alias",
+                                                     alias: %{kind: :Name, loc: %{start: 0}, value: "alias"},
                                                      name: %{kind: :Name, loc: %{start: 0}, value: "hero"}}]}}]}
   end
 
@@ -174,7 +174,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
                                                      name: %{kind: :Name, loc: %{start: 0}, value: "user"},
-                                                     alias: "alias",
+                                                     alias: %{kind: :Name, loc: %{start: 0}, value: "alias"},
                                                      arguments: [%{kind: :Argument,
                                                                    loc: %{start: 0},
                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "id"},
@@ -186,7 +186,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                                      selections: [%{kind: :Field,
                                                                                     loc: %{start: 0},
                                                                                     name: %{kind: :Name, loc: %{start: 0}, value: "name"},
-                                                                                    alias: "alias2",
+                                                                                    alias: %{kind: :Name, loc: %{start: 0}, value: "alias2"},
                                                                                     arguments: [%{kind: :Argument,
                                                                                                   loc: %{start: 0},
                                                                                                   name: %{kind: :Name, loc: %{start: 0}, value: "thing"},
