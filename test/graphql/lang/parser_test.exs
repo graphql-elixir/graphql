@@ -21,7 +21,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "hero"}]}}]}
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "hero"}}]}}]}
   end
 
   test "multiple definitions" do
@@ -34,7 +34,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "hero"}]}},
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "hero"}}]}},
                     %{kind: :OperationDefinition,
                       loc: %{start: 0},
                       operation: :query,
@@ -42,7 +42,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "ship"}]}}]}
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "ship"}}]}}]}
   end
 
   test "aliased selection set" do
@@ -56,8 +56,8 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     alias: "alias",
-                                                     name: "hero"}]}}]}
+                                                     alias: %{kind: :Name, loc: %{start: 0}, value: "alias"},
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "hero"}}]}}]}
   end
 
   test "multiple selection set" do
@@ -67,9 +67,9 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       definitions: [%{kind: :OperationDefinition, loc: %{start: 0},
                       operation: :query,
                       selectionSet: %{kind: :SelectionSet, loc: %{start: 0},
-                                      selections: [%{kind: :Field, loc: %{start: 0}, name: "id"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "firstName"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "lastName"}]}}]}
+                                      selections: [%{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "id"}},
+                                                   %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "firstName"}},
+                                                   %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "lastName"}}]}}]}
   end
 
   test "nested selection set" do
@@ -83,12 +83,12 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "user",
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "user"},
                                                      selectionSet: %{kind: :SelectionSet,
                                                                      loc: %{start: 0},
                                                                      selections: [%{kind: :Field,
                                                                                     loc: %{start: 0},
-                                                                                    name: "name"}]}}]}}]}
+                                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "name"}}]}}]}}]}
   end
 
   test "named query with nested selection set" do
@@ -97,18 +97,18 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
                       loc: %{start: 0},
-                      name: "myQuery",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "myQuery"},
                       operation: :query,
                       selectionSet: %{kind: :SelectionSet,
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "user",
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "user"},
                                                      selectionSet: %{kind: :SelectionSet,
                                                                      loc: %{start: 0},
                                                                      selections: [%{kind: :Field,
                                                                                     loc: %{start: 0},
-                                                                                    name: "name"}]}}]}}]}
+                                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "name"}}]}}]}}]}
   end
 
   test "named mutation with nested selection set" do
@@ -117,18 +117,18 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
                       loc: %{start: 0},
-                      name: "myMutation",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "myMutation"},
                       operation: :mutation,
                       selectionSet: %{kind: :SelectionSet,
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "user",
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "user"},
                                                      selectionSet: %{kind: :SelectionSet,
                                                                      loc: %{start: 0},
                                                                      selections: [%{kind: :Field,
                                                                                     loc: %{start: 0},
-                                                                                    name: "name"}]}}]}}]}
+                                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "name"}}]}}]}}]}
   end
 
   test "nested selection set with arguments" do
@@ -142,10 +142,10 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "user",
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "user"},
                                                      arguments: [%{kind: :Argument,
                                                                    loc: %{start: 0},
-                                                                   name: "id",
+                                                                   name: %{kind: :Name, loc: %{start: 0}, value: "id"},
                                                                    value: %{kind: :IntValue,
                                                                             loc: %{start: 0},
                                                                             value: 4}}],
@@ -153,10 +153,10 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                                      loc: %{start: 0},
                                                                      selections: [%{kind: :Field,
                                                                                     loc: %{start: 0},
-                                                                                    name: "name",
+                                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "name"},
                                                                                     arguments: [%{kind: :Argument,
                                                                                                   loc: %{start: 0},
-                                                                                                  name: "thing",
+                                                                                                  name: %{kind: :Name, loc: %{start: 0}, value: "thing"},
                                                                                                   value: %{kind: :StringValue,
                                                                                                            loc: %{start: 0},
                                                                                                            value: "abc"}}]}]}}]}}]}
@@ -173,11 +173,11 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "user",
-                                                     alias: "alias",
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "user"},
+                                                     alias: %{kind: :Name, loc: %{start: 0}, value: "alias"},
                                                      arguments: [%{kind: :Argument,
                                                                    loc: %{start: 0},
-                                                                   name: "id",
+                                                                   name: %{kind: :Name, loc: %{start: 0}, value: "id"},
                                                                    value: %{kind: :IntValue,
                                                                             loc: %{start: 0},
                                                                             value: 4}}],
@@ -185,11 +185,11 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                                      loc: %{start: 0},
                                                                      selections: [%{kind: :Field,
                                                                                     loc: %{start: 0},
-                                                                                    name: "name",
-                                                                                    alias: "alias2",
+                                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "name"},
+                                                                                    alias: %{kind: :Name, loc: %{start: 0}, value: "alias2"},
                                                                                     arguments: [%{kind: :Argument,
                                                                                                   loc: %{start: 0},
-                                                                                                  name: "thing",
+                                                                                                  name: %{kind: :Name, loc: %{start: 0}, value: "thing"},
                                                                                                   value: %{kind: :StringValue,
                                                                                                            loc: %{start: 0},
                                                                                                            value: "abc"}}]}]}}]}}]}
@@ -201,13 +201,13 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
                       loc: %{start: 0},
-                      name: "myQuery",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "myQuery"},
                       operation: :query,
                       selectionSet: %{kind: :SelectionSet,
                                       loc: %{start: 0},
                                       selections: [%{kind: :FragmentSpread,
                                                      loc: %{start: 0},
-                                                     name: "fragSpread"}]}}]}
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "fragSpread"}}]}}]}
   end
 
   test "FragmentSpread with Directive" do
@@ -216,19 +216,19 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
                       loc: %{start: 0},
-                      name: "myQuery",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "myQuery"},
                       operation: :query,
                       selectionSet: %{kind: :SelectionSet,
                                       loc: %{start: 0},
                                       selections: [%{kind: :FragmentSpread,
                                                      loc: %{start: 0},
-                                                     name: "fragSpread",
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "fragSpread"},
                                                      directives: [%{kind: :Directive,
                                                                     loc: %{start: 0},
-                                                                    name: "include",
+                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "include"},
                                                                     arguments: [%{kind: :Argument,
                                                                                   loc: %{start: 0},
-                                                                                  name: "if",
+                                                                                  name: %{kind: :Name, loc: %{start: 0}, value: "if"},
                                                                                   value: %{kind: :BooleanValue,
                                                                                            loc: %{start: 0},
                                                                                            value: true}}]}]}]}}]}
@@ -240,13 +240,13 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
                       loc: %{start: 0},
-                      name: "myQuery",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "myQuery"},
                       operation: :query,
                       selectionSet: %{kind: :SelectionSet,
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "id"}]},
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "id"}}]},
                       variableDefinitions: [%{kind: :VariableDefinition,
                                               loc: %{start: 0},
                                               defaultValue: %{kind: :IntValue,
@@ -254,10 +254,10 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                               value: 10},
                                               type: %{kind: :NamedType,
                                                       loc: %{start: 0},
-                                                      name: "Int"},
+                                                      name: %{kind: :Name, loc: %{start: 0}, value: "Int"}},
                                               variable: %{kind: :Variable,
                                                           loc: %{start: 0},
-                                                          name: "size"}}]}]}
+                                                          name: %{kind: :Name, loc: %{start: 0}, value: "size"}}}]}]}
   end
 
   test "Multiple VariableDefinition with DefaultValue (NonNullType, ListType, Variable)" do
@@ -266,13 +266,13 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
                       loc: %{start: 0},
-                      name: "myQuery",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "myQuery"},
                       operation: :query,
                       selectionSet: %{kind: :SelectionSet,
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "id"}]},
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "id"}}]},
                       variableDefinitions: [%{kind: :VariableDefinition,
                                               loc: %{start: 0},
                                               defaultValue: %{kind: :IntValue,
@@ -282,31 +282,31 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                       loc: %{start: 0},
                                                       type: %{kind: :NamedType,
                                                               loc: %{start: 0},
-                                                              name: "Int"}},
+                                                              name: %{kind: :Name, loc: %{start: 0}, value: "Int"}}},
                                               variable: %{kind: :Variable,
                                                           loc: %{start: 0},
-                                                          name: "x"}},
+                                                          name: %{kind: :Name, loc: %{start: 0}, value: "x"}}},
                                             %{kind: :VariableDefinition,
                                               loc: %{start: 0},
                                               type: %{kind: :ListType,
                                                       loc: %{start: 0},
                                                       type: %{kind: :NamedType,
                                                               loc: %{start: 0},
-                                                              name: "Int"}},
+                                                              name: %{kind: :Name, loc: %{start: 0}, value: "Int"}}},
                                               variable: %{kind: :Variable,
                                                           loc: %{start: 0},
-                                                          name: "y"}},
+                                                          name: %{kind: :Name, loc: %{start: 0}, value: "y"}}},
                                             %{defaultValue: %{kind: :Variable,
                                                               loc: %{start: 0},
-                                                              name: "var"},
+                                                              name: %{kind: :Name, loc: %{start: 0}, value: "var"}},
                                               kind: :VariableDefinition,
                                               loc: %{start: 0},
                                               type: %{kind: :NamedType,
                                                       loc: %{start: 0},
-                                                      name: "Some"},
+                                                      name: %{kind: :Name, loc: %{start: 0}, value: "Some"}},
                                               variable: %{kind: :Variable,
                                                           loc: %{start: 0},
-                                                          name: "z"}}]}]}
+                                                          name: %{kind: :Name, loc: %{start: 0}, value: "z"}}}]}]}
   end
 
   test "Multiple VariableDefinition with DefaultValue (EnumValue ListValue) and Directives" do
@@ -315,31 +315,31 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
                       loc: %{start: 0},
-                      name: "myQuery",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "myQuery"},
                       operation: :query,
                       directives: [%{kind: :Directive,
                                      loc: %{start: 0},
-                                     name: "directive",
+                                     name: %{kind: :Name, loc: %{start: 0}, value: "directive"},
                                      arguments: [%{kind: :Argument,
                                                    loc: %{start: 0},
-                                                   name: "num",
+                                                   name: %{kind: :Name, loc: %{start: 0}, value: "num"},
                                                    value: %{kind: :FloatValue,
                                                             loc: %{start: 0},
                                                             value: 1.23}},
                                                  %{kind: :Argument,
                                                    loc: %{start: 0},
-                                                   name: "a",
+                                                   name: %{kind: :Name, loc: %{start: 0}, value: "a"},
                                                    value: %{kind: :ObjectValue,
                                                             loc: %{start: 0},
                                                             fields: [%{kind: :ObjectField,
                                                                        loc: %{start: 0},
-                                                                       name: "b",
+                                                                       name: %{kind: :Name, loc: %{start: 0}, value: "b"},
                                                                        value: %{kind: :IntValue,
                                                                                 loc: %{start: 0},
                                                                                 value: 1}},
                                                                      %{kind: :ObjectField,
                                                                        loc: %{start: 0},
-                                                                       name: "c",
+                                                                       name: %{kind: :Name, loc: %{start: 0}, value: "c"},
                                                                        value: %{kind: :IntValue,
                                                                                 loc: %{start: 0},
                                                                                 value: 2}}]}}]}],
@@ -347,7 +347,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "id"}]},
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "id"}}]},
                       variableDefinitions: [%{defaultValue: %{kind: :EnumValue,
                                                               loc: %{start: 0},
                                                               value: "ENUM"},
@@ -357,10 +357,10 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                       loc: %{start: 0},
                                                       type: %{kind: :NamedType,
                                                               loc: %{start: 0},
-                                                              name: "Int"}},
+                                                              name: %{kind: :Name, loc: %{start: 0}, value: "Int"}}},
                                               variable: %{kind: :Variable,
                                                           loc: %{start: 0},
-                                                          name: "x"}},
+                                                          name: %{kind: :Name, loc: %{start: 0}, value: "x"}}},
                                             %{defaultValue: %{kind: :ListValue,
                                                               loc: %{start: 0},
                                                               values: [%{kind: :IntValue,
@@ -375,10 +375,10 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                       loc: %{start: 0},
                                                       type: %{kind: :NamedType,
                                                               loc: %{start: 0},
-                                                              name: "Int"}},
+                                                              name: %{kind: :Name, loc: %{start: 0}, value: "Int"}}},
                                               variable: %{kind: :Variable,
                                                           loc: %{start: 0},
-                                                          name: "y"}}]}]}
+                                                          name: %{kind: :Name, loc: %{start: 0}, value: "y"}}}]}]}
   end
 
   test "FragmentDefinition" do
@@ -387,15 +387,15 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :FragmentDefinition,
                       loc: %{start: 0},
-                      name: "friends",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "friends"},
                       selectionSet: %{kind: :SelectionSet,
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "id"}]},
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "id"}}]},
                       typeCondition: %{kind: :NamedType,
                                        loc: %{start: 0},
-                                       name: "User"}}]}
+                                       name: %{kind: :Name, loc: %{start: 0}, value: "User"}}}]}
   end
 
   test "InlineFragment" do
@@ -409,22 +409,22 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                       loc: %{start: 0},
                                       selections: [%{kind: :Field,
                                                      loc: %{start: 0},
-                                                     name: "user",
+                                                     name: %{kind: :Name, loc: %{start: 0}, value: "user"},
                                                      selectionSet: %{kind: :SelectionSet,
                                                                      loc: %{start: 0},
                                                                      selections: [%{kind: :Field,
                                                                                     loc: %{start: 0},
-                                                                                    name: "name"},
+                                                                                    name: %{kind: :Name, loc: %{start: 0}, value: "name"}},
                                                                                   %{kind: :InlineFragment,
                                                                                     loc: %{start: 0},
                                                                                     selectionSet: %{kind: :SelectionSet,
                                                                                                     loc: %{start: 0},
                                                                                                     selections: [%{kind: :Field,
                                                                                                                    loc: %{start: 0},
-                                                                                                                   name: "age"}]},
+                                                                                                                   name: %{kind: :Name, loc: %{start: 0}, value: "age"}}]},
                                                                                     typeCondition: %{kind: :NamedType,
                                                                                                      loc: %{start: 0},
-                                                                                                     name: "Person"}}]}}]}}]}
+                                                                                                     name: %{kind: :Name, loc: %{start: 0}, value: "Person"}}}]}}]}}]}
   end
 
   test "ObjectTypeDefinition" do
@@ -433,29 +433,29 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :ObjectTypeDefinition,
                       loc: %{start: 0},
-                      name: "Human",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "Human"},
                       fields: [%{kind: :FieldDefinition,
                                  loc: %{start: 0},
-                                 name: "id",
+                                 name: %{kind: :Name, loc: %{start: 0}, value: "id"},
                                  type: %{kind: :NonNullType,
                                          loc: %{start: 0},
                                          type: %{kind: :NamedType,
                                                  loc: %{start: 0},
-                                                 name: "String"}}},
+                                                 name: %{kind: :Name, loc: %{start: 0}, value: "String"}}}},
                                %{kind: :FieldDefinition,
                                  loc: %{start: 0},
-                                 name: "friends",
+                                 name: %{kind: :Name, loc: %{start: 0}, value: "friends"},
                                  type: %{kind: :ListType,
                                          loc: %{start: 0},
                                          type: %{kind: :NamedType,
                                                  loc: %{start: 0},
-                                                 name: "Character"}}}],
+                                                 name: %{kind: :Name, loc: %{start: 0}, value: "Character"}}}}],
                       interfaces: [%{kind: :NamedType,
                                      loc: %{start: 0},
-                                     name: "Character"},
+                                     name: %{kind: :Name, loc: %{start: 0}, value: "Character"}},
                                    %{kind: :NamedType,
                                      loc: %{start: 0},
-                                     name: "Entity"}]}]}
+                                     name: %{kind: :Name, loc: %{start: 0}, value: "Entity"}}]}]}
   end
 
   test "ObjectTypeDefinition with Arguments" do
@@ -464,38 +464,39 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :ObjectTypeDefinition,
                       loc: %{start: 0},
-                      name: "Query",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "Query"},
                       fields: [%{kind: :FieldDefinition,
                                  loc: %{start: 0},
-                                 name: "hero",
+                                 name: %{kind: :Name, loc: %{start: 0}, value: "hero"},
                                  type: %{kind: :NamedType,
                                          loc: %{start: 0},
-                                         name: "Character"},
-                                 arguments: [%{kind: :InputValueDefinition,
-                                               loc: %{start: 0}, name: "episode",
-                                               type: %{kind: :NamedType,
-                                                       loc: %{start: 0},
-                                                       name: "Episode"}}]},
-                               %{kind: :FieldDefinition,
-                                 loc: %{start: 0},
-                                 name: "human",
-                                 type: %{kind: :NamedType,
-                                         loc: %{start: 0},
-                                         name: "Human"},
+                                         name: %{kind: :Name, loc: %{start: 0}, value: "Character"}},
                                  arguments: [%{kind: :InputValueDefinition,
                                                loc: %{start: 0},
-                                               name: "id",
+                                               name: %{kind: :Name, loc: %{start: 0}, value: "episode"},
+                                               type: %{kind: :NamedType,
+                                                       loc: %{start: 0},
+                                                       name: %{kind: :Name, loc: %{start: 0}, value: "Episode"}}}]},
+                               %{kind: :FieldDefinition,
+                                 loc: %{start: 0},
+                                 name: %{kind: :Name, loc: %{start: 0}, value: "human"},
+                                 type: %{kind: :NamedType,
+                                         loc: %{start: 0},
+                                         name: %{kind: :Name, loc: %{start: 0}, value: "Human"}},
+                                 arguments: [%{kind: :InputValueDefinition,
+                                               loc: %{start: 0},
+                                               name: %{kind: :Name, loc: %{start: 0}, value: "id"},
                                                type: %{kind: :NonNullType,
                                                        loc: %{start: 0},
                                                        type: %{kind: :NamedType,
                                                                loc: %{start: 0},
-                                                               name: "String"}}},
+                                                               name: %{kind: :Name, loc: %{start: 0}, value: "String"}}}},
                                              %{kind: :InputValueDefinition,
                                                loc: %{start: 0},
-                                               name: "name",
+                                               name: %{kind: :Name, loc: %{start: 0}, value: "name"},
                                                type: %{kind: :NamedType,
                                                        loc: %{start: 0},
-                                                       name: "String"}}]}]}]}
+                                                       name: %{kind: :Name, loc: %{start: 0}, value: "String"}}}]}]}]}
   end
 
   test "InterfaceTypeDefinition" do
@@ -504,22 +505,22 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :InterfaceTypeDefinition,
                       loc: %{start: 0},
-                      name: "Node",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "Node"},
                       fields: [%{kind: :FieldDefinition,
                                  loc: %{start: 0},
-                                 name: "id",
+                                 name: %{kind: :Name, loc: %{start: 0}, value: "id"},
                                  type: %{kind: :NamedType,
                                          loc: %{start: 0},
-                                         name: "ID"}}]}]}
+                                         name: %{kind: :Name, loc: %{start: 0}, value: "ID"}}}]}]}
   end
 
   test "UnionTypeDefinition" do
     assert_parse "union Actor = User | Business",
     %{kind: :Document,
       loc: %{start: 0},
-      definitions: [%{kind: :UnionTypeDefinition, loc: %{start: 0}, name: "Actor",
-                      types: [%{kind: :NamedType, loc: %{start: 0}, name: "User"},
-                              %{kind: :NamedType, loc: %{start: 0}, name: "Business"}]}]}
+      definitions: [%{kind: :UnionTypeDefinition, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "Actor"},
+                      types: [%{kind: :NamedType, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "User"}},
+                              %{kind: :NamedType, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "Business"}}]}]}
 
   end
 
@@ -528,7 +529,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
     %{kind: :Document,
       loc: %{start: 0},
       definitions: [%{kind: :ScalarTypeDefinition, loc: %{start: 0},
-                      name: "DateTime"}]}
+                      name: %{kind: :Name, loc: %{start: 0}, value: "DateTime"}}]}
   end
 
   test "EnumTypeDefinition" do
@@ -536,7 +537,8 @@ defmodule GraphQL.Lang.Parser.ParserTest do
     %{kind: :Document,
       loc: %{start: 0},
       definitions: [%{kind: :EnumTypeDefinition, loc: %{start: 0},
-                      name: "Direction", values: ["NORTH", "EAST", "SOUTH", "WEST"]}]}
+                      name: %{kind: :Name, loc: %{start: 0}, value: "Direction"},
+                      values: ["NORTH", "EAST", "SOUTH", "WEST"]}]}
   end
 
   test "InputObjectTypeDefinition" do
@@ -545,19 +547,19 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       loc: %{start: 0},
       definitions: [%{kind: :InputObjectTypeDefinition,
                       loc: %{start: 0},
-                      name: "Point2D",
+                      name: %{kind: :Name, loc: %{start: 0}, value: "Point2D"},
                       fields: [%{kind: :InputValueDefinition,
                                  loc: %{start: 0},
-                                 name: "x",
+                                 name: %{kind: :Name, loc: %{start: 0}, value: "x"},
                                  type: %{kind: :NamedType,
                                          loc: %{start: 0},
-                                         name: "Float"}},
+                                         name: %{kind: :Name, loc: %{start: 0}, value: "Float"}}},
                                %{kind: :InputValueDefinition,
                                  loc: %{start: 0},
-                                 name: "y",
+                                 name: %{kind: :Name, loc: %{start: 0}, value: "y"},
                                  type: %{kind: :NamedType,
                                          loc: %{start: 0},
-                                         name: "Float"}}]}]}
+                                         name: %{kind: :Name, loc: %{start: 0}, value: "Float"}}}]}]}
   end
 
   test "TypeExtensionDefinition" do
@@ -568,13 +570,13 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                       loc: %{start: 0},
                       definition: %{kind: :ObjectTypeDefinition,
                                     loc: %{start: 0},
-                                    name: "Story",
+                                    name: %{kind: :Name, loc: %{start: 0}, value: "Story"},
                                     fields: [%{kind: :FieldDefinition,
                                                loc: %{start: 0},
-                                               name: "isHiddenLocally",
+                                               name: %{kind: :Name, loc: %{start: 0}, value: "isHiddenLocally"},
                                                type: %{kind: :NamedType,
                                                        loc: %{start: 0},
-                                                       name: "Boolean"}}]}}]}
+                                                       name: %{kind: :Name, loc: %{start: 0}, value: "Boolean"}}}]}}]}
   end
 
   test "Use reserved words as fields" do
@@ -584,19 +586,20 @@ defmodule GraphQL.Lang.Parser.ParserTest do
       definitions: [%{kind: :OperationDefinition, loc: %{start: 0},
                       operation: :query,
                       selectionSet: %{kind: :SelectionSet, loc: %{start: 0},
-                                      selections: [%{kind: :Field, loc: %{start: 0}, name: "query"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "mutation"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "fragment"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "on"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "type"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "implements"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "interface"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "union"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "scalar"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "enum"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "input"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "extend"},
-                                                   %{kind: :Field, loc: %{start: 0}, name: "null"}]}}]}
+                                      selections: [
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "query"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "mutation"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "fragment"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "on"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "type"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "implements"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "interface"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "union"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "scalar"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "enum"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "input"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "extend"}},
+                                        %{kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "null"}}]}}]}
 
   end
 end
