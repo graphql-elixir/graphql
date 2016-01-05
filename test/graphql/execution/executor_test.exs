@@ -37,6 +37,19 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, %{greeting: "Hello, Elixir!"}
   end
 
+  test "anonymous fragments are processed" do
+    schema = %GraphQL.Schema{
+      query: %GraphQL.ObjectType{
+        name: "X",
+        fields: %{
+          id:   %{type: "Integer", resolve: 1},
+          name: %{type: "String", resolve: "Mark"}
+        }
+      }
+    }
+    assert_execute({"{id, ...{ name }}", schema}, %{id: 1, name: "Mark"})
+  end
+
   test "allow {module, function, args} style of resolve" do
     schema = %GraphQL.Schema{
       query: %GraphQL.ObjectType{
