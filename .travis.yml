@@ -4,4 +4,9 @@ elixir:
   - 1.1.1
 otp_release:
   - 17.5
-  - 18.1
+  - 18.2
+
+matrix:
+  include:
+    - elixir: 1.2.0
+      otp_release: 18.2
