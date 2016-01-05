@@ -67,7 +67,8 @@ defmodule GraphQL.Execution.Executor do
     Enum.reduce selection_set[:selections], field_fragment_map, fn(selection, field_fragment_map) ->
       case selection do
         %{kind: :Field} -> put_in(field_fragment_map.fields[field_entry_key(selection)], [selection])
-        %{kind: :InlineFragment} -> field_fragment_map
+        %{kind: :InlineFragment} ->
+          collect_fields(context, runtime_type, selection.selectionSet, field_fragment_map)
         %{kind: :FragmentSpread} ->
           fragment_name = selection.name.value
           if !field_fragment_map.fragments[fragment_name] do
