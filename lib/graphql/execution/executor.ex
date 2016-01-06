@@ -184,7 +184,6 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_fragment(context, runtime_type, selection, field_fragment_map) do
-    # TODO: should_include?(context, selection.directives)
     condition_matches = typecondition_matches?(selection, runtime_type)
     if condition_matches do
       collect_fields(context, runtime_type, selection.selectionSet, field_fragment_map)
