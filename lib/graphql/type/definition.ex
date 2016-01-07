@@ -10,7 +10,7 @@ defimpl GraphQL.Types, for: Any do
 end
 
 defmodule GraphQL.ObjectType do
-  defstruct name: "", description: "", fields: %{}
+  defstruct name: "", description: "", fields: %{}, interfaces: []
 end
 
 defmodule GraphQL.List do
