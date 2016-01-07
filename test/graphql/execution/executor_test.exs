@@ -8,6 +8,31 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   alias GraphQL.Execution.Executor
 
   defmodule TestSchema do
+    def recursive_schema do
+      %GraphQL.Schema{
+        query: %GraphQL.ObjectType{
+          name: "Recursive1",
+          fields: quote do %{
+            id:   %{type: "Integer", resolve: 1},
+            name: %{type: "String", resolve: "Mark"},
+            b: %{type: TestSchema.recursive_schema.query },
+            c: %{type: TestSchema.recursive_schema_2 }
+          } end
+        }
+      }
+    end
+
+    def recursive_schema_2 do
+      %GraphQL.ObjectType{
+        name: "Recursive2",
+        fields: quote do %{
+          id:   %{type: "Integer", resolve: 2},
+          name: %{type: "String", resolve: "Kate"},
+          b: %{type: TestSchema.recursive_schema.query }
+        } end
+      }
+    end
+
     def schema do
       %GraphQL.Schema{
         query: %GraphQL.ObjectType{
@@ -71,6 +96,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "do not inlcude illegal fields in output" do
     assert_execute {"{ a }", TestSchema.schema}, %{}
+  end
+
+  test "Quoted fields are available" do
+    assert_execute({"{id, b { name, c{ id, name, b { name }}}}", TestSchema.recursive_schema},
+        %{id: 1, b: %{name: "Mark", c: %{id: 2, name: "Kate", b: %{name: "Mark"}}}})
   end
 
   test "simple selection set" do
