@@ -68,12 +68,12 @@ defmodule GraphQL.Execution.Executor do
       case selection do
         %{kind: :Field} -> put_in(field_fragment_map.fields[field_entry_key(selection)], [selection])
         %{kind: :InlineFragment} ->
-          collect_fields(context, runtime_type, selection.selectionSet, field_fragment_map)
+          collect_fragment(context, runtime_type, selection, field_fragment_map)
         %{kind: :FragmentSpread} ->
           fragment_name = selection.name.value
           if !field_fragment_map.fragments[fragment_name] do
             field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
-            collect_fields(context, runtime_type, context.fragments[fragment_name].selectionSet, field_fragment_map)
+            collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
           else
             field_fragment_map
           end
@@ -181,5 +181,23 @@ defmodule GraphQL.Execution.Executor do
 
   defp field_entry_key(field) do
     Map.get(field, :alias, field.name)
+  end
+
+  defp collect_fragment(context, runtime_type, selection, field_fragment_map) do
+    condition_matches = typecondition_matches?(selection, runtime_type)
+    if condition_matches do
+      collect_fields(context, runtime_type, selection.selectionSet, field_fragment_map)
+    else
+      field_fragment_map
+    end
+  end
+
+  defp typecondition_matches?(selection, runtime_type) do
+    type = Map.get(selection, :typeCondition, :no_type)
+    cond do
+      type == :no_type -> true
+      type.name.value === runtime_type.name -> true
+      true -> false
+    end
   end
 end

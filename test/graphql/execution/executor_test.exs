@@ -50,6 +50,35 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute({"{id, ...{ name }}", schema}, %{id: 1, name: "Mark"})
   end
 
+  test "TypeChecked inline fragments run the correct type" do
+    schema = %GraphQL.Schema{
+      query: %GraphQL.ObjectType{
+        name: "BType",
+        fields: %{
+          id:   %{type: "Integer", resolve: 1},
+          a: %{type: "String", resolve: "a"},
+          b: %{type: "String", resolve: "b"}
+        }
+      }
+    }
+    assert_execute({"{id, ... on AType { a }, ... on BType { b }}", schema}, %{id: 1, b: "b"})
+  end
+
+  test "TypeChecked fragments run the correct type" do
+    schema = %GraphQL.Schema{
+      query: %GraphQL.ObjectType{
+        name: "BType",
+        fields: %{
+          id:   %{type: "Integer", resolve: 1},
+          a: %{type: "String", resolve: "a"},
+          b: %{type: "String", resolve: "b"}
+        }
+      }
+    }
+    assert_execute({"{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }", schema}, %{id: 1, b: "b"})
+  end
+
+
   test "allow {module, function, args} style of resolve" do
     schema = %GraphQL.Schema{
       query: %GraphQL.ObjectType{
