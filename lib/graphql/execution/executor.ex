@@ -142,8 +142,8 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp complete_value(_context, _return_type, _field_asts, _info, result) do
-    result
+  defp complete_value(_context, return_type, _field_asts, _info, result) do
+    GraphQL.Types.serialize(return_type, result)
   end
 
   defp collect_sub_fields(context, return_type, field_asts) do
@@ -181,8 +181,8 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp value_from_ast(value_ast, _type, _variable_values) do
-    value_ast.value.value
+  defp value_from_ast(value_ast, type, _variable_values) do
+    GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
   defp field_entry_key(field) do
