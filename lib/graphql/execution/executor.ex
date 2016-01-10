@@ -156,9 +156,15 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
+  defp maybe_unwrap(item) when is_tuple(item) do
+    {result,_} = Code.eval_quoted(item)
+    result
+  end
+  defp maybe_unwrap(item), do: item
+
   defp field_definition(_schema, parent_type, field_name) do
     # TODO deal with introspection
-    parent_type.fields[field_name]
+    maybe_unwrap(parent_type.fields)[field_name]
   end
 
   defp argument_values(arg_defs, arg_asts, variable_values) do
