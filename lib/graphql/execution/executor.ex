@@ -191,6 +191,11 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
+  defp value_from_ast(%{kind: :Argument, value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
+    variable_value = Map.get(variable_values, String.to_atom(value))
+    GraphQL.Types.parse_value(type.type, variable_value)
+  end
+
   defp value_from_ast(value_ast, type, _variable_values) do
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end

@@ -64,22 +64,20 @@ defmodule GraphQL.StarWars.QueryTest do
      assert_execute({query, StarWars.Schema.schema}, %{human: %{name: "Luke Skywalker"}})
   end
 
-  @tag :skip # needs variables to work
   test "Allows us to create a generic query, then use it to fetch Luke Skywalker using his ID" do
     query = ~S[query fetch_id($some_id: String!) { human(id: $some_id) { name }}]
-    assert_execute({query, StarWars.Schema.schema, %{some_id: "1000"}}, %{human: %{name: "Luke Skywalker"}})
+    assert_execute({query, StarWars.Schema.schema, %{}, %{some_id: "1000"}}, %{human: %{name: "Luke Skywalker"}})
   end
 
-  @tag :skip # needs variables to work
   test "Allows us to create a generic query, then use it to fetch Han Solo using his ID" do
     query = ~S[query fetch_some_id($some_id: String!) { human(id: $some_id) { name }}]
-    assert_execute({query, StarWars.Schema.schema, %{some_id: "1002"}}, %{human: %{name: "Han Solo"}})
+    assert_execute({query, StarWars.Schema.schema, %{}, %{some_id: "1002"}}, %{human: %{name: "Han Solo"}})
   end
 
-  @tag :skip # needs variables to work
+  @tag :skip # returns %{} instead of nil. Which is right?
   test "Allows us to create a generic query, then pass an invalid ID to get null back" do
     query = ~S[query human_query($id: String!) { human(id: $id) { name }}]
-    assert_execute({query, StarWars.Schema.schema, %{id: "invalid id"}}, %{human: nil})
+    assert_execute({query, StarWars.Schema.schema, %{}, %{id: "invalid id"}}, %{human: nil})
   end
 
   test "Allows us to query for Luke, changing his key with an alias" do
