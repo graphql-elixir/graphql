@@ -87,4 +87,53 @@ defmodule GraphQL.StarWars.QueryTest do
     }]
     assert_execute({query, StarWars.Schema.schema}, %{leia: %{name: "Leia Organa"}, luke: %{name: "Luke Skywalker"}})
   end
+
+  test "Allows us to query using duplicated content" do
+    query = ~S[
+      query duplicate_fields {
+        luke: human(id: "1000") { name, home_planet },
+        leia: human(id: "1003") { name, home_planet },
+      }
+    ]
+    assert_execute({query, StarWars.Schema.schema}, %{leia: %{home_planet: "Alderaan", name: "Leia Organa"}, luke: %{home_planet: "Tatooine", name: "Luke Skywalker"}})
+  end
+
+  test "Allows us to use a fragment to avoid duplicating content" do
+    query = ~S[
+      query duplicate_fields {
+        luke: human(id: "1000") { ...human_fragment },
+        leia: human(id: "1003") { ...human_fragment },
+      }
+      fragment human_fragment on Human {
+        name, home_planet
+      }
+    ]
+    assert_execute({query, StarWars.Schema.schema}, %{leia: %{home_planet: "Alderaan", name: "Leia Organa"}, luke: %{home_planet: "Tatooine", name: "Luke Skywalker"}})
+  end
+
+  @tag :skip #need __typename introspection
+  test "Allows us to verify that R2-D2 is a droid" do
+    query = ~S[
+      query check_type_of_r2d2 {
+        hero {
+          __typename
+          name
+        }
+      }
+    ]
+    assert_execute({query, StarWars.Schema.schema}, %{hero: %{name: "R2-D2", "__typename": "Droid"}})
+  end
+
+  @tag :skip #need __typename introspection
+  test "Allows us to verify that Luke is a human" do
+    query = ~S[
+      query check_type_of_luke {
+        hero(episode: EMPIRE) {
+          __typename
+          name
+        }
+      }
+    ]
+    assert_execute({query, StarWars.Schema.schema}, %{hero: %{name: "Luke Skywalker", "__typename": "Human"}})
+  end
 end
