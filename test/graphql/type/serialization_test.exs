@@ -32,4 +32,12 @@ defmodule GraphQL.Lang.Type.SerializationTest do
     assert 0.0 == serialize(%GraphQL.Type.Float{}, false)
     assert 1.0 == serialize(%GraphQL.Type.Float{}, true)
   end
+
+  test "serializes output strings" do
+    assert "string" == serialize(%GraphQL.Type.String{}, "string")
+    assert "1" == serialize(%GraphQL.Type.String{}, 1)
+    assert "-1.1" == serialize(%GraphQL.Type.String{}, -1.1)
+    assert "true" == serialize(%GraphQL.Type.String{}, true)
+    assert "false" == serialize(%GraphQL.Type.String{}, false)
+  end
 end
