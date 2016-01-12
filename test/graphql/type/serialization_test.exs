@@ -40,4 +40,13 @@ defmodule GraphQL.Lang.Type.SerializationTest do
     assert "true" == serialize(%GraphQL.Type.String{}, true)
     assert "false" == serialize(%GraphQL.Type.String{}, false)
   end
+
+  test "serializes output boolean" do
+    assert true == serialize(%GraphQL.Type.Boolean{}, "string")
+    assert false == serialize(%GraphQL.Type.Boolean{}, "")
+    assert true == serialize(%GraphQL.Type.Boolean{}, 1)
+    assert false == serialize(%GraphQL.Type.Boolean{}, 0)
+    assert true == serialize(%GraphQL.Type.Boolean{}, true)
+    assert false == serialize(%GraphQL.Type.Boolean{}, false)
+  end
 end
