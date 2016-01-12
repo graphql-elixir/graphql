@@ -1,7 +1,7 @@
 defmodule StarWars.Schema do
 
-  alias GraphQL.ObjectType
-  alias GraphQL.List
+  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.List
   alias GraphQL.Type.Enum
   alias GraphQL.Type.Interface
 

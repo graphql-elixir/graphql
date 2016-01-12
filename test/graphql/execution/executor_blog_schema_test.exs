@@ -5,8 +5,8 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
   import ExUnit.TestHelpers
 
   alias GraphQL.Schema
-  alias GraphQL.ObjectType
-  alias GraphQL.List
+  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.List
   alias GraphQL.Type.NonNull
 
   def make_article(id) do

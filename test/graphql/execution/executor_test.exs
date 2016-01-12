@@ -4,13 +4,16 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   import ExUnit.TestHelpers
 
+  alias GraphQL.Schema
+  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.List
   alias GraphQL.Lang.Parser
   alias GraphQL.Execution.Executor
 
   defmodule TestSchema do
     def recursive_schema do
-      %GraphQL.Schema{
-        query: %GraphQL.ObjectType{
+      %Schema{
+        query: %ObjectType{
           name: "Recursive1",
           fields: quote do %{
             id:   %{type: "Integer", resolve: 1},
@@ -23,7 +26,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     end
 
     def recursive_schema_2 do
-      %GraphQL.ObjectType{
+      %ObjectType{
         name: "Recursive2",
         fields: quote do %{
           id:   %{type: "Integer", resolve: 2},
@@ -34,14 +37,14 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     end
 
     def schema do
-      %GraphQL.Schema{
-        query: %GraphQL.ObjectType{
+      %Schema{
+        query: %ObjectType{
           name: "RootQueryType",
           fields: %{
             greeting: %{
               type: "String",
               args: %{
-                name: %{ type: "String" }
+                name: %{type: "String"}
               },
               resolve: &greeting/3,
             }
@@ -63,8 +66,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "anonymous fragments are processed" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "X",
         fields: %{
           id:   %{type: "Integer", resolve: 1},
@@ -76,8 +79,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "TypeChecked inline fragments run the correct type" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "BType",
         fields: %{
           id:   %{type: "Integer", resolve: 1},
@@ -90,8 +93,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "TypeChecked fragments run the correct type" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "BType",
         fields: %{
           id:   %{type: "Integer", resolve: 1},
@@ -105,8 +108,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
 
   test "allow {module, function, args} style of resolve" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "Q",
         fields: %{
           g: %{ type: "String", resolve: {TestSchema, :greeting} },
@@ -133,12 +136,12 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "simple selection set" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "PersonQuery",
         fields: %{
           person: %{
-            type: %GraphQL.ObjectType{
+            type: %ObjectType{
               name: "Person",
               fields: %{
                 id:   %{name: "id",   type: "String", resolve: fn(p, _, _) -> p.id   end},
@@ -168,12 +171,12 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "use specified query operation" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "Q",
         fields: %{a: %{ type: "String"}}
       },
-      mutation: %GraphQL.ObjectType{
+      mutation: %ObjectType{
         name: "M",
         fields: %{b: %{ type: "String"}}
       }
@@ -184,12 +187,12 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "use specified mutation operation" do
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "Q",
         fields: %{a: %{ type: "String"}}
       },
-      mutation: %GraphQL.ObjectType{
+      mutation: %ObjectType{
         name: "M",
         fields: %{b: %{ type: "String"}}
       }
@@ -200,7 +203,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "lists of things" do
-    book = %GraphQL.ObjectType{
+    book = %ObjectType{
       name: "Book",
       fields: %{
         isbn:  %{type: "Int"},
@@ -208,16 +211,16 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
 
-    schema = %GraphQL.Schema{
-      query: %GraphQL.ObjectType{
+    schema = %Schema{
+      query: %ObjectType{
         name: "ListsOfThings",
         fields: %{
           numbers: %{
-            type: %GraphQL.List{of_type: "Int"},
+            type: %List{of_type: "Int"},
             resolve: fn(_, _, _) -> [1, 2] end
           },
           books: %{
-            type: %GraphQL.List{of_type: book},
+            type: %List{of_type: book},
             resolve: fn(_, _, _) ->
               [
                 %{title: "A", isbn: "978-3-86680-192-9"},

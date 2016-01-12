@@ -6,6 +6,10 @@ defmodule GraphQL.Execution.Executor do
       # {:ok, %{hello: "world"}}
   """
 
+  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.List
+  alias GraphQL.Type.Interface
+
   @doc """
   Execute a query against a schema.
 
@@ -131,18 +135,18 @@ defmodule GraphQL.Execution.Executor do
     complete_value(context, return_type, field_asts, info, result)
   end
 
-  defp complete_value(context, %GraphQL.ObjectType{} = return_type, field_asts, _info, result) do
+  defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %GraphQL.Type.Interface{} = return_type, field_asts, _info, result) do
-    runtime_type = GraphQL.Type.Interface.get_object_type(return_type, result)
+  defp complete_value(context, %Interface{} = return_type, field_asts, _info, result) do
+    runtime_type = Interface.get_object_type(return_type, result)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %GraphQL.List{of_type: list_type}, field_asts, info, result) do
+  defp complete_value(context, %List{of_type: list_type}, field_asts, info, result) do
     Enum.map result, fn(item) ->
       complete_value_catching_error(context, list_type, field_asts, info, item)
     end

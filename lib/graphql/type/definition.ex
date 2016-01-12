@@ -11,16 +11,19 @@ defimpl GraphQL.Types, for: Any do
   def serialize(_, v), do: v
 end
 
-defmodule GraphQL.ObjectType do
-  defstruct name: "", description: "", fields: %{}, interfaces: []
-end
-
-defmodule GraphQL.List do
-  defstruct of_type: nil
-end
-
-
 defmodule GraphQL.Type do
+
+  defmodule ObjectType do
+    defstruct name: "", description: "", fields: %{}, interfaces: []
+  end
+
+  defmodule ScalarType do
+    defstruct name: "", description: ""
+  end
+
+  defmodule List do
+    defstruct of_type: nil
+  end
 
   defmodule NonNull do
     defstruct of_type: nil

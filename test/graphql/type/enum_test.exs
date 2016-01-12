@@ -2,7 +2,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
   use ExUnit.Case, async: true
   import ExUnit.TestHelpers
 
-  alias GraphQL.ObjectType
+  alias GraphQL.Type.ObjectType
   alias GraphQL.Type.Int
   alias GraphQL.Type.String
 
