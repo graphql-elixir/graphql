@@ -8,6 +8,7 @@ defmodule GraphQL.Type.Introspection do
   alias GraphQL.Type.Boolean
 
   def schema do
+    IO.puts "returning a schema"
     %ObjectType{
       name: "__Schema",
       description:
