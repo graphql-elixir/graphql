@@ -8,7 +8,6 @@ defmodule GraphQL.Type.Introspection do
   alias GraphQL.Type.Boolean
 
   def schema do
-    IO.puts "returning a schema"
     %ObjectType{
       name: "__Schema",
       description:
@@ -21,17 +20,9 @@ defmodule GraphQL.Type.Introspection do
         types: %{
           description: "A list of all types supported by this server.",
           type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}}},
-          #type: %String{},
           resolve: fn(schema, x, y) ->
-            # IO.inspect "In Resolve"
-            t = Map.values(GraphQL.Schema.reduce_types(schema.query))
-            # IO.inspect "Done resolving"
-            t
+            Map.values(GraphQL.Schema.reduce_types(schema))
           end
-          # resolve(schema) {
-          #   var typeMap = schema.getTypeMap();
-          #   return Object.keys(typeMap).map(key => typeMap[key]);
-          # }
         },
         queryType: %{
           description: "The type that query operations will be rooted at.",
@@ -101,7 +92,7 @@ defmodule GraphQL.Type.Introspection do
         """,
       fields: quote do %{
         kind: %{
-          type: %NonNull{of_type: "TypeKind"} # type_kind
+          type: %NonNull{of_type: GraphQL.Type.Introspection.typekind} # type_kind
           # resolve(type) {
           #   if (type instanceof GraphQLScalarType) {
           #     return TypeKind.SCALAR;
@@ -184,6 +175,17 @@ defmodule GraphQL.Type.Introspection do
         ofType: %{type: GraphQL.Type.Introspection.type}
       } end
     }
+  end
+
+  def typekind do
+      %{
+        name: "__TypeKind",
+        description: "An enum describing what kind of type a given `__Type` is.",
+        values: %{
+          SCALAR: %{value: "SCALAR"},
+          OBJECT: %{value: "OBJECT"}
+        }
+      } |>  GraphQL.Type.Enum.new
   end
 
   def field do
@@ -355,7 +357,7 @@ defmodule GraphQL.Type.Introspection do
         type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
         description: "Access the current type schema of this server.",
         args: [],
-        resolve: fn(_, _, args) -> IO.puts "Resolving schema"; args.schema end
+        resolve: fn(_, _, args) -> args.schema end
       }
     end
   end

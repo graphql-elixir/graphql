@@ -120,6 +120,7 @@ defmodule GraphQL.Execution.Executor do
         operation: context.operation,
         variable_values: context.variable_values
       }
+
       resolution = Map.get(field_def, :resolve, nil)
       result = case resolution do
         {mod, fun}    -> apply(mod, fun, [source, args, info])
@@ -181,11 +182,11 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp maybe_unwrap(item) when is_tuple(item) do
+  def maybe_unwrap(item) when is_tuple(item) do
     {result, _} = Code.eval_quoted(item)
     result
   end
-  defp maybe_unwrap(item), do: item
+  def maybe_unwrap(item), do: item
 
   defp field_definition(_schema, parent_type, field_name) do
     case field_name do

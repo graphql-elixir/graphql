@@ -1,34 +1,37 @@
 defmodule GraphQL.Schema do
   defstruct query: nil, mutation: nil, types: []
 
-  def reduce_types(type), do: reduce_types(type, %{})
-  def reduce_types(%GraphQL.Type.List{of_type: list_type}, typemap), do: reduce_types(list_type, typemap)
-
-  def reduce_types(%GraphQL.Type.Interface{} = type, typemap) do
-    # IO.puts "Working on an interface... ... #{type.name}"
-    typemap
+  def reduce_types(type) do
+    o = reduce_types(type.query, %{})
+    reduce_types(GraphQL.Type.Introspection.schema, o)
   end
 
-  def reduce_types(type, typemap) do
-    # IO.inspect "Starting reduction of #{type.name}"
-    # IO.inspect "Right now typemap is #{inspect typemap}"
-    #
-    typemap = Map.put(typemap, type.name, type) # replace with `type`, and convert to Field?
+  def reduce_types(%GraphQL.Type.List{of_type: list_type}, typemap), do: reduce_types(list_type, typemap)
+  def reduce_types(%GraphQL.Type.NonNull{of_type: list_type}, typemap), do: reduce_types(list_type, typemap)
 
-    # IO.inspect Map.keys(type)
-    typemap = case type do
-      %GraphQL.Type.ObjectType{} ->
-        # IO.inspect "reducing over object type's fields"
-        # IO.inspect type
-        Enum.reduce(type.fields, typemap, fn({name,fieldtype},map) ->
-          # IO.inspect name
-          # IO.inspect fieldtype.type
-          # do the args, too...
-          reduce_types(fieldtype.type, map)
-        end)
-        %GraphQL.Type.Enum{} -> typemap # explicitely do nothing, so that we know we've handled this type in development
-        %GraphQL.Type.ID{} -> typemap
-        %GraphQL.Type.String{} -> typemap
+  def reduce_types(%GraphQL.Type.Interface{} = type, typemap) do
+    Map.put(typemap, type.name, type)
+  end
+
+  def reduce_types(%GraphQL.Type.Enum{} = type, typemap) do
+    Map.put(typemap, type.name, type)
+  end
+  def reduce_types(%GraphQL.Type.Boolean{} = type, typemap), do: Map.put(typemap, type.name, type)
+  def reduce_types(%GraphQL.Type.ID{} = type, typemap), do: Map.put(typemap, type.name, type)
+  def reduce_types(%GraphQL.Type.String{} = type, typemap), do: Map.put(typemap, type.name, type)
+
+  def reduce_types(type, typemap) do
+    if Map.has_key?(typemap, type.name) do
+      typemap
+    else
+      typemap = Map.put(typemap, type.name, type)
+      case type do
+        %GraphQL.Type.ObjectType{} ->
+          thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(type.fields)
+          Enum.reduce(thunk_fields, typemap, fn({_,fieldtype},map) ->
+            reduce_types(fieldtype.type, map)
+          end)
+      end
     end
   end
 end

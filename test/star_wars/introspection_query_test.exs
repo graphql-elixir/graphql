@@ -15,6 +15,26 @@ defmodule GraphQL.StarWars.IntrospectionTest do
           }
         }
     """
-    assert_execute({query, StarWars.Schema.schema}, %{})
+    wanted = %{
+      __schema:
+        %{types: [
+          %{name: "Boolean"},
+          %{name: "Character"},
+          %{name: "Droid"},
+          %{name: "Episode"},
+          %{name: "Human"},
+          %{name: "Query"},
+          %{name: "String"},
+          %{name: "__Directive"},
+          %{name: "__EnumValue"},
+          %{name: "__Field"},
+          %{name: "__InputValue"},
+          %{name: "__Schema"},
+          %{name: "__Type"},
+          %{name: "__TypeKind"}
+        ]
+      }
+    }
+    assert_execute {query, StarWars.Schema.schema}, wanted
   end
 end
