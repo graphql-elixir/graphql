@@ -8,6 +8,9 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.NonNull
+  alias GraphQL.Type.String
+  alias GraphQL.Type.Int
+  alias GraphQL.Type.Boolean
 
   def make_article(id) do
     %{
@@ -37,9 +40,9 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       name: "Image",
       description: "Images for an article or a profile picture",
       fields: %{
-        url: %{type: "String"},
-        width: %{type: "Int"},
-        height: %{type: "Int"}
+        url: %{type: %String{}},
+        width: %{type: %Int{}},
+        height: %{type: %Int{}}
       }
     }
 
@@ -47,12 +50,12 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       name: "Author",
       description: "Author of the blog, with their profile picture and latest article",
       fields: %{
-        id: %{type: "String"},
-        name: %{type: "String"},
+        id: %{type: %String{}},
+        name: %{type: %String{}},
         pic: %{
           args: %{
-            width: %{type: "Int"},
-            height: %{type: "Int"}
+            width: %{type: %Int{}},
+            height: %{type: %Int{}}
           },
           type: image,
           resolve: fn(o, %{width: w, height: h}, _) -> o.pic.(w, h) end
@@ -64,12 +67,12 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
     article = %ObjectType{
       name: "Article",
       fields: %{
-        id: %{type: %NonNull{of_type: "String"}},
-        isPublished: %{type: "Boolean"},
+        id: %{type: %NonNull{of_type: %String{}}},
+        isPublished: %{type: %Boolean{}},
         author: %{type: author},
-        title: %{type: "String"},
-        body: %{type: "String"},
-        keywords: %{type: %List{of_type: "String"}}
+        title: %{type: %String{}},
+        body: %{type: %String{}},
+        keywords: %{type: %List{of_type: %String{}}}
       }
     }
 

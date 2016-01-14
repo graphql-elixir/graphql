@@ -42,7 +42,7 @@ defmodule TestSchema do
         name: "RootQueryType",
         fields: %{
           greeting: %{
-            type: "String",
+            type: %GraphQL.Type.String{},
             resolve: &TestSchema.greeting/3
           }
         }

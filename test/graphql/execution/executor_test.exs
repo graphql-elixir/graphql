@@ -7,6 +7,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   alias GraphQL.Schema
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
+  alias GraphQL.Type.String
+  alias GraphQL.Type.Int
   alias GraphQL.Lang.Parser
   alias GraphQL.Execution.Executor
 
@@ -16,8 +18,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         query: %ObjectType{
           name: "Recursive1",
           fields: quote do %{
-            id:   %{type: "Integer", resolve: 1},
-            name: %{type: "String", resolve: "Mark"},
+            id:   %{type: %Int{}, resolve: 1},
+            name: %{type: %String{}, resolve: "Mark"},
             b: %{type: TestSchema.recursive_schema.query },
             c: %{type: TestSchema.recursive_schema_2 }
           } end
@@ -29,8 +31,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       %ObjectType{
         name: "Recursive2",
         fields: quote do %{
-          id:   %{type: "Integer", resolve: 2},
-          name: %{type: "String", resolve: "Kate"},
+          id:   %{type: %Int{}, resolve: 2},
+          name: %{type: %String{}, resolve: "Kate"},
           b: %{type: TestSchema.recursive_schema.query }
         } end
       }
@@ -42,9 +44,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           name: "RootQueryType",
           fields: %{
             greeting: %{
-              type: "String",
+              type: %String{},
               args: %{
-                name: %{type: "String"}
+                name: %{type: %String{}}
               },
               resolve: &greeting/3,
             }
@@ -70,8 +72,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "X",
         fields: %{
-          id:   %{type: "Integer", resolve: 1},
-          name: %{type: "String", resolve: "Mark"}
+          id: %{type: %Int{}, resolve: 1},
+          name: %{type: %String{}, resolve: "Mark"}
         }
       }
     }
@@ -83,9 +85,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "BType",
         fields: %{
-          id:   %{type: "Integer", resolve: 1},
-          a: %{type: "String", resolve: "a"},
-          b: %{type: "String", resolve: "b"}
+          id: %{type: %Int{}, resolve: 1},
+          a: %{type: %String{}, resolve: "a"},
+          b: %{type: %String{}, resolve: "b"}
         }
       }
     }
@@ -97,9 +99,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "BType",
         fields: %{
-          id:   %{type: "Integer", resolve: 1},
-          a: %{type: "String", resolve: "a"},
-          b: %{type: "String", resolve: "b"}
+          id:   %{type: %Int{}, resolve: 1},
+          a: %{type: %String{}, resolve: "a"},
+          b: %{type: %String{}, resolve: "b"}
         }
       }
     }
@@ -112,8 +114,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "Q",
         fields: %{
-          g: %{ type: "String", resolve: {TestSchema, :greeting} },
-          h: %{ type: "String", args: %{name: %{type: "String" }}, resolve: {TestSchema, :greeting, []} }
+          g: %{ type: %String{}, resolve: {TestSchema, :greeting} },
+          h: %{ type: %String{}, args: %{name: %{type: %String{} }}, resolve: {TestSchema, :greeting, []} }
         }
       }
     }
@@ -144,13 +146,13 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
             type: %ObjectType{
               name: "Person",
               fields: %{
-                id:   %{name: "id",   type: "String", resolve: fn(p, _, _) -> p.id   end},
-                name: %{name: "name", type: "String", resolve: fn(p, _, _) -> p.name end},
-                age:  %{name: "age",  type: "Int",    resolve: fn(p, _, _) -> p.age  end}
+                id:   %{name: "id",   type: %String{}, resolve: fn(p, _, _) -> p.id   end},
+                name: %{name: "name", type: %String{}, resolve: fn(p, _, _) -> p.name end},
+                age:  %{name: "age",  type: %Int{},    resolve: fn(p, _, _) -> p.age  end}
               }
             },
             args: %{
-              id: %{ type: "String" }
+              id: %{ type: %String{} }
             },
             resolve: fn(data, %{id: id}, _) ->
               Enum.find data, fn(record) -> record.id == id end
@@ -174,11 +176,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     schema = %Schema{
       query: %ObjectType{
         name: "Q",
-        fields: %{a: %{ type: "String"}}
+        fields: %{a: %{ type: %String{}}}
       },
       mutation: %ObjectType{
         name: "M",
-        fields: %{b: %{ type: "String"}}
+        fields: %{b: %{ type: %String{}}}
       }
     }
     data = %{a: "A", b: "B"}
@@ -190,11 +192,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     schema = %Schema{
       query: %ObjectType{
         name: "Q",
-        fields: %{a: %{ type: "String"}}
+        fields: %{a: %{ type: %String{}}}
       },
       mutation: %ObjectType{
         name: "M",
-        fields: %{b: %{ type: "String"}}
+        fields: %{b: %{ type: %String{}}}
       }
     }
     data = %{a: "A", b: "B"}
@@ -206,8 +208,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     book = %ObjectType{
       name: "Book",
       fields: %{
-        isbn:  %{type: "Int"},
-        title: %{type: "String"}
+        isbn:  %{type: %Int{}},
+        title: %{type: %String{}}
       }
     }
 
@@ -216,7 +218,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         name: "ListsOfThings",
         fields: %{
           numbers: %{
-            type: %List{of_type: "Int"},
+            type: %List{of_type: %Int{}},
             resolve: fn(_, _, _) -> [1, 2] end
           },
           books: %{

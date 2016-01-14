@@ -4,6 +4,7 @@ defmodule StarWars.Schema do
   alias GraphQL.Type.List
   alias GraphQL.Type.Enum
   alias GraphQL.Type.Interface
+  alias GraphQL.Type.String
 
   def episode_enum do
     %{
@@ -22,8 +23,8 @@ defmodule StarWars.Schema do
       name: "Character",
       description: "A character in the Star Wars Trilogy",
       fields: quote do %{
-        id: %{type: "String"},
-        name: %{type: "String"},
+        id: %{type: %String{}},
+        name: %{type: %String{}},
         friends: %{type: %List{of_type: StarWars.Schema.character_interface}},
         appears_in: %{type: %List{of_type: StarWars.Schema.episode_enum}}
       } end,
@@ -38,14 +39,14 @@ defmodule StarWars.Schema do
       name: "Human",
       description: "A humanoid creature in the Star Wars universe",
       fields: %{
-        id: %{type: "String"},
-        name: %{type: "String"},
+        id: %{type: %String{}},
+        name: %{type: %String{}},
         friends: %{
           type: %List{of_type: character_interface},
           resolve: fn(item, _, _) -> StarWars.Data.get_friends(item) end
         },
         appears_in: %{type: %List{of_type: episode_enum}},
-        home_planet: %{type: "String"}
+        home_planet: %{type: %String{}}
       },
       interfaces: [StarWars.Schema.character_interface]
     }
@@ -56,14 +57,14 @@ defmodule StarWars.Schema do
       name: "Droid",
       description: "A mechanical creature in the Star Wars universe",
       fields: %{
-        id: %{type: "String"},
-        name: %{type: "String"},
+        id: %{type: %String{}},
+        name: %{type: %String{}},
         friends: %{
           type: %List{of_type: character_interface},
           resolve: fn(item, _, _) -> StarWars.Data.get_friends(item) end
         },
         appears_in: %{type: %List{of_type: episode_enum}},
-        primary_function: %{type: "String"}
+        primary_function: %{type: %String{}}
       },
       interfaces: [character_interface]
     }
@@ -88,14 +89,14 @@ defmodule StarWars.Schema do
         human: %{
           type: human_type,
           args: %{
-            id: %{type: "String"}
+            id: %{type: %String{}}
           },
           resolve: fn(_, args, _) -> StarWars.Data.get_human(args.id) end
         },
         droid: %{
           type: droid_type,
           args: %{
-            id: %{type: "String"}
+            id: %{type: %String{}}
           },
           resolve: fn(_, args, _) -> StarWars.Data.get_droid(args.id) end
         },

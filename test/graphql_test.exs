@@ -3,14 +3,15 @@ defmodule GraphQLTest do
   doctest GraphQL
 
   alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.String
 
   test "Execute simple query" do
-    schema = %GraphQL.Schema{query: %ObjectType{fields: %{a: %{type: "String"}}}}
+    schema = %GraphQL.Schema{query: %ObjectType{fields: %{a: %{type: %String{}}}}}
     assert GraphQL.execute(schema, "{ a }", %{a: "A"}) == {:ok, %{a: "A"}}
   end
 
   test "Report parse error with message" do
-    schema = %GraphQL.Schema{query: %ObjectType{fields: %{a: %{type: "String"}}}}
+    schema = %GraphQL.Schema{query: %ObjectType{fields: %{a: %{type: %String{}}}}}
     assert GraphQL.execute(schema, "{") ==
       {:error, %{errors: [%{message: "GraphQL: syntax error before:  on line 1", line_number: 1}]}}
     assert GraphQL.execute(schema, "a") ==
