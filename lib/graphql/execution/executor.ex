@@ -173,8 +173,10 @@ defmodule GraphQL.Execution.Executor do
   defp maybe_unwrap(item), do: item
 
   defp field_definition(_schema, parent_type, field_name) do
-    # TODO deal with introspection
-    maybe_unwrap(parent_type.fields)[field_name]
+    case field_name do
+      :__typename -> GraphQL.Type.Introspection.typename
+      _ -> maybe_unwrap(parent_type.fields)[field_name]
+    end
   end
 
   defp argument_values(arg_defs, arg_asts, variable_values) do

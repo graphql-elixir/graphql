@@ -116,7 +116,6 @@ defmodule GraphQL.StarWars.QueryTest do
     assert_execute({query, StarWars.Schema.schema}, %{leia: %{home_planet: "Alderaan", name: "Leia Organa"}, luke: %{home_planet: "Tatooine", name: "Luke Skywalker"}})
   end
 
-  @tag :skip #need __typename introspection
   test "Allows us to verify that R2-D2 is a droid" do
     query = ~S[
       query check_type_of_r2d2 {
@@ -129,7 +128,6 @@ defmodule GraphQL.StarWars.QueryTest do
     assert_execute({query, StarWars.Schema.schema}, %{hero: %{name: "R2-D2", "__typename": "Droid"}})
   end
 
-  @tag :skip #need __typename introspection
   test "Allows us to verify that Luke is a human" do
     query = ~S[
       query check_type_of_luke {
