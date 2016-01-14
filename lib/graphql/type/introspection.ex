@@ -93,7 +93,7 @@ defmodule GraphQL.Type.Introspection do
         kind: %{
           # return value from here gets co-erced to the enum type
           type: %NonNull{of_type: GraphQL.Type.Introspection.typekind}, # type_kind
-          resolve: fn(schema, args, _) ->
+          resolve: fn(schema, _, _) ->
             case schema do
               %GraphQL.Type.ScalarType{} -> "SCALAR"
               %GraphQL.Type.ObjectType{} -> "OBJECT"
@@ -110,6 +110,9 @@ defmodule GraphQL.Type.Introspection do
               # some sort of injection for custom types :-\
               # maybe attaching it to the type's module?
               %GraphQL.Type.String{} -> "SCALAR"
+              nil ->
+                IO.puts "We just got a nil `kind` of field. Execution shouldn't really get this far.."
+                nil
             end
           end
         },
@@ -179,7 +182,7 @@ defmodule GraphQL.Type.Introspection do
           #   }
           # }
         },
-        ofType: %{type: GraphQL.Type.Introspection.type}
+        of_type: %{type: GraphQL.Type.Introspection.type}
       } end
     }
   end
