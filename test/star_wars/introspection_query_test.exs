@@ -61,4 +61,16 @@ defmodule GraphQL.StarWars.IntrospectionTest do
     """
     assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Droid"}}
   end
+
+  test "Allows querying the schema for an object kind" do
+    query = """
+      query IntrospectionDroidKindQuery {
+        __type(name: "Droid") {
+          name
+          kind
+        }
+      }
+    """
+    assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Droid", kind: "OBJECT"}}
+  end
 end

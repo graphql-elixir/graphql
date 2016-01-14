@@ -19,7 +19,7 @@ defmodule GraphQL.Type.Introspection do
         types: %{
           description: "A list of all types supported by this server.",
           type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}}},
-          resolve: fn(schema, x, y) ->
+          resolve: fn(schema, _, _) ->
             Map.values(GraphQL.Schema.reduce_types(schema))
           end
         },
@@ -91,27 +91,20 @@ defmodule GraphQL.Type.Introspection do
         """,
       fields: quote do %{
         kind: %{
-          type: %NonNull{of_type: GraphQL.Type.Introspection.typekind} # type_kind
-          # resolve(type) {
-          #   if (type instanceof GraphQLScalarType) {
-          #     return TypeKind.SCALAR;
-          #   } else if (type instanceof GraphQLObjectType) {
-          #     return TypeKind.OBJECT;
-          #   } else if (type instanceof GraphQLInterfaceType) {
-          #     return TypeKind.INTERFACE;
-          #   } else if (type instanceof GraphQLUnionType) {
-          #     return TypeKind.UNION;
-          #   } else if (type instanceof GraphQLEnumType) {
-          #     return TypeKind.ENUM;
-          #   } else if (type instanceof GraphQLInputObjectType) {
-          #     return TypeKind.INPUT_OBJECT;
-          #   } else if (type instanceof GraphQLList) {
-          #     return TypeKind.LIST;
-          #   } else if (type instanceof GraphQLNonNull) {
-          #     return TypeKind.NON_NULL;
-          #   }
-          #   throw new Error('Unknown kind of type: ' + type);
-          # }
+          # return value from here gets co-erced to the enum type
+          type: %NonNull{of_type: GraphQL.Type.Introspection.typekind}, # type_kind
+          resolve: fn(schema, args, _) ->
+            case schema do
+              %GraphQL.Type.ScalarType{} -> "SCALAR"
+              %GraphQL.Type.ObjectType{} -> "OBJECT"
+              %GraphQL.Type.Interface{} -> "INTERFACE"
+              #%GraphQL.Type.Union{} -> "UNION"
+              %GraphQL.Type.Enum{} -> "ENUM"
+              #%GraphQL.Type.Input{} -> "INPUT_OBJECT"
+              %GraphQL.Type.List{} -> "LIST"
+              %GraphQL.Type.NonNull{} -> "NON_NULL"
+            end
+          end
         },
         name: %{type: %String{}},
         description: %{type: %String{}},
@@ -181,8 +174,31 @@ defmodule GraphQL.Type.Introspection do
         name: "__TypeKind",
         description: "An enum describing what kind of type a given `__Type` is.",
         values: %{
-          SCALAR: %{value: "SCALAR"},
-          OBJECT: %{value: "OBJECT"}
+          SCALAR: %{
+            value: "SCALAR",
+            description: "Indicates this type is a scalar."
+          },
+          OBJECT: %{
+            value: "OBJECT"
+          },
+          INTERFACE: %{
+            value: "INTERFACE"
+          },
+          UNION: %{
+            value: "UNION"
+          },
+          ENUM: %{
+            value: "ENUM"
+          },
+          INPUT_OBJECT: %{
+            value: "INPUT_OBJECT"
+          },
+          LIST: %{
+            value: "LIST"
+          },
+          NON_NULL: %{
+            value: "NON_NULL"
+          }
         }
       } |>  GraphQL.Type.Enum.new
   end
