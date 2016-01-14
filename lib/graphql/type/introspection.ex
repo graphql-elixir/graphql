@@ -26,7 +26,7 @@ defmodule GraphQL.Type.Introspection do
         queryType: %{
           description: "The type that query operations will be rooted at.",
           type: %NonNull{of_type: GraphQL.Type.Introspection.type},
-          resolve: nil #fn(%{query: query}, _, _) -> query end
+          resolve: fn(%{query: query}, _, _) -> query end
         },
         mutationType: %{
           description: "If this server supports mutation, the type that mutation operations will be rooted at.",
