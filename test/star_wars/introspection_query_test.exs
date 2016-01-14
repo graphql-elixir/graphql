@@ -73,4 +73,16 @@ defmodule GraphQL.StarWars.IntrospectionTest do
     """
     assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Droid", kind: "OBJECT"}}
   end
+
+  test "Allows querying the schema for an interface kind" do
+    query ="""
+      query IntrospectionCharacterKindQuery {
+        __type(name: "Character") {
+          name
+          kind
+        }
+      }
+    """
+    assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Character", kind: "INTERFACE"}}
+  end
 end
