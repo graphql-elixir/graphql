@@ -19,11 +19,13 @@ defmodule GraphQL.Type.Introspection do
       fields: quote do %{
         types: %{
           description: "A list of all types supported by this server.",
-          #type: %NonNull{of_type: %List{of_type: %NonNull{of_type: type}}},
-          type: %String{},
+          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}}},
+          #type: %String{},
           resolve: fn(schema, x, y) ->
             IO.inspect "In Resolve"
-            GraphQL.Schema.reduce_types(schema.query)
+            t = Map.values(GraphQL.Schema.reduce_types(schema.query))
+            IO.inspect "Done resolving"
+            t
           end
           # resolve(schema) {
           #   var typeMap = schema.getTypeMap();

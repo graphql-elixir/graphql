@@ -125,10 +125,14 @@ defmodule GraphQL.Execution.Executor do
         {mod, fun}    -> apply(mod, fun, [source, args, info])
         {mod, fun, _} -> apply(mod, fun, [source, args, info])
         resolve when is_function(resolve) ->
-          IO.puts "Calling resolve for #{field_name}"
+          IO.puts "Calling resolve for #{inspect field_name}"
           resolve.(source, args, info)
-        _ -> resolution || source[field_name]
+        _ ->
+          IO.puts "static? #{field_name}"
+          IO.inspect source
+          resolution || source[field_name]
       end
+      IO.inspect result
       complete_value_catching_error(context, return_type, field_asts, info, result)
     end
   end
@@ -162,6 +166,8 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value(_context, return_type, _field_asts, _info, result) do
+    IO.inspect "falling wayyyy back"
+    IO.inspect return_type
     GraphQL.Types.serialize(return_type, result)
   end
 

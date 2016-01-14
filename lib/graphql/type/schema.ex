@@ -12,7 +12,7 @@ defmodule GraphQL.Schema do
   def reduce_types(type, typemap) do
     IO.inspect "Starting reduction of #{type.name}"
     IO.inspect "Right now typemap is #{inspect typemap}"
-    typemap = Map.put(typemap, type.name, "_") # replace with `type`, and convert to Field?
+    typemap = Map.put(typemap, type.name, %{name: type.name}) # replace with `type`, and convert to Field?
 
     IO.inspect Map.keys(type)
     typemap = case type do
