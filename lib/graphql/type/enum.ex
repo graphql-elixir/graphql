@@ -17,9 +17,9 @@ defmodule GraphQL.Type.Enum do
   end
 
   defp define_values(values) do
-    Enum.map(values, fn {name,v} ->
-      val = Dict.get(v, :value, name)
-      desc = Dict.get(v, :description, "")
+    Enum.map(values, fn {name, v} ->
+      val = Map.get(v, :value, name)
+      desc = Map.get(v, :description, "")
       %GraphQL.Type.EnumValue{name: name, value: val, description: desc}
     end)
   end
@@ -32,7 +32,7 @@ defimpl GraphQL.Types, for: GraphQL.Type.Enum do
 
   def serialize(struct, wanted) do
     values = GraphQL.Type.Enum.values(struct)
-    case Enum.find(values, fn({_,v}) -> v == wanted end) do
+    case Enum.find(values, fn({_, v}) -> v == wanted end) do
       nil -> nil
       {name, _} -> to_string(name)
     end

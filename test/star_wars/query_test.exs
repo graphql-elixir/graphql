@@ -5,9 +5,6 @@ defmodule GraphQL.StarWars.QueryTest do
   use ExUnit.Case, async: true
   import ExUnit.TestHelpers
 
-  alias GraphQL.Lang.Parser
-  alias GraphQL.Execution.Executor
-
   test "correctly identifies R2-D2 as the hero of the Star Wars Saga" do
     query = ~S[ query hero_name_query { hero { name } }]
     assert_execute({query, StarWars.Schema.schema}, %{hero: %{name: "R2-D2"}})
@@ -19,7 +16,17 @@ defmodule GraphQL.StarWars.QueryTest do
         hero { id, name, friends { name }}
       }
     ]
-    assert_execute({query, StarWars.Schema.schema}, %{hero: %{friends: [%{name: "Luke Skywalker"}, %{name: "Han Solo"}, %{name: "Leia Organa"}], id: "2001", name: "R2-D2"}})
+    assert_execute {query, StarWars.Schema.schema}, %{
+      hero: %{
+        friends: [
+          %{name: "Luke Skywalker"},
+          %{name: "Han Solo"},
+          %{name: "Leia Organa"}
+        ],
+        id: "2001",
+        name: "R2-D2"
+      }
+    }
   end
 
   test "Allows us to query for the friends of friends of R2-D2" do

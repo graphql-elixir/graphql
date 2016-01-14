@@ -1,16 +1,16 @@
 defmodule GraphQL.Type.Float do
   defstruct name: "Float", description: "IEEE Floating point"
 
+  def coerce(false), do: 0
+  def coerce(true), do: 1
   def coerce(value) when is_binary(value) do
     case Float.parse(value) do
       :error -> nil
-      {found,_} -> coerce(found)
+      {v, _} -> coerce(v)
     end
   end
-  def coerce(false), do: 0
-  def coerce(true), do: 1
   def coerce(value) do
-    value = value * 1.0
+    value * 1.0
   end
 end
 

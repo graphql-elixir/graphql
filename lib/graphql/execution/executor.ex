@@ -163,7 +163,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp maybe_unwrap(item) when is_tuple(item) do
-    {result,_} = Code.eval_quoted(item)
+    {result, _} = Code.eval_quoted(item)
     result
   end
   defp maybe_unwrap(item), do: item

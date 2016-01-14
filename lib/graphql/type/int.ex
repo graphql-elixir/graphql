@@ -4,18 +4,21 @@ defmodule GraphQL.Type.Int do
 
   defstruct name: "Int", description: "Blah blah -(2^53-1) and 2^53 - 1"
 
+  def coerce(false), do: 0
+  def coerce(true), do: 1
   def coerce(value) when is_binary(value) do
     case Float.parse(value) do
       :error -> nil
-      {found,_} -> coerce(found)
+      {v, _} -> coerce(v)
     end
   end
-  def coerce(false), do: 0
-  def coerce(true), do: 1
   def coerce(value) do
-    value = value * 1.0
-    if(value <= @max_int && value >= @min_int) do
-      if(value < 0, do: &Float.ceil/2, else: &Float.floor/2).(value, 0) |> round
+    if value <= @max_int && value >= @min_int do
+      if value < 0 do
+        round(Float.ceil(value * 1.0, 0))
+      else
+        round(Float.floor(value * 1.0, 0))
+      end
     else
       nil
     end

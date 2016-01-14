@@ -2,6 +2,10 @@ defmodule GraphQL.Lang.Type.EnumTest do
   use ExUnit.Case, async: true
   import ExUnit.TestHelpers
 
+  alias GraphQL.ObjectType
+  alias GraphQL.Type.Int
+  alias GraphQL.Type.String
+
   defmodule TestSchema do
     def color_type do
       %{
@@ -14,40 +18,39 @@ defmodule GraphQL.Lang.Type.EnumTest do
       } |>  GraphQL.Type.Enum.new
     end
 
-    # GraphQL.Type.ScalarType -> GraphQL.Type.Int when it's added
     def query do
-      %GraphQL.ObjectType{
-          name: "Query",
-          fields: %{
-            color_enum: %{
-              type: color_type,
-              args: %{
-                from_enum: %{type: color_type},
-                from_int: %{type: GraphQL.Type.ScalarType},
-                from_string: %{type: GraphQL.Type.string},
-              },
-              resolve: fn(_, args, _) ->
-                Dict.get(args, :from_enum, nil) ||
-                Dict.get(args, :from_int, nil) ||
-                Dict.get(args, :from_string, nil)
-              end
+      %ObjectType{
+        name: "Query",
+        fields: %{
+          color_enum: %{
+            type: color_type,
+            args: %{
+              from_enum: %{type: color_type},
+              from_int: %{type: %Int{}},
+              from_string: %{type: %String{}},
             },
-            color_int: %{
-              type: GraphQL.Type.ScalarType,
-              args: %{
-                from_enum: %{type: color_type},
-                from_int: %{type: GraphQL.Type.ScalarType}
-              },
-              resolve: fn(_, args, _) ->
-                Dict.get(args, :from_enum, nil) ||
-                Dict.get(args, :from_int, nil)
-              end
-            }
+            resolve: fn(_, args, _) ->
+              Map.get(args, :from_enum) ||
+              Map.get(args, :from_int) ||
+              Map.get(args, :from_string)
+            end
+          },
+          color_int: %{
+            type: %Int{},
+            args: %{
+              from_enum: %{type: color_type},
+              from_int: %{type: %Int{}}
+            },
+            resolve: fn(_, args, _) ->
+              Map.get(args, :from_enum) ||
+              Map.get(args, :from_int)
+            end
           }
         }
+      }
     end
 
-    def schema, do: %GraphQL.Schema{ query: query }
+    def schema, do: %GraphQL.Schema{query: query}
   end
 
   test "enum values are able to be parsed" do
@@ -67,33 +70,33 @@ defmodule GraphQL.Lang.Type.EnumTest do
   end
 
   test "enum may be both input and output type" do
-    assert_execute({"{ color_enum(from_enum: GREEN) }", TestSchema.schema}, %{color_enum: "GREEN"})
+    assert_execute {"{ color_enum(from_enum: GREEN) }", TestSchema.schema}, %{color_enum: "GREEN"}
   end
 
   @tag :skip # needs type validation
   test "does not accept string literals" do
-    assert_execute({~S[{ color_enum(from_enum: "GREEN") }], TestSchema.schema}, "should return an argument error")
+    assert_execute {~S[{ color_enum(from_enum: "GREEN") }], TestSchema.schema}, "should return an argument error"
   end
 
   @tag :skip # needs to allow nils to be returned
   test "does not accept incorrect internal value" do
-   assert_execute({~S[{ color_enum(from_string: "GREEN") }], TestSchema.schema}, %{color_enum: nil})
+   assert_execute {~S[{ color_enum(from_string: "GREEN") }], TestSchema.schema}, %{color_enum: nil}
   end
 
   @tag :skip # needs type validation
   test "does not accept internal value in place of enum literal" do
-    assert_execute({"{ color_enum(from_enum: 1) }", TestSchema.schema}, "should return an argument error")
+    assert_execute {"{ color_enum(from_enum: 1) }", TestSchema.schema}, "should return an argument error"
   end
 
   @tag :skip # needs type validation
   test "does not accept enum literal in place of int" do
-    assert_execute({"{ color_enum(from_int: GREEN) }", TestSchema.schema}, "should return an argument error")
+    assert_execute {"{ color_enum(from_int: GREEN) }", TestSchema.schema}, "should return an argument error"
   end
 
   @tag :skip # needs variable to be bound at some point
   test "accepts JSON string as enum variable" do
     query = "query test($color: Color!) { color_enum(from_enum: $color) }"
-    assert_execute({query, TestSchema.schema, %{color: "BLUE"}}, "failed")
+    assert_execute {query, TestSchema.schema, %{color: "BLUE"}}, "failed"
   end
 
   @tag :skip
@@ -108,12 +111,12 @@ defmodule GraphQL.Lang.Type.EnumTest do
   test "does not accept internal value variable as enum input", do: :skipped
 
   test "enum value may have an internal value of 0" do
-    assert_execute({"{ color_enum(from_enum: RED), color_int(from_enum: RED) }", TestSchema.schema}, %{color_enum: "RED", color_int: 0})
+    assert_execute {"{ color_enum(from_enum: RED), color_int(from_enum: RED) }", TestSchema.schema}, %{color_enum: "RED", color_int: 0}
   end
 
   @tag :skip # needs to allow nils to be returned
   test "enum inputs may be nullable" do
-    assert_execute({"{color_enum, color_int}", TestSchema.schema}, %{color_enum: nil, color_int: nil})
+    assert_execute {"{color_enum, color_int}", TestSchema.schema}, %{color_enum: nil, color_int: nil}
   end
 
 end
