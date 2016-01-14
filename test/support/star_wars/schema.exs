@@ -90,14 +90,14 @@ defmodule StarWars.Schema do
         human: %{
           type: human_type,
           args: %{
-            id: %{type: %String{}}
+            id: %{type: %String{}, description: "id of the human"}
           },
           resolve: fn(_, args, _) -> StarWars.Data.get_human(args.id) end
         },
         droid: %{
           type: droid_type,
           args: %{
-            id: %{type: %String{}}
+            id: %{type: %String{}, description: "id of the droid"}
           },
           resolve: fn(_, args, _) -> StarWars.Data.get_droid(args.id) end
         },

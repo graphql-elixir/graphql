@@ -236,8 +236,10 @@ defmodule GraphQL.Type.Introspection do
         name: %{type: %NonNull{of_type: %String{}}},
         description: %{type: %String{}},
         args: %{
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}}}
-          # resolve: field => field.args || []
+          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}}},
+          resolve: fn(schema, args, info) ->
+            Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
+          end
         },
         type: %{type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
         isDeprecated: %{

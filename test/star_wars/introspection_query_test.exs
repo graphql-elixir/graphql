@@ -149,6 +149,38 @@ defmodule GraphQL.StarWars.IntrospectionTest do
     assert_execute {query, StarWars.Schema.schema}, wanted
   end
 
+  @tag :skip # we need to add default_value before this will be complete
+  test "Allows querying the schema for field args" do
+    query = """
+      query IntrospectionQueryTypeQuery {
+        __schema {
+          queryType {
+            fields {
+              name
+              args {
+                name
+                description
+                type {
+                  name
+                  kind
+                  of_type {
+                    name
+                    kind
+                  }
+                }
+                default_value
+              }
+            }
+          }
+        }
+      }
+    """
+    wanted = %{}
+
+    assert_execute {query, StarWars.Schema.schema}, wanted
+
+  end
+
   test "Allows querying the schema for documentation" do
     query = """
       query IntrospectionDroidDescriptionQuery {
