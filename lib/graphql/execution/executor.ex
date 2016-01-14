@@ -136,14 +136,20 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
+  defp complete_value(context, %GraphQL.Type.Interface{} = return_type, field_asts, _info, result) do
+    runtime_type = GraphQL.Type.Interface.get_object_type(return_type, result)
+    sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
+    execute_fields(context, runtime_type, result, sub_field_asts.fields)
+  end
+
   defp complete_value(context, %GraphQL.List{of_type: list_type}, field_asts, info, result) do
     Enum.map result, fn(item) ->
       complete_value_catching_error(context, list_type, field_asts, info, item)
     end
   end
 
-  defp complete_value(_context, _return_type, _field_asts, _info, result) do
-    result
+  defp complete_value(_context, return_type, _field_asts, _info, result) do
+    GraphQL.Types.serialize(return_type, result)
   end
 
   defp collect_sub_fields(context, return_type, field_asts) do
@@ -181,8 +187,8 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp value_from_ast(value_ast, _type, _variable_values) do
-    value_ast.value.value
+  defp value_from_ast(value_ast, type, _variable_values) do
+    GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
   defp field_entry_key(field) do
