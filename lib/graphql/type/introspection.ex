@@ -16,10 +16,15 @@ defmodule GraphQL.Type.Introspection do
         exposes all available types and directives on the server, as well as
         the entry points for query, mutation, and subscription operations.
         """,
-      fields: %{
+      fields: quote do %{
         types: %{
           description: "A list of all types supported by this server.",
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: type}}},
+          #type: %NonNull{of_type: %List{of_type: %NonNull{of_type: type}}},
+          type: %String{},
+          resolve: fn(schema, x, y) ->
+            IO.inspect "In Resolve"
+            GraphQL.Schema.reduce_types(schema.query)
+          end
           # resolve(schema) {
           #   var typeMap = schema.getTypeMap();
           #   return Object.keys(typeMap).map(key => typeMap[key]);
@@ -27,25 +32,25 @@ defmodule GraphQL.Type.Introspection do
         },
         queryType: %{
           description: "The type that query operations will be rooted at.",
-          type: %NonNull{of_type: type},
-          resolve: nil #schema => schema.getQueryType()
+          type: %NonNull{of_type: GraphQL.Type.Introspection.type},
+          resolve: nil #fn(%{query: query}, _, _) -> query end
         },
         mutationType: %{
           description: "If this server supports mutation, the type that mutation operations will be rooted at.",
-          type: type,
-          resolve: nil #schema => schema.getMutationType()
+          type: GraphQL.Type.Introspection.type,
+          resolve: nil #fn(%{mutation: mutation}, _, _) -> mutation end
         },
         subscriptionType: %{
           description: "If this server support subscription, the type that subscription operations will be rooted at.",
-          type: type,
-          resolve: nil #schema => schema.getSubscriptionType()
+          type: GraphQL.Type.Introspection.type,
+          resolve: nil #fn(%{subscription: subscription}, _, _) -> subscription end
         },
         directives: %{
           description: "A list of all directives supported by this server.",
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: directive}}},
+          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.directive}}},
           resolve: nil #schema => schema.getDirectives(),
         }
-      }
+      } end
     }
   end
 
@@ -91,7 +96,7 @@ defmodule GraphQL.Type.Introspection do
         types, Union and Interface, provide the Object types possible
         at runtime. List and NonNull types compose other types.
         """,
-      fields: %{
+      fields: quote do %{
         kind: %{
           type: %NonNull{of_type: "TypeKind"} # type_kind
           # resolve(type) {
@@ -118,7 +123,7 @@ defmodule GraphQL.Type.Introspection do
         name: %{type: %String{}},
         description: %{type: %String{}},
         fields: %{
-          type: %List{of_type: %NonNull{of_type: field}},
+          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.field}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}}
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLObjectType ||
@@ -135,7 +140,7 @@ defmodule GraphQL.Type.Introspection do
           # }
         },
         interfaces: %{
-          type: %List{of_type: %NonNull{of_type: type}}
+          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}}
           # resolve(type) {
           #   if (type instanceof GraphQLObjectType) {
           #     return type.getInterfaces();
@@ -143,7 +148,7 @@ defmodule GraphQL.Type.Introspection do
           # }
         },
         possibleTypes: %{
-          type: %List{of_type: %NonNull{of_type: type}}
+          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}}
           # resolve(type) {
           #   if (type instanceof GraphQLInterfaceType ||
           #       type instanceof GraphQLUnionType) {
@@ -152,7 +157,7 @@ defmodule GraphQL.Type.Introspection do
           # }
         },
         enumValues: %{
-          type: %List{of_type: %NonNull{of_type: enum_value}},
+          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.enum_value}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}}
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLEnumType) {
@@ -165,7 +170,7 @@ defmodule GraphQL.Type.Introspection do
           # }
         },
         inputFields: %{
-          type: %List{of_type: %NonNull{of_type: input_value}}
+          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}}
           # resolve(type) {
           #   if (type instanceof GraphQLInputObjectType) {
           #     var fieldMap = type.getFields();
@@ -173,8 +178,8 @@ defmodule GraphQL.Type.Introspection do
           #   }
           # }
         },
-        ofType: %{type: type}
-      }
+        ofType: %{type: GraphQL.Type.Introspection.type}
+      } end
     }
   end
 
@@ -190,10 +195,10 @@ defmodule GraphQL.Type.Introspection do
         name: %{type: %NonNull{of_type: %String{}}},
         description: %{type: %String{}},
         args: %{
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: input_value}}}
+          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}}}
           # resolve: field => field.args || []
         },
-        type: %{type: %NonNull{of_type: type}},
+        type: %{type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
         isDeprecated: %{
           type: %NonNull{of_type: %Boolean{}}
           # resolve: field => !isNullish(field.deprecationReason),
@@ -215,7 +220,7 @@ defmodule GraphQL.Type.Introspection do
       fields: %{
         name: %{type: %NonNull{of_type: %String{}}},
         description: %{type: %String{}},
-        type: %{type: %NonNull{of_type: type}},
+        type: %{type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
         defaultValue: %{
           type: %String{},
           description: "A GraphQL-formatted string representing the default value for this input value."
@@ -245,16 +250,6 @@ defmodule GraphQL.Type.Introspection do
         },
         deprecationReason: %{type: %String{}}
       }
-    }
-  end
-
-  def typename do
-    %{
-      name: "typename",
-      type: %NonNull{of_type: %String{}},
-      description: "The name of the current Object type at runtime.",
-      args: [],
-      resolve: fn(_, _, %{parent_type: %{name: name}}) -> name end
     }
   end
 
@@ -339,4 +334,27 @@ defmodule GraphQL.Type.Introspection do
     }
     """
   end
+
+  defmodule MetaField do
+    def typename do
+      %{
+        name: "__typename",
+        type: %NonNull{of_type: %String{}},
+        description: "The name of the current Object type at runtime.",
+        args: [],
+        resolve: fn(_, _, %{parent_type: %{name: name}}) -> name end
+      }
+    end
+
+    def schema do
+      %{
+        name: "__schema",
+        type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
+        description: "Access the current type schema of this server.",
+        args: [],
+        resolve: fn(_, _, args) -> args.schema end
+      }
+    end
+  end
+
 end

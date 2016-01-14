@@ -119,18 +119,22 @@ defmodule GraphQL.Execution.Executor do
         operation: context.operation,
         variable_values: context.variable_values
       }
-      resolution = Map.get(field_def, :resolve, source[field_name])
+      resolution = Map.get(field_def, :resolve, nil)
+      IO.inspect "#{field_name} -> #{inspect resolution}"
       result = case resolution do
         {mod, fun}    -> apply(mod, fun, [source, args, info])
         {mod, fun, _} -> apply(mod, fun, [source, args, info])
-        resolve when is_function(resolve) -> resolve.(source, args, info)
-        _ -> resolution
+        resolve when is_function(resolve) ->
+          IO.puts "Calling resolve for #{field_name}"
+          resolve.(source, args, info)
+        _ -> resolution || source[field_name]
       end
       complete_value_catching_error(context, return_type, field_asts, info, result)
     end
   end
 
   defp complete_value_catching_error(context, return_type, field_asts, info, result) do
+
     # TODO lots of error checking
     complete_value(context, return_type, field_asts, info, result)
   end
@@ -138,6 +142,11 @@ defmodule GraphQL.Execution.Executor do
   defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
+  end
+
+  defp complete_value(context, %GraphQL.Type.NonNull{of_type: inner_type} = return_type, field_asts, info, result) do
+    # TODO: Null Checking
+    complete_value(context, inner_type, field_asts, info, result)
   end
 
   defp complete_value(context, %Interface{} = return_type, field_asts, _info, result) do
@@ -174,7 +183,8 @@ defmodule GraphQL.Execution.Executor do
 
   defp field_definition(_schema, parent_type, field_name) do
     case field_name do
-      :__typename -> GraphQL.Type.Introspection.typename
+      :__typename -> GraphQL.Type.Introspection.MetaField.typename
+      :__schema -> GraphQL.Type.Introspection.MetaField.schema
       _ -> maybe_unwrap(parent_type.fields)[field_name]
     end
   end

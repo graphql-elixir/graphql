@@ -14,7 +14,7 @@ end
 defmodule GraphQL.Type do
 
   defmodule ObjectType do
-    defstruct name: "", description: "", fields: %{}, interfaces: []
+    defstruct name: "", description: "", fields: %{}, interfaces: [], type: "OBJECT"
   end
 
   defmodule ScalarType do
