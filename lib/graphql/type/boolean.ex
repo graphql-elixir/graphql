@@ -1,5 +1,6 @@
 defmodule GraphQL.Type.Boolean do
-  defstruct name: "Boolean", description: ":words:"
+  defstruct name: "Boolean",
+            description: "The `Boolean` scalar type represents `true` or `false`."
 
   def coerce(""), do: false
   def coerce(0), do: false

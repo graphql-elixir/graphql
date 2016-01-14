@@ -1,5 +1,10 @@
 defmodule GraphQL.Type.Float do
-  defstruct name: "Float", description: "IEEE Floating point"
+  defstruct name: "Float",
+            description: """
+              The `Float` scalar type represents signed double-precision fractional
+              values as specified by
+              [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).
+            """
 
   def coerce(false), do: 0
   def coerce(true), do: 1
