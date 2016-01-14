@@ -78,7 +78,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }
     }
-    assert_execute({"{id, ...{ name }}", schema}, %{id: "1", name: "Mark"})
+    assert_execute {"{id, ...{ name }}", schema}, %{id: "1", name: "Mark"}
   end
 
   test "TypeChecked inline fragments run the correct type" do
@@ -92,7 +92,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }
     }
-    assert_execute({"{id, ... on AType { a }, ... on BType { b }}", schema}, %{id: "1", b: "b"})
+    assert_execute {"{id, ... on AType { a }, ... on BType { b }}", schema}, %{id: "1", b: "b"}
   end
 
   test "TypeChecked fragments run the correct type" do
@@ -100,13 +100,13 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "BType",
         fields: %{
-          id:   %{type: %Int{}, resolve: 1},
+          id: %{type: %ID{}, resolve: 1},
           a: %{type: %String{}, resolve: "a"},
           b: %{type: %String{}, resolve: "b"}
         }
       }
     }
-    assert_execute({"{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }", schema}, %{id: 1, b: "b"})
+    assert_execute {"{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }", schema}, %{id: "1", b: "b"}
   end
 
 
@@ -115,8 +115,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "Q",
         fields: %{
-          g: %{ type: %String{}, resolve: {TestSchema, :greeting} },
-          h: %{ type: %String{}, args: %{name: %{type: %String{} }}, resolve: {TestSchema, :greeting, []} }
+          g: %{type: %String{}, resolve: {TestSchema, :greeting}},
+          h: %{type: %String{}, args: %{name: %{type: %String{}}}, resolve: {TestSchema, :greeting, []}}
         }
       }
     }

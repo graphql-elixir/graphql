@@ -5,6 +5,7 @@ defmodule StarWars.Schema do
   alias GraphQL.Type.Enum
   alias GraphQL.Type.Interface
   alias GraphQL.Type.String
+  alias GraphQL.Type.ID
 
   def episode_enum do
     %{
@@ -23,7 +24,7 @@ defmodule StarWars.Schema do
       name: "Character",
       description: "A character in the Star Wars Trilogy",
       fields: quote do %{
-        id: %{type: %String{}},
+        id: %{type: %ID{}},
         name: %{type: %String{}},
         friends: %{type: %List{of_type: StarWars.Schema.character_interface}},
         appears_in: %{type: %List{of_type: StarWars.Schema.episode_enum}}
@@ -39,7 +40,7 @@ defmodule StarWars.Schema do
       name: "Human",
       description: "A humanoid creature in the Star Wars universe",
       fields: %{
-        id: %{type: %String{}},
+        id: %{type: %ID{}},
         name: %{type: %String{}},
         friends: %{
           type: %List{of_type: character_interface},
@@ -57,7 +58,7 @@ defmodule StarWars.Schema do
       name: "Droid",
       description: "A mechanical creature in the Star Wars universe",
       fields: %{
-        id: %{type: %String{}},
+        id: %{type: %ID{}},
         name: %{type: %String{}},
         friends: %{
           type: %List{of_type: character_interface},
@@ -89,14 +90,14 @@ defmodule StarWars.Schema do
         human: %{
           type: human_type,
           args: %{
-            id: %{type: %String{}}
+            id: %{type: %ID{}}
           },
           resolve: fn(_, args, _) -> StarWars.Data.get_human(args.id) end
         },
         droid: %{
           type: droid_type,
           args: %{
-            id: %{type: %String{}}
+            id: %{type: %ID{}}
           },
           resolve: fn(_, args, _) -> StarWars.Data.get_droid(args.id) end
         },
