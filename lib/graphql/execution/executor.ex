@@ -151,7 +151,7 @@ defmodule GraphQL.Execution.Executor do
 
 
 
-  defp complete_value(context, %GraphQL.Type.NonNull{of_type: inner_type} = return_type, field_asts, info, result) do
+  defp complete_value(context, %GraphQL.Type.NonNull{of_type: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
     complete_value(context, inner_type, field_asts, info, result)
   end
@@ -192,6 +192,7 @@ defmodule GraphQL.Execution.Executor do
     case field_name do
       :__typename -> GraphQL.Type.Introspection.MetaField.typename
       :__schema -> GraphQL.Type.Introspection.MetaField.schema
+      :__type -> GraphQL.Type.Introspection.MetaField.type
       _ -> maybe_unwrap(parent_type.fields)[field_name]
     end
   end

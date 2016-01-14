@@ -1,6 +1,5 @@
 defmodule GraphQL.Type.Introspection do
 
-  alias GraphQL.Schema
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.NonNull
@@ -341,6 +340,21 @@ defmodule GraphQL.Type.Introspection do
   end
 
   defmodule MetaField do
+    def type do
+      %{
+        name: "__type",
+        type: GraphQL.Type.Introspection.type,
+        description: "Request the type information of a single type.",
+        args:
+          %{
+            name: %{type: %NonNull{of_type: %String{}}}
+          },
+        resolve: fn(_, %{name: name}, %{schema: schema}) ->
+          GraphQL.Schema.reduce_types(schema)[name]
+        end
+      }
+    end
+
     def typename do
       %{
         name: "__typename",
