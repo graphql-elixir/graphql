@@ -85,4 +85,34 @@ defmodule GraphQL.StarWars.IntrospectionTest do
     """
     assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Character", kind: "INTERFACE"}}
   end
+
+  test "Allows querying the schema for object fields" do
+    query = """
+      query IntrospectionDroidFieldsQuery {
+        __type(name: "Droid") {
+          name
+          fields {
+            name
+            type {
+              name
+              kind
+            }
+          }
+        }
+      }
+    """
+    wanted = %{__type:
+      %{
+        fields: [
+          %{name: "appears_in", type: %{kind: "LIST", name: ""}},
+          %{name: "friends", type: %{kind: "LIST", name: ""}},
+          %{name: "id", type: %{kind: "NON_NULL", name: ""}},
+          %{name: "name", type: %{kind: "SCALAR", name: "String"}},
+          %{name: "primary_function", type: %{kind: "SCALAR", name: "String"}}
+        ],
+        name: "Droid"
+      }
+    }
+    assert_execute {query, StarWars.Schema.schema}, wanted
+  end
 end

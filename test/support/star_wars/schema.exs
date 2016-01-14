@@ -5,6 +5,7 @@ defmodule StarWars.Schema do
   alias GraphQL.Type.Enum
   alias GraphQL.Type.Interface
   alias GraphQL.Type.String
+  alias GraphQL.Type.NonNull
 
   def episode_enum do
     %{
@@ -57,7 +58,7 @@ defmodule StarWars.Schema do
       name: "Droid",
       description: "A mechanical creature in the Star Wars universe",
       fields: %{
-        id: %{type: %String{}},
+        id: %{type: %NonNull{of_type: %String{}}},
         name: %{type: %String{}},
         friends: %{
           type: %List{of_type: character_interface},

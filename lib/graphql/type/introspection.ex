@@ -103,6 +103,13 @@ defmodule GraphQL.Type.Introspection do
               #%GraphQL.Type.Input{} -> "INPUT_OBJECT"
               %GraphQL.Type.List{} -> "LIST"
               %GraphQL.Type.NonNull{} -> "NON_NULL"
+              # since we can't subclass, maybe we can just check
+              # if the thing is a map and assume it's a scalar by
+              # default. otherwise we need checks for int/float/boolean
+              # etc etc etc any any custom types. We also sort of need
+              # some sort of injection for custom types :-\
+              # maybe attaching it to the type's module?
+              %GraphQL.Type.String{} -> "SCALAR"
             end
           end
         },
@@ -110,7 +117,15 @@ defmodule GraphQL.Type.Introspection do
         description: %{type: %String{}},
         fields: %{
           type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.field}},
-          args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}}
+          args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
+          resolve: fn(schema, args, rest) ->
+            case schema do
+              %ObjectType{} -> Enum.map(schema.fields, fn({n, v}) -> Map.put(v, :name, n) end)
+              %GraphQL.Type.Interface{} -> schema.fields
+              _ -> nil
+            end
+            # |> filter_deprecated
+          end
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLObjectType ||
           #       type instanceof GraphQLInterfaceType) {
@@ -198,6 +213,9 @@ defmodule GraphQL.Type.Introspection do
           },
           NON_NULL: %{
             value: "NON_NULL"
+          },
+          NOT_FOUND: %{
+            value: "NOT_FOUND"
           }
         }
       } |>  GraphQL.Type.Enum.new
