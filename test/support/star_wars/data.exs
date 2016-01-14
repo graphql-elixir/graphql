@@ -3,10 +3,12 @@ defmodule StarWars.Data do
     get_human(id) || get_droid(id)
   end
 
+  def get_human(nil), do: nil
   def get_human(id) do
     Map.get(human_data, String.to_atom(id), nil)
   end
 
+  def get_droid(nil), do: nil
   def get_droid(id) do
     Map.get(droid_data, String.to_atom(id), nil)
   end
