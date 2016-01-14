@@ -7,6 +7,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   alias GraphQL.Schema
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
+  alias GraphQL.Type.ID
   alias GraphQL.Type.String
   alias GraphQL.Type.Int
   alias GraphQL.Lang.Parser
@@ -18,7 +19,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         query: %ObjectType{
           name: "Recursive1",
           fields: quote do %{
-            id:   %{type: %Int{}, resolve: 1},
+            id:   %{type: %ID{}, resolve: 1},
             name: %{type: %String{}, resolve: "Mark"},
             b: %{type: TestSchema.recursive_schema.query },
             c: %{type: TestSchema.recursive_schema_2 }
@@ -31,7 +32,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       %ObjectType{
         name: "Recursive2",
         fields: quote do %{
-          id:   %{type: %Int{}, resolve: 2},
+          id:   %{type: %ID{}, resolve: 2},
           name: %{type: %String{}, resolve: "Kate"},
           b: %{type: TestSchema.recursive_schema.query }
         } end
@@ -72,12 +73,12 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "X",
         fields: %{
-          id: %{type: %Int{}, resolve: 1},
+          id: %{type: %ID{}, resolve: 1},
           name: %{type: %String{}, resolve: "Mark"}
         }
       }
     }
-    assert_execute({"{id, ...{ name }}", schema}, %{id: 1, name: "Mark"})
+    assert_execute({"{id, ...{ name }}", schema}, %{id: "1", name: "Mark"})
   end
 
   test "TypeChecked inline fragments run the correct type" do
@@ -85,13 +86,13 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       query: %ObjectType{
         name: "BType",
         fields: %{
-          id: %{type: %Int{}, resolve: 1},
+          id: %{type: %ID{}, resolve: 1},
           a: %{type: %String{}, resolve: "a"},
           b: %{type: %String{}, resolve: "b"}
         }
       }
     }
-    assert_execute({"{id, ... on AType { a }, ... on BType { b }}", schema}, %{id: 1, b: "b"})
+    assert_execute({"{id, ... on AType { a }, ... on BType { b }}", schema}, %{id: "1", b: "b"})
   end
 
   test "TypeChecked fragments run the correct type" do
@@ -134,7 +135,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "Quoted fields are available" do
     assert_execute({"{id, b { name, c{ id, name, b { name }}}}", TestSchema.recursive_schema},
-        %{id: 1, b: %{name: "Mark", c: %{id: 2, name: "Kate", b: %{name: "Mark"}}}})
+        %{id: "1", b: %{name: "Mark", c: %{id: "2", name: "Kate", b: %{name: "Mark"}}}})
   end
 
   test "simple selection set" do
@@ -146,13 +147,13 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
             type: %ObjectType{
               name: "Person",
               fields: %{
-                id:   %{name: "id",   type: %String{}, resolve: fn(p, _, _) -> p.id   end},
+                id:   %{name: "id",   type: %ID{}, resolve: fn(p, _, _) -> p.id   end},
                 name: %{name: "name", type: %String{}, resolve: fn(p, _, _) -> p.name end},
                 age:  %{name: "age",  type: %Int{},    resolve: fn(p, _, _) -> p.age  end}
               }
             },
             args: %{
-              id: %{ type: %String{} }
+              id: %{type: %ID{}}
             },
             resolve: fn(data, %{id: id}, _) ->
               Enum.find data, fn(record) -> record.id == id end

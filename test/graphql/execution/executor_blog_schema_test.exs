@@ -7,7 +7,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
   alias GraphQL.Schema
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
-  alias GraphQL.Type.NonNull
+  alias GraphQL.Type.ID
   alias GraphQL.Type.String
   alias GraphQL.Type.Int
   alias GraphQL.Type.Boolean
@@ -50,7 +50,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       name: "Author",
       description: "Author of the blog, with their profile picture and latest article",
       fields: %{
-        id: %{type: %String{}},
+        id: %{type: %ID{}},
         name: %{type: %String{}},
         pic: %{
           args: %{
@@ -67,7 +67,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
     article = %ObjectType{
       name: "Article",
       fields: %{
-        id: %{type: %NonNull{of_type: %String{}}},
+        id: %{type: %ID{}},
         isPublished: %{type: %Boolean{}},
         author: %{type: author},
         title: %{type: %String{}},
@@ -85,7 +85,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       fields: %{
         article: %{
           type: article,
-          args: %{id: %{type: "ID"}},
+          args: %{id: %{type: %ID{}}},
           resolve: fn(_, %{id: id}, _) -> make_article(id) end
         },
         feed: %{

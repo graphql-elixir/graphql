@@ -2,7 +2,13 @@ defmodule GraphQL.Type.Int do
   @max_int 2147483647
   @min_int -2147483648
 
-  defstruct name: "Int", description: "Blah blah -(2^53-1) and 2^53 - 1"
+  defstruct name: "Int", description:
+    """
+    The `Int` scalar type represents non-fractional signed whole numeric
+    values. Int can represent values between -(2^53 - 1) and 2^53 - 1 since
+    represented in JSON as double-precision floating point numbers specified
+    by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).
+    """
 
   def coerce(false), do: 0
   def coerce(true), do: 1
