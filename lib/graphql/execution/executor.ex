@@ -88,6 +88,7 @@ defmodule GraphQL.Execution.Executor do
 
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
+      IO.inspect "Starting to resolve field #{inspect field_name}"
       case resolve_field(context, parent_type, source_value, field_asts) do
         nil -> results
         value -> Map.put results, String.to_atom(field_name.value), value
@@ -101,6 +102,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp resolve_field(context, parent_type, source, field_asts) do
+    # IO.inspect field_asts
     field_ast = hd(field_asts)
     field_name = String.to_atom(field_ast.name.value)
 
@@ -119,20 +121,17 @@ defmodule GraphQL.Execution.Executor do
         operation: context.operation,
         variable_values: context.variable_values
       }
-      resolution = Map.get(field_def, :resolve, nil)
-      IO.inspect "#{field_name} -> #{inspect resolution}"
+      IO.inspect "Getting resolution for #{field_name}"
+      resolution = Map.get(field_def, :resolve, source[field_name])
       result = case resolution do
         {mod, fun}    -> apply(mod, fun, [source, args, info])
         {mod, fun, _} -> apply(mod, fun, [source, args, info])
         resolve when is_function(resolve) ->
           IO.puts "Calling resolve for #{inspect field_name}"
           resolve.(source, args, info)
-        _ ->
-          IO.puts "static? #{field_name}"
-          IO.inspect source
-          resolution || source[field_name]
+        _ -> resolution
       end
-      IO.inspect result
+      # IO.inspect result
       complete_value_catching_error(context, return_type, field_asts, info, result)
     end
   end
@@ -145,11 +144,16 @@ defmodule GraphQL.Execution.Executor do
 
   defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
+    if return_type.name === "__Type" do
+      # IO.puts "OBJECT TYPE======================================================="
+      # IO.inspect sub_field_asts.fields
+    end
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
   defp complete_value(context, %GraphQL.Type.NonNull{of_type: inner_type} = return_type, field_asts, info, result) do
     # TODO: Null Checking
+    ## IO.inspect "NoNull Type #{inspect inner_type}"
     complete_value(context, inner_type, field_asts, info, result)
   end
 
@@ -160,6 +164,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value(context, %List{of_type: list_type}, field_asts, info, result) do
+    # IO.inspect "List"
     Enum.map result, fn(item) ->
       complete_value_catching_error(context, list_type, field_asts, info, item)
     end

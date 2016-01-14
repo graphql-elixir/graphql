@@ -22,9 +22,9 @@ defmodule GraphQL.Type.Introspection do
           type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}}},
           #type: %String{},
           resolve: fn(schema, x, y) ->
-            IO.inspect "In Resolve"
+            # IO.inspect "In Resolve"
             t = Map.values(GraphQL.Schema.reduce_types(schema.query))
-            IO.inspect "Done resolving"
+            # IO.inspect "Done resolving"
             t
           end
           # resolve(schema) {
@@ -354,7 +354,7 @@ defmodule GraphQL.Type.Introspection do
         type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
         description: "Access the current type schema of this server.",
         args: [],
-        resolve: fn(_, _, args) -> args.schema end
+        resolve: fn(_, _, args) -> IO.puts "Resolving schema"; args.schema end
       }
     end
   end
