@@ -27,7 +27,7 @@ defmodule GraphQL.Type.IntrospectionTest do
 
   end
 
-  @tag :skip
+  @tag :skip # order matters for this... ... hm.
   test "exposes descriptions on types and fields" do
     schema = %Schema{
       query: %ObjectType{

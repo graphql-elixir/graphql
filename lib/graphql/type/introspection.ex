@@ -122,9 +122,10 @@ defmodule GraphQL.Type.Introspection do
           type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.field}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn(schema, args, rest) ->
+            thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
             case schema do
-              %ObjectType{} -> Enum.map(schema.fields, fn({n, v}) -> Map.put(v, :name, n) end)
-              %GraphQL.Type.Interface{} -> schema.fields
+              %ObjectType{} -> Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
+              %GraphQL.Type.Interface{} -> thunk_fields
               _ -> nil
             end
             # |> filter_deprecated
