@@ -89,7 +89,7 @@ defmodule GraphQL.Execution.Executor do
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
-        nil -> results
+        :undefined -> results
         value -> Map.put results, String.to_atom(field_name.value), value
       end
     end
@@ -129,12 +129,13 @@ defmodule GraphQL.Execution.Executor do
           resolve.(source, args, info)
         _ ->
           cond do
-            resolution -> resolution
-            is_map(source) -> Map.get(source, field_name, nil)
-            true -> source[field_name]
+            resolution ->  resolution
+            true -> Map.get(source, field_name, nil)
           end
       end
       complete_value_catching_error(context, return_type, field_asts, info, result)
+    else
+      :undefined
     end
   end
 
@@ -143,6 +144,8 @@ defmodule GraphQL.Execution.Executor do
     # TODO lots of error checking
     complete_value(context, return_type, field_asts, info, result)
   end
+
+  defp complete_value(_, %ObjectType{}, _, _, nil), do: nil
 
   defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)

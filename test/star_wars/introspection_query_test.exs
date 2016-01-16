@@ -135,16 +135,13 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    # of_type: %{name: ""} should really be of_type: nil.
-    # goes along with checking kind for nil - we're going too far
-    # in execution at some point or another.
     wanted =  %{__type: %{fields: [%{name: "appears_in",
                    type: %{kind: "LIST", name: "", of_type: %{kind: "ENUM", name: "Episode"}}},
                  %{name: "friends",
                    type: %{kind: "LIST", name: "", of_type: %{kind: "INTERFACE", name: "Character"}}},
                  %{name: "id", type: %{kind: "NON_NULL", name: "", of_type: %{kind: "SCALAR", name: "String"}}},
-                 %{name: "name", type: %{kind: "SCALAR", name: "String", of_type: %{name: ""}}},
-                 %{name: "primary_function", type: %{kind: "SCALAR", name: "String", of_type: %{name: ""}}}],
+                 %{name: "name", type: %{kind: "SCALAR", name: "String", of_type: nil}},
+                 %{name: "primary_function", type: %{kind: "SCALAR", name: "String", of_type: nil}}],
                 name: "Droid"}}
     assert_execute {query, StarWars.Schema.schema}, wanted
   end
