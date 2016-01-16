@@ -110,9 +110,6 @@ defmodule GraphQL.Type.Introspection do
               # some sort of injection for custom types :-\
               # maybe attaching it to the type's module?
               %GraphQL.Type.String{} -> "SCALAR"
-              nil ->
-                IO.puts "We just got a nil `kind` of field. Execution shouldn't really get this far.."
-                nil
             end
           end
         },
