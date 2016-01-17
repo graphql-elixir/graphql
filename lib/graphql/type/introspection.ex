@@ -141,16 +141,24 @@ defmodule GraphQL.Type.Introspection do
         },
         interfaces: %{
           type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
-          resolve: []
-          # resolve(type) {
-          #   if (type instanceof GraphQLObjectType) {
-          #     return type.getInterfaces();
-          #   }
-          # }
+          resolve: fn
+            (%GraphQL.Type.ObjectType{}=schema, args, rest) ->
+              schema.interfaces
+            (_, _, _) -> []
+          end
         },
         possibleTypes: %{
           type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
-          resolve: []
+          resolve: fn
+            (%GraphQL.Type.Interface{name: name}, args, info) ->
+              GraphQL.Schema.reduce_types(info.schema)
+              |> Enum.filter(fn({_,t}) ->
+                Map.get(t, :interfaces, [])
+                |> Enum.filter(&(&1.name === name))
+                !== []
+              end) |> Enum.map(fn({k,v}) -> v end)
+            (_, _, _) -> []
+          end
           # resolve(type) {
           #   if (type instanceof GraphQLInterfaceType ||
           #       type instanceof GraphQLUnionType) {
