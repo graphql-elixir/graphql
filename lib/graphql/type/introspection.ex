@@ -161,7 +161,10 @@ defmodule GraphQL.Type.Introspection do
         enumValues: %{
           type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.enum_value}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
-          resolve: []
+          resolve: fn
+            (%GraphQL.Type.Enum{}=schema, _, _) -> schema.values
+            (_,_,_) -> []
+          end
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLEnumType) {
           #     var values = type.getValues();
