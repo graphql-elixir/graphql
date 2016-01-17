@@ -91,7 +91,6 @@ defmodule GraphQL.Type.Introspection do
         """,
       fields: quote do %{
         kind: %{
-          # return value from here gets co-erced to the enum type
           type: %NonNull{of_type: GraphQL.Type.Introspection.typekind}, # type_kind
           resolve: fn(schema, _, _) ->
             case schema do
@@ -144,7 +143,7 @@ defmodule GraphQL.Type.Introspection do
           resolve: fn
             (%GraphQL.Type.ObjectType{}=schema, args, rest) ->
               schema.interfaces
-            (_, _, _) -> []
+            (_, _, _) -> nil
           end
         },
         possibleTypes: %{
@@ -157,7 +156,7 @@ defmodule GraphQL.Type.Introspection do
                 |> Enum.filter(&(&1.name === name))
                 !== []
               end) |> Enum.map(fn({k,v}) -> v end)
-            (_, _, _) -> []
+            (_, _, _) -> nil
           end
           # resolve(type) {
           #   if (type instanceof GraphQLInterfaceType ||
@@ -171,7 +170,7 @@ defmodule GraphQL.Type.Introspection do
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn
             (%GraphQL.Type.Enum{}=schema, _, _) -> schema.values
-            (_,_,_) -> []
+            (_,_,_) -> nil
           end
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLEnumType) {
@@ -185,7 +184,7 @@ defmodule GraphQL.Type.Introspection do
         },
         inputFields: %{
           type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}},
-          resolve: []
+          resolve: nil
           # resolve(type) {
           #   if (type instanceof GraphQLInputObjectType) {
           #     var fieldMap = type.getFields();
@@ -249,9 +248,8 @@ defmodule GraphQL.Type.Introspection do
         args: %{
           type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}}},
           resolve: fn
-          (%{"args": args}=schema, args, info) ->
-            Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
-          (_,_,_) -> []
+          (%{args: args}=schema, _, _) -> Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
+          (schema,_,_) ->  []
           end
         },
         type: %{type: %NonNull{of_type: GraphQL.Type.Introspection.type}},

@@ -35,7 +35,7 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         ]
       }
     }
-    assert_execute {GraphQL.Type.Introspection.query, StarWars.Schema.schema}, wanted
+    assert_execute {query, StarWars.Schema.schema}, wanted
   end
 
   test "Allows querying the schema for query type" do
@@ -104,9 +104,9 @@ defmodule GraphQL.StarWars.IntrospectionTest do
     wanted = %{__type:
       %{
         fields: [
-          %{name: "appears_in", type: %{kind: "LIST", name: ""}},
-          %{name: "friends", type: %{kind: "LIST", name: ""}},
-          %{name: "id", type: %{kind: "NON_NULL", name: ""}},
+          %{name: "appears_in", type: %{kind: "LIST", name: nil}},
+          %{name: "friends", type: %{kind: "LIST", name: nil}},
+          %{name: "id", type: %{kind: "NON_NULL", name: nil}},
           %{name: "name", type: %{kind: "SCALAR", name: "String"}},
           %{name: "primary_function", type: %{kind: "SCALAR", name: "String"}}
         ],
@@ -136,10 +136,10 @@ defmodule GraphQL.StarWars.IntrospectionTest do
       }
     """
     wanted =  %{__type: %{fields: [%{name: "appears_in",
-                   type: %{kind: "LIST", name: "", of_type: %{kind: "ENUM", name: "Episode"}}},
+                   type: %{kind: "LIST", name: nil, of_type: %{kind: "ENUM", name: "Episode"}}},
                  %{name: "friends",
-                   type: %{kind: "LIST", name: "", of_type: %{kind: "INTERFACE", name: "Character"}}},
-                 %{name: "id", type: %{kind: "NON_NULL", name: "", of_type: %{kind: "SCALAR", name: "String"}}},
+                   type: %{kind: "LIST", name: nil, of_type: %{kind: "INTERFACE", name: "Character"}}},
+                 %{name: "id", type: %{kind: "NON_NULL", name: nil, of_type: %{kind: "SCALAR", name: "String"}}},
                  %{name: "name", type: %{kind: "SCALAR", name: "String", of_type: nil}},
                  %{name: "primary_function", type: %{kind: "SCALAR", name: "String", of_type: nil}}],
                 name: "Droid"}}
@@ -188,5 +188,9 @@ defmodule GraphQL.StarWars.IntrospectionTest do
       }
     """
     assert_execute {query, StarWars.Schema.schema}, %{__type: %{description: "A mechanical creature in the Star Wars universe", name: "Droid"}}
+  end
+
+  test "Can run the full introspection query" do
+    assert_execute {GraphQL.Type.Introspection.query, StarWars.Schema.schema}, %{}
   end
 end

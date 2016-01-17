@@ -145,7 +145,7 @@ defmodule GraphQL.Execution.Executor do
     complete_value(context, return_type, field_asts, info, result)
   end
 
-  defp complete_value(_, %ObjectType{}, _, _, nil), do: nil
+  defp complete_value(_, _, _, _, nil), do: nil
 
   defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
