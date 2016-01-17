@@ -145,7 +145,7 @@ defmodule GraphQL.Execution.Executor do
     complete_value(context, return_type, field_asts, info, result)
   end
 
-  defp complete_value(_, %ObjectType{}, _, _, nil), do: nil
+  defp complete_value(_, _, _, _, nil), do: nil
 
   defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
@@ -193,9 +193,9 @@ defmodule GraphQL.Execution.Executor do
 
   defp field_definition(_schema, parent_type, field_name) do
     case field_name do
-      :__typename -> GraphQL.Type.Introspection.MetaField.typename
-      :__schema -> GraphQL.Type.Introspection.MetaField.schema
-      :__type -> GraphQL.Type.Introspection.MetaField.type
+      :__typename -> GraphQL.Type.Introspection.meta("typename")
+      :__schema -> GraphQL.Type.Introspection.meta("schema")
+      :__type -> GraphQL.Type.Introspection.meta("type")
       _ -> maybe_unwrap(parent_type.fields)[field_name]
     end
   end

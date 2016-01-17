@@ -91,7 +91,6 @@ defmodule GraphQL.Type.Introspection do
         """,
       fields: quote do %{
         kind: %{
-          # return value from here gets co-erced to the enum type
           type: %NonNull{of_type: GraphQL.Type.Introspection.typekind}, # type_kind
           resolve: fn(schema, _, _) ->
             case schema do
@@ -144,7 +143,7 @@ defmodule GraphQL.Type.Introspection do
           resolve: fn
             (%GraphQL.Type.ObjectType{}=schema, args, rest) ->
               schema.interfaces
-            (_, _, _) -> []
+            (_, _, _) -> nil
           end
         },
         possibleTypes: %{
@@ -157,7 +156,7 @@ defmodule GraphQL.Type.Introspection do
                 |> Enum.filter(&(&1.name === name))
                 !== []
               end) |> Enum.map(fn({k,v}) -> v end)
-            (_, _, _) -> []
+            (_, _, _) -> nil
           end
           # resolve(type) {
           #   if (type instanceof GraphQLInterfaceType ||
@@ -171,7 +170,7 @@ defmodule GraphQL.Type.Introspection do
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn
             (%GraphQL.Type.Enum{}=schema, _, _) -> schema.values
-            (_,_,_) -> []
+            (_,_,_) -> nil
           end
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLEnumType) {
@@ -185,7 +184,7 @@ defmodule GraphQL.Type.Introspection do
         },
         inputFields: %{
           type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}},
-          resolve: []
+          resolve: nil
           # resolve(type) {
           #   if (type instanceof GraphQLInputObjectType) {
           #     var fieldMap = type.getFields();
@@ -249,9 +248,8 @@ defmodule GraphQL.Type.Introspection do
         args: %{
           type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}}},
           resolve: fn
-          (%{"args": args}=schema, args, info) ->
-            Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
-          (_,_,_) -> []
+          (%{args: args}=schema, _, _) -> Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
+          (schema,_,_) ->  []
           end
         },
         type: %{type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
@@ -391,41 +389,39 @@ defmodule GraphQL.Type.Introspection do
     """
   end
 
-  defmodule MetaField do
-    def type do
-      %{
-        name: "__type",
-        type: GraphQL.Type.Introspection.type,
-        description: "Request the type information of a single type.",
-        args:
-          %{
-            name: %{type: %NonNull{of_type: %String{}}}
-          },
-        resolve: fn(_, %{name: name}, %{schema: schema}) ->
-          GraphQL.Schema.reduce_types(schema)[name]
-        end
-      }
-    end
+  def meta("type") do
+    %{
+      name: "__type",
+      type: GraphQL.Type.Introspection.type,
+      description: "Request the type information of a single type.",
+      args:
+        %{
+          name: %{type: %NonNull{of_type: %String{}}}
+        },
+      resolve: fn(_, %{name: name}, %{schema: schema}) ->
+        GraphQL.Schema.reduce_types(schema)[name]
+      end
+    }
+  end
 
-    def typename do
-      %{
-        name: "__typename",
-        type: %NonNull{of_type: %String{}},
-        description: "The name of the current Object type at runtime.",
-        args: [],
-        resolve: fn(_, _, %{parent_type: %{name: name}}) -> name end
-      }
-    end
+  def meta("typename") do
+    %{
+      name: "__typename",
+      type: %NonNull{of_type: %String{}},
+      description: "The name of the current Object type at runtime.",
+      args: [],
+      resolve: fn(_, _, %{parent_type: %{name: name}}) -> name end
+    }
+  end
 
-    def schema do
-      %{
-        name: "__schema",
-        type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
-        description: "Access the current type schema of this server.",
-        args: [],
-        resolve: fn(_, _, args) -> args.schema end
-      }
-    end
+  def meta("schema") do
+    %{
+      name: "__schema",
+      type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
+      description: "Access the current type schema of this server.",
+      args: [],
+      resolve: fn(_, _, args) -> args.schema end
+    }
   end
 
 end
