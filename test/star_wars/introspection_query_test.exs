@@ -35,7 +35,7 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         ]
       }
     }
-    assert_execute {query, StarWars.Schema.schema}, wanted
+    assert_execute {GraphQL.Type.Introspection.query, StarWars.Schema.schema}, wanted
   end
 
   test "Allows querying the schema for query type" do
