@@ -389,41 +389,39 @@ defmodule GraphQL.Type.Introspection do
     """
   end
 
-  defmodule MetaField do
-    def type do
-      %{
-        name: "__type",
-        type: GraphQL.Type.Introspection.type,
-        description: "Request the type information of a single type.",
-        args:
-          %{
-            name: %{type: %NonNull{of_type: %String{}}}
-          },
-        resolve: fn(_, %{name: name}, %{schema: schema}) ->
-          GraphQL.Schema.reduce_types(schema)[name]
-        end
-      }
-    end
+  def meta("type") do
+    %{
+      name: "__type",
+      type: GraphQL.Type.Introspection.type,
+      description: "Request the type information of a single type.",
+      args:
+        %{
+          name: %{type: %NonNull{of_type: %String{}}}
+        },
+      resolve: fn(_, %{name: name}, %{schema: schema}) ->
+        GraphQL.Schema.reduce_types(schema)[name]
+      end
+    }
+  end
 
-    def typename do
-      %{
-        name: "__typename",
-        type: %NonNull{of_type: %String{}},
-        description: "The name of the current Object type at runtime.",
-        args: [],
-        resolve: fn(_, _, %{parent_type: %{name: name}}) -> name end
-      }
-    end
+  def meta("typename") do
+    %{
+      name: "__typename",
+      type: %NonNull{of_type: %String{}},
+      description: "The name of the current Object type at runtime.",
+      args: [],
+      resolve: fn(_, _, %{parent_type: %{name: name}}) -> name end
+    }
+  end
 
-    def schema do
-      %{
-        name: "__schema",
-        type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
-        description: "Access the current type schema of this server.",
-        args: [],
-        resolve: fn(_, _, args) -> args.schema end
-      }
-    end
+  def meta("schema") do
+    %{
+      name: "__schema",
+      type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
+      description: "Access the current type schema of this server.",
+      args: [],
+      resolve: fn(_, _, args) -> args.schema end
+    }
   end
 
 end
