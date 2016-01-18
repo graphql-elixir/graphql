@@ -109,7 +109,6 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute {"{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }", schema}, %{id: "1", b: "b"}
   end
 
-
   test "allow {module, function, args} style of resolve" do
     schema = %Schema{
       query: %ObjectType{
@@ -240,5 +239,24 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         %{title: "A"},
         %{title: "B"}
       ]}
+  end
+
+  test "list arguments" do
+    schema = %Schema{
+      query: %ObjectType{
+        name: "ListsAsArguments",
+        fields: %{
+          numbers: %{
+            type: %List{ofType: %Int{}},
+            args: %{
+              nums: %{type: %List{ofType: %Int{}}}
+            },
+            resolve: fn(_, %{nums: nums}, _) -> nums end
+          }
+        }
+      }
+    }
+
+    assert_execute {"{numbers(nums: [1, 2])}", schema}, %{numbers: [1, 2]}
   end
 end

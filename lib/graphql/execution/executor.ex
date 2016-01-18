@@ -219,6 +219,12 @@ defmodule GraphQL.Execution.Executor do
     GraphQL.Types.parse_value(type.type, variable_value)
   end
 
+  defp value_from_ast(%{kind: :Argument, value: %{kind: :ListValue, values: values_ast}}, type, variable_values) do
+    GraphQL.Types.parse_value(type.type, Enum.map(values_ast, fn(value_ast) ->
+      GraphQL.Types.parse_value(type.type, value_ast.value)
+    end))
+  end
+
   defp value_from_ast(value_ast, type, _variable_values) do
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
