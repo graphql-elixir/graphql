@@ -10,7 +10,7 @@ transport, server and datastore agnostic.
 
 In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will
 need [plug_graphql](https://github.com/joshprice/plug_graphql).
-Examples for Phoenix can be found at [hello_graphql_phoenix](https://github.com/joshprice/hello_graphql_phoenix)
+Examples for Phoenix can be found at [hello_graphql_phoenix](https://github.com/joshprice/hello_graphql_phoenix), so look here for a starting point for writing your own schemas.
 
 Other ways of handling queries will be added in due course.
 
@@ -20,7 +20,7 @@ First, add GraphQL to your `mix.exs` dependencies:
 
 ```elixir
 defp deps do
-  [{:graphql, "~> 0.0.9"}]
+  [{:graphql, "~> 0.1.0"}]
 end
 ```
 
@@ -87,7 +87,7 @@ This is a work in progress, right now here's what is done:
   - [x] Fragments in queries
   - [ ] Extract variable values
 - [ ] Query validation
-- [ ] Introspection
+- [x] Introspection
 
 ## Resources
 
