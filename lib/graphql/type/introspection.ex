@@ -18,30 +18,30 @@ defmodule GraphQL.Type.Introspection do
       fields: quote do %{
         types: %{
           description: "A list of all types supported by this server.",
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}}},
+          type: %NonNull{ofType: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.type}}},
           resolve: fn(schema, _, _) ->
             Map.values(GraphQL.Schema.reduce_types(schema))
           end
         },
         queryType: %{
           description: "The type that query operations will be rooted at.",
-          type: %NonNull{of_type: GraphQL.Type.Introspection.type},
+          type: %NonNull{ofType: GraphQL.Type.Introspection.type},
           resolve: fn(%{query: query}, _, _) -> query end
         },
         mutationType: %{
           description: "If this server supports mutation, the type that mutation operations will be rooted at.",
           type: GraphQL.Type.Introspection.type,
-          resolve: %{} #fn(%{mutation: mutation}, _, _) -> mutation end
+          resolve: nil #fn(%{mutation: mutation}, _, _) -> mutation end
         },
         subscriptionType: %{
           description: "If this server support subscription, the type that subscription operations will be rooted at.",
           type: GraphQL.Type.Introspection.type,
-          resolve: %{} #fn(%{subscription: subscription}, _, _) -> subscription end
+          resolve: nil #fn(%{subscription: subscription}, _, _) -> subscription end
         },
         directives: %{
           description: "A list of all directives supported by this server.",
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.directive}}},
-          resolve: %{} #schema => schema.getDirectives(),
+          type: %NonNull{ofType: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.directive}}},
+          resolve: nil #schema => schema.getDirectives(),
         }
       } end
     }
@@ -61,15 +61,15 @@ defmodule GraphQL.Type.Introspection do
         describing additional information to the executor
         """,
       fields: %{
-        name: %{type: %NonNull{of_type: %String{}}},
+        name: %{type: %NonNull{ofType: %String{}}},
         description: %{type: %String{}},
         args: %{
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: input_value}}},
+          type: %NonNull{ofType: %List{ofType: %NonNull{ofType: input_value}}},
           resolve: nil #directive => directive.args || []
         },
-        onOperation: %{type: %NonNull{of_type: %Boolean{}}},
-        onFragment: %{type: %NonNull{of_type: %Boolean{}}},
-        onField: %{type: %NonNull{of_type: %Boolean{}}},
+        onOperation: %{type: %NonNull{ofType: %Boolean{}}},
+        onFragment: %{type: %NonNull{ofType: %Boolean{}}},
+        onField: %{type: %NonNull{ofType: %Boolean{}}},
       }
     }
   end
@@ -91,7 +91,7 @@ defmodule GraphQL.Type.Introspection do
         """,
       fields: quote do %{
         kind: %{
-          type: %NonNull{of_type: GraphQL.Type.Introspection.typekind}, # type_kind
+          type: %NonNull{ofType: GraphQL.Type.Introspection.typekind}, # type_kind
           resolve: fn(schema, _, _) ->
             case schema do
               %GraphQL.Type.ScalarType{} -> "SCALAR"
@@ -115,7 +115,7 @@ defmodule GraphQL.Type.Introspection do
         name: %{type: %String{}},
         description: %{type: %String{}},
         fields: %{
-          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.field}},
+          type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.field}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn
           (%GraphQL.Type.ObjectType{}=schema, args, rest) ->
@@ -139,7 +139,7 @@ defmodule GraphQL.Type.Introspection do
           # }
         },
         interfaces: %{
-          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
+          type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.type}},
           resolve: fn
             (%GraphQL.Type.ObjectType{}=schema, args, rest) ->
               schema.interfaces
@@ -147,7 +147,7 @@ defmodule GraphQL.Type.Introspection do
           end
         },
         possibleTypes: %{
-          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
+          type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.type}},
           resolve: fn
             (%GraphQL.Type.Interface{name: name}, args, info) ->
               GraphQL.Schema.reduce_types(info.schema)
@@ -166,7 +166,7 @@ defmodule GraphQL.Type.Introspection do
           # }
         },
         enumValues: %{
-          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.enum_value}},
+          type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.enum_value}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn
             (%GraphQL.Type.Enum{}=schema, _, _) -> schema.values
@@ -183,7 +183,7 @@ defmodule GraphQL.Type.Introspection do
           # }
         },
         inputFields: %{
-          type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}},
+          type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.input_value}},
           resolve: nil
           # resolve(type) {
           #   if (type instanceof GraphQLInputObjectType) {
@@ -192,7 +192,7 @@ defmodule GraphQL.Type.Introspection do
           #   }
           # }
         },
-        of_type: %{type: GraphQL.Type.Introspection.type}
+        ofType: %{type: GraphQL.Type.Introspection.type}
       } end
     }
   end
@@ -243,18 +243,18 @@ defmodule GraphQL.Type.Introspection do
         which has a name, potentially a list of arguments, and a return type.
         """,
       fields: %{
-        name: %{type: %NonNull{of_type: %String{}}},
+        name: %{type: %NonNull{ofType: %String{}}},
         description: %{type: %String{}},
         args: %{
-          type: %NonNull{of_type: %List{of_type: %NonNull{of_type: GraphQL.Type.Introspection.input_value}}},
+          type: %NonNull{ofType: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.input_value}}},
           resolve: fn
           (%{args: args}=schema, _, _) -> Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
           (schema,_,_) ->  []
           end
         },
-        type: %{type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
+        type: %{type: %NonNull{ofType: GraphQL.Type.Introspection.type}},
         isDeprecated: %{
-          type: %NonNull{of_type: %Boolean{}}
+          type: %NonNull{ofType: %Boolean{}}
           # resolve: field => !isNullish(field.deprecationReason),
         },
         deprecationReason: %{type: %String{}}
@@ -272,9 +272,9 @@ defmodule GraphQL.Type.Introspection do
         and optionally a default value.
         """,
       fields: %{
-        name: %{type: %NonNull{of_type: %String{}}},
+        name: %{type: %NonNull{ofType: %String{}}},
         description: %{type: %String{}},
-        type: %{type: %NonNull{of_type: GraphQL.Type.Introspection.type}},
+        type: %{type: %NonNull{ofType: GraphQL.Type.Introspection.type}},
         defaultValue: %{
           type: %String{},
           description: "A GraphQL-formatted string representing the default value for this input value."
@@ -296,10 +296,10 @@ defmodule GraphQL.Type.Introspection do
         returned in a JSON response as a string.
         """,
       fields: %{
-        name: %{type: %NonNull{of_type: %String{}}},
+        name: %{type: %NonNull{ofType: %String{}}},
         description: %{type: %String{}},
         isDeprecated: %{
-          type: %NonNull{of_type: %Boolean{}}
+          type: %NonNull{ofType: %Boolean{}}
           # resolve: enumValue => !isNullish(enumValue.deprecationReason),
         },
         deprecationReason: %{type: %String{}}
@@ -396,7 +396,7 @@ defmodule GraphQL.Type.Introspection do
       description: "Request the type information of a single type.",
       args:
         %{
-          name: %{type: %NonNull{of_type: %String{}}}
+          name: %{type: %NonNull{ofType: %String{}}}
         },
       resolve: fn(_, %{name: name}, %{schema: schema}) ->
         GraphQL.Schema.reduce_types(schema)[name]
@@ -407,7 +407,7 @@ defmodule GraphQL.Type.Introspection do
   def meta("typename") do
     %{
       name: "__typename",
-      type: %NonNull{of_type: %String{}},
+      type: %NonNull{ofType: %String{}},
       description: "The name of the current Object type at runtime.",
       args: [],
       resolve: fn(_, _, %{parent_type: %{name: name}}) -> name end
@@ -417,7 +417,7 @@ defmodule GraphQL.Type.Introspection do
   def meta("schema") do
     %{
       name: "__schema",
-      type: %NonNull{of_type: GraphQL.Type.Introspection.schema},
+      type: %NonNull{ofType: GraphQL.Type.Introspection.schema},
       description: "Access the current type schema of this server.",
       args: [],
       resolve: fn(_, _, args) -> args.schema end

@@ -154,7 +154,7 @@ defmodule GraphQL.Execution.Executor do
 
 
 
-  defp complete_value(context, %GraphQL.Type.NonNull{of_type: inner_type}, field_asts, info, result) do
+  defp complete_value(context, %GraphQL.Type.NonNull{ofType: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
     complete_value(context, inner_type, field_asts, info, result)
   end
@@ -165,7 +165,7 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %List{of_type: list_type}, field_asts, info, result) do
+  defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
     Enum.map result, fn(item) ->
       complete_value_catching_error(context, list_type, field_asts, info, item)
     end

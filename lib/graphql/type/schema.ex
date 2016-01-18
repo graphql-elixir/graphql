@@ -7,8 +7,8 @@ defmodule GraphQL.Schema do
     |> reduce_types(GraphQL.Type.Introspection.schema)
   end
 
-  def reduce_types(typemap, %GraphQL.Type.List{of_type: list_type}), do: reduce_types(typemap, list_type)
-  def reduce_types(typemap, %GraphQL.Type.NonNull{of_type: list_type}), do: reduce_types(typemap, list_type)
+  def reduce_types(typemap, %GraphQL.Type.List{ofType: list_type}), do: reduce_types(typemap, list_type)
+  def reduce_types(typemap, %GraphQL.Type.NonNull{ofType: list_type}), do: reduce_types(typemap, list_type)
 
   def reduce_types(typemap, %GraphQL.Type.Interface{} = type) do
     Map.put(typemap, type.name, type)

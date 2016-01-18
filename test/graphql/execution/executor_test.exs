@@ -219,11 +219,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         name: "ListsOfThings",
         fields: %{
           numbers: %{
-            type: %List{of_type: %Int{}},
+            type: %List{ofType: %Int{}},
             resolve: fn(_, _, _) -> [1, 2] end
           },
           books: %{
-            type: %List{of_type: book},
+            type: %List{ofType: book},
             resolve: fn(_, _, _) ->
               [
                 %{title: "A", isbn: "978-3-86680-192-9"},

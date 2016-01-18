@@ -26,8 +26,8 @@ defmodule StarWars.Schema do
       fields: quote do %{
         id: %{type: %String{}},
         name: %{type: %String{}},
-        friends: %{type: %List{of_type: StarWars.Schema.character_interface}},
-        appears_in: %{type: %List{of_type: StarWars.Schema.episode_enum}}
+        friends: %{type: %List{ofType: StarWars.Schema.character_interface}},
+        appears_in: %{type: %List{ofType: StarWars.Schema.episode_enum}}
       } end,
       resolver: fn(x) ->
         if StarWars.Data.get_human(x.id), do: StarWars.Schema.human_type, else: StarWars.Schema.droid_type
@@ -43,10 +43,10 @@ defmodule StarWars.Schema do
         id: %{type: %String{}},
         name: %{type: %String{}},
         friends: %{
-          type: %List{of_type: character_interface},
+          type: %List{ofType: character_interface},
           resolve: fn(item, _, _) -> StarWars.Data.get_friends(item) end
         },
-        appears_in: %{type: %List{of_type: episode_enum}},
+        appears_in: %{type: %List{ofType: episode_enum}},
         home_planet: %{type: %String{}}
       },
       interfaces: [StarWars.Schema.character_interface]
@@ -58,13 +58,13 @@ defmodule StarWars.Schema do
       name: "Droid",
       description: "A mechanical creature in the Star Wars universe",
       fields: %{
-        id: %{type: %NonNull{of_type: %String{}}},
+        id: %{type: %NonNull{ofType: %String{}}},
         name: %{type: %String{}},
         friends: %{
-          type: %List{of_type: character_interface},
+          type: %List{ofType: character_interface},
           resolve: fn(item, _, _) -> StarWars.Data.get_friends(item) end
         },
-        appears_in: %{type: %List{of_type: episode_enum}},
+        appears_in: %{type: %List{ofType: episode_enum}},
         primary_function: %{type: %String{}}
       },
       interfaces: [character_interface]

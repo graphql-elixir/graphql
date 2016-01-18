@@ -72,7 +72,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
         author: %{type: author},
         title: %{type: %String{}},
         body: %{type: %String{}},
-        keywords: %{type: %List{of_type: %String{}}}
+        keywords: %{type: %List{ofType: %String{}}}
       }
     }
 
@@ -89,7 +89,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
           resolve: fn(_, %{id: id}, _) -> make_article(id) end
         },
         feed: %{
-          type: %List{of_type: article},
+          type: %List{ofType: article},
           resolve: fn(_, _, _) -> for id <- 1..2, do: make_article(id) end
         }
       }

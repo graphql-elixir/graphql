@@ -22,10 +22,10 @@ defmodule GraphQL.Type do
   end
 
   defmodule List do
-    defstruct of_type: nil
+    defstruct ofType: nil
   end
 
   defmodule NonNull do
-    defstruct of_type: nil
+    defstruct ofType: nil
   end
 end
