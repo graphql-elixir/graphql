@@ -24,6 +24,16 @@ defp deps do
 end
 ```
 
+Add GraphQL to your `mix.exs` applications:
+
+```elixir
+def application do
+  # Add the application to your list of applications.
+  # This will ensure that it will be included in a release.
+  [applications: [:logger, :graphql]]
+end
+```
+
 Then, update your dependencies:
 
 ```sh-session
