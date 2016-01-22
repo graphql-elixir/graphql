@@ -67,10 +67,10 @@ defmodule GraphQL.Execution.Executor do
     Map.get(schema, operation.operation)
   end
 
-  defp collect_fields(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
+  defp collect_fields(context, runtime_type, selection_set, field_fragment_map \\ %{fields: [], fragments: %{}}) do
     Enum.reduce selection_set[:selections], field_fragment_map, fn(selection, field_fragment_map) ->
       case selection do
-        %{kind: :Field} -> put_in(field_fragment_map.fields[field_entry_key(selection)], [selection])
+        %{kind: :Field} -> field_fragment_map.fields[field_entry_key(selection)] ++ [selection]
         %{kind: :InlineFragment} ->
           collect_fragment(context, runtime_type, selection, field_fragment_map)
         %{kind: :FragmentSpread} ->
@@ -87,10 +87,10 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp execute_fields(context, parent_type, source_value, fields) do
-    Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
+    Enum.reduce fields, [], fn({field_name, field_asts}, results) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
         :undefined -> results
-        value -> Map.put results, String.to_atom(field_name.value), value
+        value -> results ++ [{String.to_atom(field_name.value), value}]
       end
     end
   end
@@ -176,7 +176,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_sub_fields(context, return_type, field_asts) do
-    Enum.reduce field_asts, %{fields: %{}, fragments: %{}}, fn(field_ast, field_fragment_map) ->
+    Enum.reduce field_asts, %{fields: [], fragments: %{}}, fn(field_ast, field_fragment_map) ->
       if selection_set = Map.get(field_ast, :selectionSet) do
         collect_fields(context, return_type, selection_set, field_fragment_map)
       else
