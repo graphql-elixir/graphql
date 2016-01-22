@@ -22,7 +22,10 @@ defmodule GraphQL do
   def execute(schema, query, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
     case GraphQL.Lang.Parser.parse(query) do
       {:ok, document} ->
-        GraphQL.Execution.Executor.execute(schema, document, root_value, variable_values, operation_name)
+        case GraphQL.Execution.Executor.execute(schema, document, root_value, variable_values, operation_name) do
+          {:ok, response} -> {:ok, %{data: response}}
+          {:error, errors} -> {:error, errors}
+        end
       {:error, errors} ->
         {:error, errors}
     end

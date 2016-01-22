@@ -7,7 +7,7 @@ defmodule GraphQLTest do
 
   test "Execute simple query" do
     schema = %GraphQL.Schema{query: %ObjectType{fields: %{a: %{type: %String{}}}}}
-    assert GraphQL.execute(schema, "{ a }", %{a: "A"}) == {:ok, %{a: "A"}}
+    assert GraphQL.execute(schema, "{ a }", %{a: "A"}) == {:ok, %{data: %{a: "A"}}}
   end
 
   test "Report parse error with message" do
