@@ -18,12 +18,12 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       %Schema{
         query: %ObjectType{
           name: "Recursive1",
-          fields: quote do %{
+          fields: quote do [
             id:   %{type: %ID{}, resolve: 1},
             name: %{type: %String{}, resolve: "Mark"},
             b: %{type: TestSchema.recursive_schema.query, resolve: fn(_,_,_) -> %{} end },
             c: %{type: TestSchema.recursive_schema_2, resolve: fn(_,_,_) -> %{} end }
-          } end
+          ] end
         }
       }
     end
@@ -31,11 +31,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     def recursive_schema_2 do
       %ObjectType{
         name: "Recursive2",
-        fields: quote do %{
+        fields: quote do [
           id:   %{type: %ID{}, resolve: 2},
           name: %{type: %String{}, resolve: "Kate"},
           b: %{type: TestSchema.recursive_schema.query, resolve: fn(_,_,_) -> %{} end }
-        } end
+        ] end
       }
     end
 
@@ -43,7 +43,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       %Schema{
         query: %ObjectType{
           name: "RootQueryType",
-          fields: %{
+          fields: [
             greeting: %{
               type: %String{},
               args: %{
@@ -51,7 +51,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
               },
               resolve: &greeting/3,
             }
-          }
+          ]
         }
       }
     end
@@ -65,61 +65,61 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "query arguments" do
-    assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, %{greeting: "Hello, Elixir!"}
+    assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, [greeting: "Hello, Elixir!"]
   end
 
   test "anonymous fragments are processed" do
     schema = %Schema{
       query: %ObjectType{
         name: "X",
-        fields: %{
+        fields: [
           id: %{type: %ID{}, resolve: 1},
           name: %{type: %String{}, resolve: "Mark"}
-        }
+        ]
       }
     }
-    assert_execute {"{id, ...{ name }}", schema}, %{id: "1", name: "Mark"}
+    assert_execute {"{id, ...{ name }}", schema}, [id: "1", name: "Mark"]
   end
 
   test "TypeChecked inline fragments run the correct type" do
     schema = %Schema{
       query: %ObjectType{
         name: "BType",
-        fields: %{
+        fields: [
           id: %{type: %ID{}, resolve: 1},
           a: %{type: %String{}, resolve: "a"},
           b: %{type: %String{}, resolve: "b"}
-        }
+        ]
       }
     }
-    assert_execute {"{id, ... on AType { a }, ... on BType { b }}", schema}, %{id: "1", b: "b"}
+    assert_execute {"{id, ... on AType { a }, ... on BType { b }}", schema}, [id: "1", b: "b"]
   end
 
   test "TypeChecked fragments run the correct type" do
     schema = %Schema{
       query: %ObjectType{
         name: "BType",
-        fields: %{
+        fields: [
           id: %{type: %ID{}, resolve: 1},
           a: %{type: %String{}, resolve: "a"},
           b: %{type: %String{}, resolve: "b"}
-        }
+        ]
       }
     }
-    assert_execute {"{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }", schema}, %{id: "1", b: "b"}
+    assert_execute {"{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }", schema}, [id: "1", b: "b"]
   end
 
   test "allow {module, function, args} style of resolve" do
     schema = %Schema{
       query: %ObjectType{
         name: "Q",
-        fields: %{
+        fields: [
           g: %{type: %String{}, resolve: {TestSchema, :greeting}},
           h: %{type: %String{}, args: %{name: %{type: %String{}}}, resolve: {TestSchema, :greeting, []}}
-        }
+        ]
       }
     }
-    assert_execute {~S[query Q {g, h(name:"Joe")}], schema}, %{g: "Hello, world!", h: "Hello, Joe!"}
+    assert_execute {~S[query Q {g, h(name:"Joe")}], schema}, [g: "Hello, world!", h: "Hello, Joe!"]
   end
 
   test "must specify operation name when multiple operations exist" do
@@ -134,7 +134,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "Quoted fields are available" do
     assert_execute({"{id, b { name, c{ id, name, b { name }}}}", TestSchema.recursive_schema},
-        %{id: "1", b: %{name: "Mark", c: %{id: "2", name: "Kate", b: %{name: "Mark"}}}})
+        [id: "1", b: [name: "Mark", c: [id: "2", name: "Kate", b: [name: "Mark"]]]])
   end
 
   test "simple selection set" do
@@ -185,7 +185,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     }
     data = %{a: "A", b: "B"}
     {:ok, doc} = Parser.parse "query Q { a } mutation M { b }"
-    assert Executor.execute(schema, doc, data, nil, "Q") == {:ok, %{a: "A"}}
+    assert Executor.execute(schema, doc, data, nil, "Q") == {:ok, [a: "A"]}
   end
 
   test "use specified mutation operation" do
@@ -235,21 +235,21 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     }
 
     assert_execute {"{numbers, books {title}}", schema},
-      %{numbers: [1, 2], books: [
+      [numbers: [1, 2], books: [
         %{title: "A"},
         %{title: "B"}
-      ]}
+      ]]
   end
 
   test "list arguments" do
     schema = %Schema{
       query: %ObjectType{
         name: "ListsAsArguments",
-        fields: %{
+        fields: %{ 
           numbers: %{
             type: %List{ofType: %Int{}},
             args: %{
-              nums: %{type: %List{ofType: %Int{}}}
+              nums: [type: %List{ofType: %Int{}}]
             },
             resolve: fn(_, %{nums: nums}, _) -> nums end
           }
@@ -257,6 +257,6 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
 
-    assert_execute {"{numbers(nums: [1, 2])}", schema}, %{numbers: [1, 2]}
+    assert_execute {"{numbers(nums: [1, 2])}", schema}, [numbers: [1, 2]]
   end
 end
