@@ -78,9 +78,8 @@ defmodule GraphQL.Lang.Type.EnumTest do
     assert_execute {~S[{ color_enum(from_enum: "GREEN") }], TestSchema.schema}, "should return an argument error"
   end
 
-  @tag :skip # needs to allow nils to be returned
   test "does not accept incorrect internal value" do
-   assert_execute {~S[{ color_enum(from_string: "GREEN") }], TestSchema.schema}, %{color_enum: nil}
+    assert_execute {~S[{ color_enum(from_string: "GREEN") }], TestSchema.schema}, %{color_enum: nil}
   end
 
   @tag :skip # needs type validation
@@ -113,9 +112,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
     assert_execute {"{ color_enum(from_enum: RED), color_int(from_enum: RED) }", TestSchema.schema}, %{color_enum: "RED", color_int: 0}
   end
 
-  @tag :skip # needs to allow nils to be returned
   test "enum inputs may be nullable" do
     assert_execute {"{color_enum, color_int}", TestSchema.schema}, %{color_enum: nil, color_int: nil}
   end
-
 end

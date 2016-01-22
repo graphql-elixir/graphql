@@ -59,7 +59,7 @@ defmodule GraphQL.Type.IntrospectionTest do
           directives on the server, as well as the entry
           points for query, mutation,
           and subscription operations.
-        """,
+          """,
         fields: [
           %{
             name: "types",
