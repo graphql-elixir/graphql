@@ -47,7 +47,9 @@ defmodule GraphQL.Lang.Parser do
       {:ok, parse_result} ->
         {:ok, parse_result}
       {:error, {line_number, _, errors}} ->
-        {:error, %{errors: [%{message: "GraphQL: #{errors} on line #{line_number}", line_number: line_number}]}}
+        {:error, %{errors: [
+          %{"message" => "GraphQL: #{errors} on line #{line_number}", "line_number" => line_number}
+        ]}}
     end
   end
 end

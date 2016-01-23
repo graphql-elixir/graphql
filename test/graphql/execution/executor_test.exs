@@ -10,8 +10,6 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   alias GraphQL.Type.ID
   alias GraphQL.Type.String
   alias GraphQL.Type.Int
-  alias GraphQL.Lang.Parser
-  alias GraphQL.Execution.Executor
 
   defmodule TestSchema do
     def recursive_schema do
@@ -184,8 +182,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
     data = %{a: "A", b: "B"}
-    {:ok, doc} = Parser.parse "query Q { a } mutation M { b }"
-    assert Executor.execute(schema, doc, data, nil, "Q") == {:ok, %{a: "A"}}
+    assert_execute {"query Q { a } mutation M { b }", schema, data, nil, "Q"}, %{a: "A"}
   end
 
   test "use specified mutation operation" do
@@ -200,8 +197,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
     data = %{a: "A", b: "B"}
-    {:ok, doc} = Parser.parse "query Q { a } mutation M { b }"
-    assert Executor.execute(schema, doc, data, nil, "M") == {:ok, %{b: "B"}}
+    assert_execute {"query Q { a } mutation M { b }", schema, data, nil, "M"}, %{b: "B"}
   end
 
   test "lists of things" do

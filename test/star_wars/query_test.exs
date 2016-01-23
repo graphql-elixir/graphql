@@ -66,12 +66,12 @@ defmodule GraphQL.StarWars.QueryTest do
 
   test "Allows us to create a generic query, then use it to fetch Luke Skywalker using his ID" do
     query = ~S[query fetch_id($some_id: String!) { human(id: $some_id) { name }}]
-    assert_execute({query, StarWars.Schema.schema, %{}, %{some_id: "1000"}}, %{human: %{name: "Luke Skywalker"}})
+    assert_execute({query, StarWars.Schema.schema, %{}, %{"some_id" => "1000"}}, %{human: %{name: "Luke Skywalker"}})
   end
 
   test "Allows us to create a generic query, then use it to fetch Han Solo using his ID" do
     query = ~S[query fetch_some_id($some_id: String!) { human(id: $some_id) { name }}]
-    assert_execute({query, StarWars.Schema.schema, %{}, %{some_id: "1002"}}, %{human: %{name: "Han Solo"}})
+    assert_execute({query, StarWars.Schema.schema, %{}, %{"some_id" => "1002"}}, %{human: %{name: "Han Solo"}})
   end
 
   @tag :skip # returns %{} instead of nil. Which is right?

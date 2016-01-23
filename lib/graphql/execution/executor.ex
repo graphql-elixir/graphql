@@ -25,7 +25,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp report_error(context, msg) do
-    put_in(context.errors, [%{message: msg} | context.errors])
+    put_in(context.errors, [%{"message" => msg} | context.errors])
   end
 
   defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
@@ -90,7 +90,7 @@ defmodule GraphQL.Execution.Executor do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
         :undefined -> results
-        value -> Map.put results, String.to_atom(field_name.value), value
+        value -> Map.put(results, field_name.value, value)
       end
     end
   end
@@ -101,7 +101,6 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp resolve_field(context, parent_type, source, field_asts) do
-
     field_ast = hd(field_asts)
     field_name = String.to_atom(field_ast.name.value)
 
@@ -205,7 +204,7 @@ defmodule GraphQL.Execution.Executor do
     Enum.reduce arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def
       if value_ast = arg_ast_map[arg_def_name] do
-        Map.put result, arg_def_name, value_from_ast(value_ast, arg_def_type, variable_values)
+        Map.put(result, arg_def_name, value_from_ast(value_ast, arg_def_type, variable_values))
       else
         result
       end
@@ -213,11 +212,11 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp value_from_ast(%{kind: :Argument, value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
-    variable_value = Map.get(variable_values, String.to_atom(value))
+    variable_value = Map.get(variable_values, value)
     GraphQL.Types.parse_value(type.type, variable_value)
   end
 
-  defp value_from_ast(%{kind: :Argument, value: %{kind: :ListValue, values: values_ast}}, type, variable_values) do
+  defp value_from_ast(%{kind: :Argument, value: %{kind: :ListValue, values: values_ast}}, type, _variable_values) do
     GraphQL.Types.parse_value(type.type, Enum.map(values_ast, fn(value_ast) ->
       GraphQL.Types.parse_value(type.type, value_ast.value)
     end))

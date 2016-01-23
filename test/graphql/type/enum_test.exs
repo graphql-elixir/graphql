@@ -94,7 +94,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
 
   test "accepts JSON string as enum variable" do
     query = "query test($color: Color!) { color_enum(from_enum: $color) }"
-    assert_execute {query, TestSchema.schema, %{}, %{color: "BLUE"}}, %{color_enum: "BLUE"}
+    assert_execute {query, TestSchema.schema, %{}, %{"color" => "BLUE"}}, %{"color_enum" => "BLUE"}
   end
 
   @tag :skip

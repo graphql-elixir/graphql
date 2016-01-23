@@ -248,8 +248,8 @@ defmodule GraphQL.Type.Introspection do
         args: %{
           type: %NonNull{ofType: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.input_value}}},
           resolve: fn
-          (%{args: args}=schema, _, _) -> Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
-          (schema,_,_) ->  []
+            (%{args: _args} = schema, _, _) -> Enum.map(schema.args, fn({name,v}) -> Map.put(v, :name, name) end)
+            (_, _, _) ->  []
           end
         },
         type: %{type: %NonNull{ofType: GraphQL.Type.Introspection.type}},
