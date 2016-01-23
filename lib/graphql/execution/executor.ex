@@ -20,7 +20,7 @@ defmodule GraphQL.Execution.Executor do
     context = build_execution_context(schema, document, root_value, variable_values, operation_name)
     case context.errors do
       [] -> execute_operation(context, context.operation, root_value)
-      _  -> {:error, %{errors: context.errors}}
+      _  -> {:error, %{errors: Enum.dedup(context.errors)}}
     end
   end
 
@@ -121,7 +121,7 @@ defmodule GraphQL.Execution.Executor do
         variable_values: context.variable_values
       }
 
-      resolution = Map.get(field_def, :resolve, nil)
+      resolution = Map.get(field_def, :resolve)
       result = case resolution do
         {mod, fun}    -> apply(mod, fun, [source, args, info])
         {mod, fun, _} -> apply(mod, fun, [source, args, info])
@@ -151,8 +151,6 @@ defmodule GraphQL.Execution.Executor do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
-
-
 
   defp complete_value(context, %GraphQL.Type.NonNull{ofType: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
