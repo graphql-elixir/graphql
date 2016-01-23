@@ -121,9 +121,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "must specify operation name when multiple operations exist" do
-    assert_execute_error {"query a {a} query b {b} query c {c}", TestSchema.schema}, [
-      %{message: "Must provide operation name if query contains multiple operations."}
-    ]
+    assert_execute_error {"query a {a} query b {b} query c {c}", TestSchema.schema},
+      [%{message: "Must provide operation name if query contains multiple operations."}]
   end
 
   test "do not include illegal fields in output" do
