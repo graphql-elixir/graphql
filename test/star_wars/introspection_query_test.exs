@@ -15,27 +15,11 @@ defmodule GraphQL.StarWars.IntrospectionTest do
           }
         }
     """
-    wanted = %{
-      __schema:
-        %{types: [
-          %{name: "Boolean"},
-          %{name: "Character"},
-          %{name: "Droid"},
-          %{name: "Episode"},
-          %{name: "Human"},
-          %{name: "Query"},
-          %{name: "String"},
-          %{name: "__Directive"},
-          %{name: "__EnumValue"},
-          %{name: "__Field"},
-          %{name: "__InputValue"},
-          %{name: "__Schema"},
-          %{name: "__Type"},
-          %{name: "__TypeKind"}
-        ]
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __schema: %{
+        types: Enum.map(~w(Boolean Character Droid Episode Human Query String __Directive __EnumValue __Field __InputValue __Schema __Type __TypeKind), fn(t) -> %{name: t} end)
       }
     }
-    assert_execute {query, StarWars.Schema.schema}, wanted
   end
 
   test "Allows querying the schema for query type" do
@@ -48,7 +32,9 @@ defmodule GraphQL.StarWars.IntrospectionTest do
       }
     }
     """
-    assert_execute {query, StarWars.Schema.schema}, %{__schema: %{queryType: %{name: "Query"}}}
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __schema: %{queryType: %{name: "Query"}}
+    }
   end
 
   test "Allows querying the schema for a specific type" do
@@ -59,7 +45,9 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Droid"}}
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __type: %{name: "Droid"}
+    }
   end
 
   test "Allows querying the schema for an object kind" do
@@ -71,11 +59,13 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Droid", kind: "OBJECT"}}
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __type: %{name: "Droid", kind: "OBJECT"}
+    }
   end
 
   test "Allows querying the schema for an interface kind" do
-    query ="""
+    query = """
       query IntrospectionCharacterKindQuery {
         __type(name: "Character") {
           name
@@ -83,7 +73,9 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    assert_execute {query, StarWars.Schema.schema}, %{__type: %{name: "Character", kind: "INTERFACE"}}
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __type: %{name: "Character", kind: "INTERFACE"}
+    }
   end
 
   test "Allows querying the schema for object fields" do
@@ -101,8 +93,8 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    wanted = %{__type:
-      %{
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __type: %{
         fields: [
           %{name: "appears_in", type: %{kind: "LIST", name: nil}},
           %{name: "friends", type: %{kind: "LIST", name: nil}},
@@ -113,7 +105,6 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         name: "Droid"
       }
     }
-    assert_execute {query, StarWars.Schema.schema}, wanted
   end
 
   test "Allows querying the schema for nested object fields" do
@@ -135,15 +126,33 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    wanted =  %{__type: %{fields: [%{name: "appears_in",
-                   type: %{kind: "LIST", name: nil, ofType: %{kind: "ENUM", name: "Episode"}}},
-                 %{name: "friends",
-                   type: %{kind: "LIST", name: nil, ofType: %{kind: "INTERFACE", name: "Character"}}},
-                 %{name: "id", type: %{kind: "NON_NULL", name: nil, ofType: %{kind: "SCALAR", name: "String"}}},
-                 %{name: "name", type: %{kind: "SCALAR", name: "String", ofType: nil}},
-                 %{name: "primary_function", type: %{kind: "SCALAR", name: "String", ofType: nil}}],
-                name: "Droid"}}
-    assert_execute {query, StarWars.Schema.schema}, wanted
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __type: %{
+        name: "Droid",
+        fields: [
+          %{
+            name: "appears_in",
+            type: %{kind: "LIST", name: nil, ofType: %{kind: "ENUM", name: "Episode"}}
+          },
+          %{
+            name: "friends",
+            type: %{kind: "LIST", name: nil, ofType: %{kind: "INTERFACE", name: "Character"}}
+          },
+          %{
+            name: "id",
+            type: %{kind: "NON_NULL", name: nil, ofType: %{kind: "SCALAR", name: "String"}}
+          },
+          %{
+            name: "name",
+            type: %{kind: "SCALAR", name: "String", ofType: nil}
+          },
+          %{
+            name: "primary_function",
+            type: %{kind: "SCALAR", name: "String", ofType: nil}
+          }
+        ]
+      }
+    }
   end
 
   @tag :skip # we need to add default_value before this will be complete
@@ -172,10 +181,7 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    wanted = %{}
-
-    assert_execute {query, StarWars.Schema.schema}, wanted
-
+    assert_execute {query, StarWars.Schema.schema}, %{}
   end
 
   test "Allows querying the schema for documentation" do
@@ -187,7 +193,9 @@ defmodule GraphQL.StarWars.IntrospectionTest do
         }
       }
     """
-    assert_execute {query, StarWars.Schema.schema}, %{__type: %{description: "A mechanical creature in the Star Wars universe", name: "Droid"}}
+    assert_execute {query, StarWars.Schema.schema}, %{
+      __type: %{description: "A mechanical creature in the Star Wars universe", name: "Droid"}
+    }
   end
 
   test "Can run the full introspection query" do
@@ -484,24 +492,22 @@ defmodule GraphQL.StarWars.IntrospectionTest do
                     ofType: nil}}}}], inputFields: nil, interfaces: [],
            kind: "OBJECT", name: "__Type", possibleTypes: nil},
          %{description: "An enum describing what kind of type a given `__Type` is.",
-           enumValues: [%{deprecationReason: nil, description: "",
+           enumValues: [%{deprecationReason: nil, description: "Indicates this type is an enum. `enumValues` is a valid field.",
               isDeprecated: nil, name: "ENUM"},
-            %{deprecationReason: nil, description: "",
+            %{deprecationReason: nil, description: "Indicates this type is an input object. `inputFields` is a valid field.",
               isDeprecated: nil, name: "INPUT_OBJECT"},
-            %{deprecationReason: nil, description: "",
+            %{deprecationReason: nil, description: "Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.",
               isDeprecated: nil, name: "INTERFACE"},
-            %{deprecationReason: nil, description: "",
+            %{deprecationReason: nil, description: "Indicates this type is a list. `ofType` is a valid field.",
               isDeprecated: nil, name: "LIST"},
-            %{deprecationReason: nil, description: "",
+            %{deprecationReason: nil, description: "Indicates this type is a non-null. `ofType` is a valid field.",
               isDeprecated: nil, name: "NON_NULL"},
-            %{deprecationReason: nil, description: "",
-              isDeprecated: nil, name: "NOT_FOUND"},
-            %{deprecationReason: nil, description: "",
+            %{deprecationReason: nil, description: "Indicates this type is an object. `fields` and `interfaces` are valid fields.",
               isDeprecated: nil, name: "OBJECT"},
             %{deprecationReason: nil,
               description: "Indicates this type is a scalar.",
               isDeprecated: nil, name: "SCALAR"},
-            %{deprecationReason: nil, description: "",
+            %{deprecationReason: nil, description: "Indicates this type is a union. `possibleTypes` is a valid field.",
               isDeprecated: nil, name: "UNION"}], fields: [],
            inputFields: nil, interfaces: nil, kind: "ENUM",
            name: "__TypeKind", possibleTypes: nil}]}}

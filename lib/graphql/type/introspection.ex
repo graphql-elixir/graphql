@@ -118,7 +118,7 @@ defmodule GraphQL.Type.Introspection do
           type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.field}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn
-          (%GraphQL.Type.ObjectType{}=schema, args, rest) ->
+          (%GraphQL.Type.ObjectType{} = schema, args, rest) ->
             thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
             Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
           (_,_,_) -> []
@@ -198,40 +198,44 @@ defmodule GraphQL.Type.Introspection do
   end
 
   def typekind do
-      %{
-        name: "__TypeKind",
-        description: "An enum describing what kind of type a given `__Type` is.",
-        values: %{
-          SCALAR: %{
-            value: "SCALAR",
-            description: "Indicates this type is a scalar."
-          },
-          OBJECT: %{
-            value: "OBJECT"
-          },
-          INTERFACE: %{
-            value: "INTERFACE"
-          },
-          UNION: %{
-            value: "UNION"
-          },
-          ENUM: %{
-            value: "ENUM"
-          },
-          INPUT_OBJECT: %{
-            value: "INPUT_OBJECT"
-          },
-          LIST: %{
-            value: "LIST"
-          },
-          NON_NULL: %{
-            value: "NON_NULL"
-          },
-          NOT_FOUND: %{
-            value: "NOT_FOUND"
-          }
+    %{
+      name: "__TypeKind",
+      description: "An enum describing what kind of type a given `__Type` is.",
+      values: %{
+        SCALAR: %{
+          value: "SCALAR",
+          description: "Indicates this type is a scalar."
+        },
+        OBJECT: %{
+          value: "OBJECT",
+          description: "Indicates this type is an object. `fields` and `interfaces` are valid fields."
+        },
+        INTERFACE: %{
+          value: "INTERFACE",
+          description: "Indicates this type is an interface. `fields` and `possibleTypes` are valid fields."
+        },
+        UNION: %{
+          value: "UNION",
+          description: "Indicates this type is a union. `possibleTypes` is a valid field."
+        },
+        ENUM: %{
+          value: "ENUM",
+          description: "Indicates this type is an enum. `enumValues` is a valid field."
+        },
+        INPUT_OBJECT: %{
+          value: "INPUT_OBJECT",
+          description: "Indicates this type is an input object. `inputFields` is a valid field."
+        },
+        LIST: %{
+          value: "LIST",
+          description: "Indicates this type is a list. `ofType` is a valid field."
+        },
+        NON_NULL: %{
+          value: "NON_NULL",
+          description: "Indicates this type is a non-null. `ofType` is a valid field."
         }
-      } |>  GraphQL.Type.Enum.new
+      }
+    } |>  GraphQL.Type.Enum.new
   end
 
   def field do

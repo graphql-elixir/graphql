@@ -23,8 +23,6 @@ defmodule GraphQL.Type.IntrospectionTest do
   test "basic query introspection" do
     # assert_execute
     #   {GraphQL.Type.Introspection.query, EmptySchema.schema},
-
-
   end
 
   @tag :skip # order matters for this... ... hm.
@@ -39,8 +37,8 @@ defmodule GraphQL.Type.IntrospectionTest do
     query = """
     {
       schemaType: __type(name: "__Schema") {
-        name,
-        description,
+        name
+        description
         fields {
           name,
           description
