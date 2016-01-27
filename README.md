@@ -79,15 +79,15 @@ This is a work in progress, right now here's what is done:
 - [x] Parser for GraphQL (including Type definitions)
 - [x] AST matching the `graphql-js` types as closely as possible
 - [x] Schema definition
-- [ ] Query execution
+- [x] Query execution
   - [x] Scalar types
   - [x] Arguments
   - [x] Multiple forms of resolution
   - [x] Complex types (List, Object, etc)
   - [x] Fragments in queries
-  - [ ] Extract variable values
-- [ ] Query validation
+  - [x] Extract variable values
 - [x] Introspection
+- [WIP] Query validation
 
 ## Resources
 
