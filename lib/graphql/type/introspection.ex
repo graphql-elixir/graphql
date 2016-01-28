@@ -91,7 +91,7 @@ defmodule GraphQL.Type.Introspection do
         """,
       fields: quote do %{
         kind: %{
-          type: %NonNull{ofType: GraphQL.Type.Introspection.typekind}, # type_kind
+          type: %NonNull{ofType: GraphQL.Type.Introspection.typekind},
           resolve: fn(schema, _, _) ->
             case schema do
               %GraphQL.Type.ScalarType{} -> "SCALAR"
@@ -118,11 +118,15 @@ defmodule GraphQL.Type.Introspection do
           type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.field}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn
-          (%GraphQL.Type.ObjectType{} = schema, args, rest) ->
-            thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
-            Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
-          (_,_,_) -> []
-            # |> filter_deprecated
+            (%GraphQL.Type.ObjectType{} = schema, args, rest) ->
+              thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
+              Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
+              # |> filter_deprecated
+            (%GraphQL.Type.Interface{} = schema, args, rest) ->
+              thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
+              IO.inspect Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
+            (s, _, _) ->
+              []
           end
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLObjectType ||
@@ -141,7 +145,7 @@ defmodule GraphQL.Type.Introspection do
         interfaces: %{
           type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.type}},
           resolve: fn
-            (%GraphQL.Type.ObjectType{}=schema, args, rest) ->
+            (%GraphQL.Type.ObjectType{} = schema, args, rest) ->
               schema.interfaces
             (_, _, _) -> nil
           end
@@ -150,11 +154,11 @@ defmodule GraphQL.Type.Introspection do
           type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.type}},
           resolve: fn
             (%GraphQL.Type.Interface{name: name}, args, info) ->
+              # TODO simplify this logic
               GraphQL.Schema.reduce_types(info.schema)
-              |> Enum.filter(fn({_,t}) ->
+              |> Enum.filter(fn {_, t} ->
                 Map.get(t, :interfaces, [])
-                |> Enum.filter(&(&1.name === name))
-                !== []
+                |> Enum.filter(&(&1.name === name)) !== []
               end) |> Enum.map(fn({k,v}) -> v end)
             (_, _, _) -> nil
           end
@@ -169,7 +173,7 @@ defmodule GraphQL.Type.Introspection do
           type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.enum_value}},
           args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
           resolve: fn
-            (%GraphQL.Type.Enum{}=schema, _, _) -> schema.values
+            (%GraphQL.Type.Enum{} = schema, _, _) -> schema.values
             (_,_,_) -> nil
           end
           # resolve(type, { includeDeprecated }) {
@@ -235,7 +239,7 @@ defmodule GraphQL.Type.Introspection do
           description: "Indicates this type is a non-null. `ofType` is a valid field."
         }
       }
-    } |>  GraphQL.Type.Enum.new
+    } |> GraphQL.Type.Enum.new
   end
 
   def field do
