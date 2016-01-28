@@ -124,7 +124,7 @@ defmodule GraphQL.Type.Introspection do
               # |> filter_deprecated
             (%GraphQL.Type.Interface{} = schema, args, rest) ->
               thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
-              IO.inspect Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
+              Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
             (s, _, _) ->
               []
           end
