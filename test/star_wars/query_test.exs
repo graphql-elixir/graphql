@@ -33,10 +33,10 @@ defmodule GraphQL.StarWars.QueryTest do
     query = ~S[
       query nested_query {
         hero {
-          name,
+          name
           friends {
-            name,
-            appears_in,
+            name
+            appears_in
             friends {
               name
             }
@@ -87,7 +87,7 @@ defmodule GraphQL.StarWars.QueryTest do
 
   test "Allows us to query for both Luke and Leia, using two root fields and an alias" do
     query = ~S[query fetch_luke_and_leia_aliased {
-      luke: human(id: "1000") { name },
+      luke: human(id: "1000") { name }
       leia: human(id: "1003") { name }
     }]
     assert_execute({query, StarWars.Schema.schema}, %{leia: %{name: "Leia Organa"}, luke: %{name: "Luke Skywalker"}})
@@ -96,8 +96,8 @@ defmodule GraphQL.StarWars.QueryTest do
   test "Allows us to query using duplicated content" do
     query = ~S[
       query duplicate_fields {
-        luke: human(id: "1000") { name, home_planet },
-        leia: human(id: "1003") { name, home_planet },
+        luke: human(id: "1000") { name, home_planet }
+        leia: human(id: "1003") { name, home_planet }
       }
     ]
     assert_execute({query, StarWars.Schema.schema}, %{leia: %{home_planet: "Alderaan", name: "Leia Organa"}, luke: %{home_planet: "Tatooine", name: "Luke Skywalker"}})
@@ -106,8 +106,8 @@ defmodule GraphQL.StarWars.QueryTest do
   test "Allows us to use a fragment to avoid duplicating content" do
     query = ~S[
       query duplicate_fields {
-        luke: human(id: "1000") { ...human_fragment },
-        leia: human(id: "1003") { ...human_fragment },
+        luke: human(id: "1000") { ...human_fragment }
+        leia: human(id: "1003") { ...human_fragment }
       }
       fragment human_fragment on Human {
         name, home_planet

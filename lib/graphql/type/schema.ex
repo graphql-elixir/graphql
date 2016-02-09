@@ -1,9 +1,17 @@
 defmodule GraphQL.Schema do
+
   @type t :: %GraphQL.Schema{
     query: Map,
     mutation: Map,
     types: [GraphQL.AbstractType.t | GraphQL.Type.ObjectType.t]
   }
+
+
+  alias GraphQL.Type.Interface
+  alias GraphQL.Type.Union
+  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Introspection
+
   defstruct query: nil, mutation: nil, types: []
 
   def type_from_ast(nil, _), do: nil
@@ -21,24 +29,25 @@ defmodule GraphQL.Schema do
     %{}
     |> reduce_types(type.query)
     |> reduce_types(type.mutation)
-    |> reduce_types(GraphQL.Type.Introspection.schema)
+    |> reduce_types(Introspection.Schema.type)
   end
 
-  def reduce_types(typemap, %GraphQL.Type.List{ofType: list_type}), do: reduce_types(typemap, list_type)
-  def reduce_types(typemap, %GraphQL.Type.NonNull{ofType: list_type}), do: reduce_types(typemap, list_type)
+  def reduce_types(typemap, %{ofType: list_type}) do
+    reduce_types(typemap, list_type)
+  end
 
-  def reduce_types(typemap, %GraphQL.Type.Interface{} = type) do
+  def reduce_types(typemap, %Interface{} = type) do
     Map.put(typemap, type.name, type)
   end
 
-  def reduce_types(typemap, %GraphQL.Type.Union{} = type) do
+  def reduce_types(typemap, %Union{} = type) do
     typemap = Map.put(typemap, type.name, type)
     Enum.reduce(type.types, typemap, fn(fieldtype,map) ->
        reduce_types(map, fieldtype)
     end)
   end
 
-  def reduce_types(typemap, %GraphQL.Type.ObjectType{} = type) do
+  def reduce_types(typemap, %ObjectType{} = type) do
     if Map.has_key?(typemap, type.name) do
       typemap
     else
@@ -56,6 +65,10 @@ defmodule GraphQL.Schema do
 
   def reduce_types(typemap, %{name: name} = type), do: Map.put(typemap, name, type)
   def reduce_types(typemap, nil), do: typemap
+
+  def reduce_types(typemap, type_module) when is_atom(type_module) do
+    reduce_types(typemap, apply(type_module, :type, []))
+  end
 
   defp _reduce_arguments(typemap, %{args: args}) do
     field_arg_types = Enum.map(args, fn{_,v} -> v.type end)

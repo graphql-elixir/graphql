@@ -8,12 +8,12 @@ defmodule GraphQL.StarWars.IntrospectionTest do
   test "Allows querying the schema for types" do
     query = """
       query IntrospectionTypeQuery {
-          __schema {
-            types {
-              name
-            }
+        __schema {
+          types {
+            name
           }
         }
+      }
     """
     assert_execute {query, StarWars.Schema.schema}, %{
       __schema: %{
@@ -24,13 +24,13 @@ defmodule GraphQL.StarWars.IntrospectionTest do
 
   test "Allows querying the schema for query type" do
     query = """
-     query IntrospectionQueryTypeQuery {
-      __schema {
-        queryType {
-          name
+      query IntrospectionQueryTypeQuery {
+        __schema {
+          queryType {
+            name
+          }
         }
       }
-    }
     """
     assert_execute {query, StarWars.Schema.schema}, %{
       __schema: %{queryType: %{name: "Query"}}
