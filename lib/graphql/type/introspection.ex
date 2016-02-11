@@ -31,7 +31,7 @@ defmodule GraphQL.Type.Introspection do
         mutationType: %{
           description: "If this server supports mutation, the type that mutation operations will be rooted at.",
           type: GraphQL.Type.Introspection.type,
-          resolve: nil #fn(%{mutation: mutation}, _, _) -> mutation end
+          resolve: fn(%{mutation: mutation}, _, _) -> mutation end
         },
         subscriptionType: %{
           description: "If this server support subscription, the type that subscription operations will be rooted at.",
@@ -397,7 +397,7 @@ defmodule GraphQL.Type.Introspection do
     """
   end
 
-  def meta("type") do
+  def meta(:type) do
     %{
       name: "__type",
       type: GraphQL.Type.Introspection.type,
@@ -412,7 +412,7 @@ defmodule GraphQL.Type.Introspection do
     }
   end
 
-  def meta("typename") do
+  def meta(:typename) do
     %{
       name: "__typename",
       type: %NonNull{ofType: %String{}},
@@ -422,7 +422,7 @@ defmodule GraphQL.Type.Introspection do
     }
   end
 
-  def meta("schema") do
+  def meta(:schema) do
     %{
       name: "__schema",
       type: %NonNull{ofType: GraphQL.Type.Introspection.schema},
