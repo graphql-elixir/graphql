@@ -4,6 +4,7 @@ defmodule GraphQL.Schema do
   def reduce_types(type) do
     %{}
     |> reduce_types(type.query)
+    |> reduce_types(type.mutation)
     |> reduce_types(GraphQL.Type.Introspection.schema)
   end
 
@@ -26,4 +27,5 @@ defmodule GraphQL.Schema do
     end
   end
   def reduce_types(typemap, %{name: name} = type), do: Map.put(typemap, name, type)
+  def reduce_types(typemap, nil), do: typemap
 end

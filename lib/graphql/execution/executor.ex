@@ -190,9 +190,9 @@ defmodule GraphQL.Execution.Executor do
 
   defp field_definition(_schema, parent_type, field_name) do
     case field_name do
-      :__typename -> GraphQL.Type.Introspection.meta("typename")
-      :__schema -> GraphQL.Type.Introspection.meta("schema")
-      :__type -> GraphQL.Type.Introspection.meta("type")
+      :__typename -> GraphQL.Type.Introspection.meta(:typename)
+      :__schema -> GraphQL.Type.Introspection.meta(:schema)
+      :__type -> GraphQL.Type.Introspection.meta(:type)
       _ -> maybe_unwrap(parent_type.fields)[field_name]
     end
   end
