@@ -3,7 +3,7 @@ defmodule GraphQL.Mixfile do
 
   @version "0.1.2"
 
-  @description "An Elixir implementation of Facebook's GraphQL core engine"
+  @description "Elixir implementation of GraphQL"
   @repo_url "https://github.com/joshprice/graphql-elixir"
 
   def project do
@@ -28,17 +28,17 @@ defmodule GraphQL.Mixfile do
   defp deps do
     [
       {:mix_test_watch, "~> 0.2", only: :dev},
-      {:credo, "~> 0.1.9", only: [:dev, :test]},
+      {:credo, "~> 0.3", only: :dev},
 
       # Doc dependencies
-      {:earmark, "~> 0.1", only: :dev},
-      {:ex_doc, "~> 0.8", only: :dev},
-      {:inch_ex, only: :dev}
+      {:earmark, "~> 0.2", only: :dev},
+      {:ex_doc, "~> 0.11", only: :dev},
+      {:inch_ex, "~> 0.5", only: :dev}
     ]
   end
 
   defp package do
-    [maintainers: ["Josh Price", "James Sadler", "Aaron Weiker"],
+    [maintainers: ["Josh Price", "James Sadler", "Mark Olson", "Aaron Weiker"],
      licenses: ["BSD"],
      links: %{"GitHub" => @repo_url},
      files: ~w(lib src/*.xrl src/*.yrl mix.exs *.md LICENSE)]
