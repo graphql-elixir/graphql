@@ -120,6 +120,25 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute {~S[query Q {g, h(name:"Joe")}], schema}, %{g: "Hello, world!", h: "Hello, Joe!"}
   end
 
+  test "return error when no function matches" do
+    schema = %Schema{
+      query: %ObjectType{
+        name: "RootQueryType",
+        fields: %{
+          greeting: %{
+            type: %String{},
+            args: %{
+              name: %{type: %String{}}
+            },
+            resolve: fn(_, %{name: name}, _) -> "Hello #{name}!!" end,
+          }
+        }
+      }
+    }
+
+    assert_execute_error({~S[query Q{greeting}], schema}, [%{message: "Could not find a resolve function for this query."}])
+  end
+
   test "must specify operation name when multiple operations exist" do
     assert_execute_error {"query a {a} query b {b} query c {c}", TestSchema.schema},
       [%{message: "Must provide operation name if query contains multiple operations."}]
