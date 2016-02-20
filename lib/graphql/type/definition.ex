@@ -7,9 +7,9 @@ defprotocol GraphQL.Types do
 end
 
 defprotocol GraphQL.AbstractTypes do
-  # @spec possible_type?(%GraphQL.Type.Union{} | %GraphQL.Type.Interface{}, %GraphQL.Type.ObjectType{}, %GraphQL.Schema) :: boolean
-  def possible_type?(_, _, _)
-  # @spec possible_type?(%GraphQL.Type.Union{} | %GraphQL.Type.Interface{}, %GraphQL.Type.ObjectType{}, %GraphQL.Schema) :: %GraphQL.Type.ObjectType{}
+  # @spec possible_type?(%GraphQL.Type.Union{} | %GraphQL.Type.Interface{}, %GraphQL.Type.ObjectType{}) :: boolean
+  def possible_type?(_, _)
+  # @spec possible_type?(%GraphQL.Type.Union{} | %GraphQL.Type.Interface{}, %{}, %GraphQL.Schema) :: %GraphQL.Type.ObjectType{}
   def get_object_type(_, _, _)
 end
 

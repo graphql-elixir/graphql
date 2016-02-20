@@ -22,18 +22,25 @@ defmodule GraphQL.Type.Interface do
   end
 
   defimpl GraphQL.AbstractTypes do
-    def possible_type?(interface, object, info) do
-      GraphQL.Type.Interface.possible_types(interface, info.schema)
-      |> Enum.any?(&(&1.name == object.name))
+    @doc """
+    Returns a boolean indicating if the provided type implements the interface
+    """
+    def possible_type?(interface, object) do
+      GraphQL.Type.implements?(object, interface)
     end
 
-    def get_object_type(interface, object, info) do
+    @doc """
+    Returns the typedef of the provided Object using either the Interface's
+    resolve function (if it exists), or by iterating over all the typedefs that
+    implement this Interface and returning the first one that matches against
+    the Object's isTypeOf function.
+    """
+    def get_object_type(interface, object, schema) do
       if interface.resolver do
         interface.resolver.(object)
       else
-        GraphQL.Type.Interface.possible_types(interface, info.schema)
-        |> Enum.filter(fn(x) -> x.isTypeOf.(object) end)
-        |> hd
+        GraphQL.Type.Interface.possible_types(interface, schema)
+        |> Enum.find(fn(x) -> x.isTypeOf.(object) end)
       end
     end
   end

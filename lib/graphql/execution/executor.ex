@@ -158,13 +158,13 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
-    runtime_type = GraphQL.AbstractTypes.get_object_type(return_type, result, info)
+    runtime_type = GraphQL.AbstractTypes.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
   defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
-    runtime_type = GraphQL.AbstractTypes.get_object_type(return_type, result, info)
+    runtime_type = GraphQL.AbstractTypes.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
@@ -256,7 +256,7 @@ defmodule GraphQL.Execution.Executor do
       # there's no type condition exists, so everything matches
       typed_condition == nil -> true
       GraphQL.Type.is_abstract?(typed_condition) ->
-        GraphQL.AbstractTypes.possible_type?(typed_condition, runtime_type, context)
+        GraphQL.AbstractTypes.possible_type?(typed_condition, runtime_type)
       GraphQL.Type.is_named?(typed_condition) ->
         runtime_type.name == typed_condition.name
       true -> false
