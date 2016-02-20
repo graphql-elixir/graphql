@@ -258,7 +258,7 @@ defmodule GraphQL.Execution.Executor do
       GraphQL.Type.is_abstract?(typed_condition) ->
         GraphQL.AbstractTypes.possible_type?(typed_condition, runtime_type, context)
       GraphQL.Type.is_named?(typed_condition) ->
-        String.equivalent?(runtime_type.name, typed_condition.name)
+        runtime_type.name == typed_condition.name
       true -> false
     end
   end
