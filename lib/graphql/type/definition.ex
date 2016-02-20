@@ -7,7 +7,9 @@ defprotocol GraphQL.Types do
 end
 
 defprotocol GraphQL.AbstractTypes do
+  # @spec possible_type?(%GraphQL.Type.Union{} | %GraphQL.Type.Interface{}, %GraphQL.Type.ObjectType{}, %GraphQL.Schema) :: boolean
   def possible_type?(_, _, _)
+  # @spec possible_type?(%GraphQL.Type.Union{} | %GraphQL.Type.Interface{}, %GraphQL.Type.ObjectType{}, %GraphQL.Schema) :: %GraphQL.Type.ObjectType{}
   def get_object_type(_, _, _)
 end
 
@@ -31,6 +33,12 @@ defmodule GraphQL.Type do
 
   defmodule NonNull do
     defstruct ofType: nil
+  end
+
+  def implements?(object, interface) do
+    Map.get(object, :interfaces, [])
+    |> Enum.map(&(&1.name))
+    |> Enum.member?(interface.name)
   end
 
   def is_abstract?(%GraphQL.Type.Union{}), do: true

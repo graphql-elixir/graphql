@@ -6,29 +6,25 @@ defmodule GraphQL.Type.Interface do
   end
 
   @doc """
-    Takes flat list of types from the provided schema, and returns a list
-    of the types that impliment the provided interface
+  Unlike Union, Interfaces don't explicitly declare what Types implement them,
+  so we have to iterate over a full typemap and filter the Types in the Schema
+  down to just those that implement the provided interface.
   """
+  @spec possible_types(%GraphQL.Type.Interface{}, %GraphQL.Schema{}) :: [%GraphQL.Type.ObjectType{}]
   def possible_types(interface, schema) do
-    # get the flattened list of types
+    # get the complete typemap from this scheme
     GraphQL.Schema.reduce_types(schema)
-    # filter down to a list of types
-    |> Enum.filter(fn {_, t} ->
-        # by getting their interfaces, or an empty list
-        Map.get(t, :interfaces, [])
-        # and checking if any of them match the provided interface name
-        |> Enum.map(&(&1.name))
-        |> Enum.member?(interface.name)
-    end)
-    # then return the type, instead of the {name, type} tuple
+    # filter them down to a list of types that implement this interface
+    |> Enum.filter(fn {_, typedef} -> GraphQL.Type.implements?(typedef, interface) end)
+    # then return the type, instead of the {name, type} tuple that comes from
+    # the reduce_types call
     |> Enum.map(fn({_,v}) -> v end)
   end
 
   defimpl GraphQL.AbstractTypes do
     def possible_type?(interface, object, info) do
       GraphQL.Type.Interface.possible_types(interface, info.schema)
-      |> Enum.map(&(&1.name))
-      |> Enum.member?(object.name)
+      |> Enum.any?(&(&1.name == object.name))
     end
 
     def get_object_type(interface, object, info) do
