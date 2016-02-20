@@ -1,4 +1,9 @@
 defmodule GraphQL.Schema do
+  @type t :: %GraphQL.Schema{
+    query: Map,
+    mutation: Map,
+    types: [GraphQL.AbstractType.t | GraphQL.Type.ObjectType.t]
+  }
   defstruct query: nil, mutation: nil, types: []
 
   def type_from_ast(nil, _), do: nil

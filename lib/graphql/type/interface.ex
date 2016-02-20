@@ -1,4 +1,10 @@
 defmodule GraphQL.Type.Interface do
+  @type t :: %GraphQL.Type.Interface{
+    name: binary,
+    description: binary | nil,
+    fields: Map.t,
+    resolver: (any -> GraphQL.Type.ObjectType.t) | nil
+  }
   defstruct name: "", description: "", fields: %{}, resolver: nil
 
   def new(map) do
@@ -10,7 +16,6 @@ defmodule GraphQL.Type.Interface do
   so we have to iterate over a full typemap and filter the Types in the Schema
   down to just those that implement the provided interface.
   """
-  @spec possible_types(%GraphQL.Type.Interface{}, %GraphQL.Schema{}) :: [%GraphQL.Type.ObjectType{}]
   def possible_types(interface, schema) do
     # get the complete typemap from this scheme
     GraphQL.Schema.reduce_types(schema)
@@ -21,7 +26,7 @@ defmodule GraphQL.Type.Interface do
     |> Enum.map(fn({_,v}) -> v end)
   end
 
-  defimpl GraphQL.AbstractTypes do
+  defimpl GraphQL.AbstractType do
     @doc """
     Returns a boolean indicating if the provided type implements the interface
     """

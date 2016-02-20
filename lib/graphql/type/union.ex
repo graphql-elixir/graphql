@@ -1,11 +1,17 @@
 defmodule GraphQL.Type.Union do
+  @type t :: %GraphQL.Type.Union{
+    name: binary,
+    description: binary | nil,
+    resolver: (any -> GraphQL.Type.ObjectType.t),
+    types: [GraphQL.Type.ObjectType.t]
+  }
   defstruct name: "", description: "", resolver: nil, types: []
 
   def new(map) do
     struct(GraphQL.Type.Union, map)
   end
 
-  defimpl GraphQL.AbstractTypes do
+  defimpl GraphQL.AbstractType do
     @doc """
     Returns a boolean indicating if the typedef provided is part of the provided
     union type.
