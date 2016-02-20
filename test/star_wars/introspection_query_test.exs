@@ -201,7 +201,7 @@ defmodule GraphQL.StarWars.IntrospectionTest do
   test "Can run the full introspection query" do
     assert_execute {GraphQL.Type.Introspection.query, StarWars.Schema.schema}, %{
       "__schema" => %{"directives" => nil, "mutationType" => nil, "queryType" => %{"name" => "Query"}, "subscriptionType" => nil,
-      "types" => [%{"description" => "The `Boolean` scalar type represents `true` or `false`.\n", "enumValues" => nil, "fields" => [], "inputFields" => nil, "interfaces" => nil, "kind" => "SCALAR", "name" => "Boolean", "possibleTypes" => nil},
+      "types" => [%{"description" => "The `Boolean` scalar type represents `true` or `false`.\n", "enumValues" => nil, "fields" => nil, "inputFields" => nil, "interfaces" => nil, "kind" => "SCALAR", "name" => "Boolean", "possibleTypes" => nil},
        %{"description" => "A character in the Star Wars Trilogy", "enumValues" => nil,
          "fields" => [%{"args" => [], "deprecationReason" => nil, "description" => nil, "isDeprecated" => nil, "name" => "appears_in", "type" => %{"kind" => "LIST", "name" => nil, "ofType" => %{"kind" => "ENUM", "name" => "Episode", "ofType" => nil}}},
           %{"args" => [], "deprecationReason" => nil, "description" => nil, "isDeprecated" => nil, "name" => "friends", "type" => %{"kind" => "LIST", "name" => nil, "ofType" => %{"kind" => "INTERFACE", "name" => "Character", "ofType" => nil}}},
@@ -217,7 +217,7 @@ defmodule GraphQL.StarWars.IntrospectionTest do
          "interfaces" => [%{"kind" => "INTERFACE", "name" => "Character", "ofType" => nil}], "kind" => "OBJECT", "name" => "Droid", "possibleTypes" => nil},
        %{"description" => "One of the films in the Star Wars Trilogy",
          "enumValues" => [%{"deprecationReason" => nil, "description" => "Released in 1980", "isDeprecated" => nil, "name" => "EMPIRE"}, %{"deprecationReason" => nil, "description" => "Released in 1983", "isDeprecated" => nil, "name" => "JEDI"},
-          %{"deprecationReason" => nil, "description" => "Released in 1977", "isDeprecated" => nil, "name" => "NEWHOPE"}], "fields" => [], "inputFields" => nil, "interfaces" => nil, "kind" => "ENUM", "name" => "Episode", "possibleTypes" => nil},
+          %{"deprecationReason" => nil, "description" => "Released in 1977", "isDeprecated" => nil, "name" => "NEWHOPE"}], "fields" => nil, "inputFields" => nil, "interfaces" => nil, "kind" => "ENUM", "name" => "Episode", "possibleTypes" => nil},
        %{"description" => "A humanoid creature in the Star Wars universe", "enumValues" => nil,
          "fields" => [%{"args" => [], "deprecationReason" => nil, "description" => nil, "isDeprecated" => nil, "name" => "appears_in", "type" => %{"kind" => "LIST", "name" => nil, "ofType" => %{"kind" => "ENUM", "name" => "Episode", "ofType" => nil}}},
           %{"args" => [], "deprecationReason" => nil, "description" => nil, "isDeprecated" => nil, "name" => "friends", "type" => %{"kind" => "LIST", "name" => nil, "ofType" => %{"kind" => "INTERFACE", "name" => "Character", "ofType" => nil}}},
@@ -232,7 +232,7 @@ defmodule GraphQL.StarWars.IntrospectionTest do
             "description" => nil, "isDeprecated" => nil, "name" => "hero", "type" => %{"kind" => "INTERFACE", "name" => "Character", "ofType" => nil}},
           %{"args" => [%{"defaultValue" => nil, "description" => "id of the human", "name" => "id", "type" => %{"kind" => "NON_NULL", "name" => nil, "ofType" => %{"kind" => "SCALAR", "name" => "String", "ofType" => nil}}}], "deprecationReason" => nil, "description" => nil, "isDeprecated" => nil,
             "name" => "human", "type" => %{"kind" => "OBJECT", "name" => "Human", "ofType" => nil}}], "inputFields" => nil, "interfaces" => [], "kind" => "OBJECT", "name" => "Query", "possibleTypes" => nil},
-       %{"description" => "The `String` scalar type represents textual data, represented as UTF-8\ncharacter sequences. The String type is most often used by GraphQL to\nrepresent free-form human-readable text.\n", "enumValues" => nil, "fields" => [], "inputFields" => nil, "interfaces" => nil,
+       %{"description" => "The `String` scalar type represents textual data, represented as UTF-8\ncharacter sequences. The String type is most often used by GraphQL to\nrepresent free-form human-readable text.\n", "enumValues" => nil, "fields" => nil, "inputFields" => nil, "interfaces" => nil,
          "kind" => "SCALAR", "name" => "String", "possibleTypes" => nil},
        %{"description" => "A Directive provides a way to describe alternate runtime execution and\ntype validation behavior in a GraphQL document.\n\nIn some cases, you need to provide options to alter GraphQL’s\nexecution behavior in ways field arguments will not suffice, such as\nconditionally including or skipping a field. Directives provide this by\ndescribing additional information to the executor\n",
          "enumValues" => nil,
@@ -296,7 +296,7 @@ defmodule GraphQL.StarWars.IntrospectionTest do
           %{"deprecationReason" => nil, "description" => "Indicates this type is a non-null. `ofType` is a valid field.", "isDeprecated" => nil, "name" => "NON_NULL"},
           %{"deprecationReason" => nil, "description" => "Indicates this type is an object. `fields` and `interfaces` are valid fields.", "isDeprecated" => nil, "name" => "OBJECT"},
           %{"deprecationReason" => nil, "description" => "Indicates this type is a scalar.", "isDeprecated" => nil, "name" => "SCALAR"}, %{"deprecationReason" => nil, "description" => "Indicates this type is a union. `possibleTypes` is a valid field.", "isDeprecated" => nil, "name" => "UNION"}],
-         "fields" => [], "inputFields" => nil, "interfaces" => nil, "kind" => "ENUM", "name" => "__TypeKind", "possibleTypes" => nil}]}
+         "fields" => nil, "inputFields" => nil, "interfaces" => nil, "kind" => "ENUM", "name" => "__TypeKind", "possibleTypes" => nil}]}
       }
   end
 end

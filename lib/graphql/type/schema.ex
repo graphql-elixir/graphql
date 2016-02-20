@@ -1,6 +1,11 @@
 defmodule GraphQL.Schema do
   defstruct query: nil, mutation: nil, types: []
 
+  def type_from_ast(nil, _), do: nil
+  def type_from_ast(%{kind: :NamedType} = input_type_ast, schema) do
+    reduce_types(schema) |> Map.get(input_type_ast.name.value, :not_found)
+  end
+
   def reduce_types(type) do
     %{}
     |> reduce_types(type.query)
@@ -13,6 +18,13 @@ defmodule GraphQL.Schema do
 
   def reduce_types(typemap, %GraphQL.Type.Interface{} = type) do
     Map.put(typemap, type.name, type)
+  end
+
+  def reduce_types(typemap, %GraphQL.Type.Union{} = type) do
+    typemap = Map.put(typemap, type.name, type)
+    Enum.reduce(type.types, typemap, fn(fieldtype,map) ->
+       reduce_types(map, fieldtype)
+    end)
   end
 
   def reduce_types(typemap, %GraphQL.Type.ObjectType{} = type) do

@@ -9,6 +9,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
+  alias GraphQL.Type.Union
 
   @doc """
   Execute a query against a schema.
@@ -156,8 +157,14 @@ defmodule GraphQL.Execution.Executor do
     complete_value(context, inner_type, field_asts, info, result)
   end
 
-  defp complete_value(context, %Interface{} = return_type, field_asts, _info, result) do
-    runtime_type = Interface.get_object_type(return_type, result)
+  defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
+    runtime_type = GraphQL.AbstractTypes.get_object_type(return_type, result, info)
+    sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
+    execute_fields(context, runtime_type, result, sub_field_asts.fields)
+  end
+
+  defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
+    runtime_type = GraphQL.AbstractTypes.get_object_type(return_type, result, info)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
@@ -231,7 +238,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_fragment(context, runtime_type, selection, field_fragment_map) do
-    condition_matches = typecondition_matches?(selection, runtime_type)
+    condition_matches = typecondition_matches?(context, selection, runtime_type)
     if condition_matches do
       collect_fields(context, runtime_type, selection.selectionSet, field_fragment_map)
     else
@@ -239,11 +246,19 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp typecondition_matches?(selection, runtime_type) do
-    type = Map.get(selection, :typeCondition, :no_type)
+  defp typecondition_matches?(context, selection, runtime_type) do
+    typed_condition = Map.get(selection, :typeCondition)
+    |> GraphQL.Schema.type_from_ast(context.schema)
+
     cond do
-      type == :no_type -> true
-      type.name.value === runtime_type.name -> true
+      # type_from_ast was :not_found, so ... false. Probably should be a validation error
+      typed_condition == :not_found -> false
+      # there's no type condition exists, so everything matches
+      typed_condition == nil -> true
+      GraphQL.Type.is_abstract?(typed_condition) ->
+        GraphQL.AbstractTypes.possible_type?(typed_condition, runtime_type, context)
+      GraphQL.Type.is_named?(typed_condition) ->
+        String.equivalent?(runtime_type.name, typed_condition.name)
       true -> false
     end
   end
