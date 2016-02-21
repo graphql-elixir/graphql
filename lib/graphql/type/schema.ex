@@ -38,8 +38,11 @@ defmodule GraphQL.Schema do
     else
       typemap = Map.put(typemap, type.name, type)
       thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(type.fields)
-      Enum.reduce(thunk_fields, typemap, fn({_,fieldtype},map) ->
+      typemap = Enum.reduce(thunk_fields, typemap, fn({_,fieldtype},map) ->
         reduce_types(map, fieldtype.type)
+      end)
+      Enum.reduce(type.interfaces, typemap, fn(fieldtype,map) ->
+       reduce_types(map, fieldtype)
       end)
     end
   end
