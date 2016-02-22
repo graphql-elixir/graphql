@@ -5,7 +5,6 @@ defmodule GraphQL.Type.Introspection do
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.String
   alias GraphQL.Type.Boolean
-
   def schema do
     %ObjectType{
       name: "__Schema",
@@ -97,7 +96,7 @@ defmodule GraphQL.Type.Introspection do
               %GraphQL.Type.ScalarType{} -> "SCALAR"
               %GraphQL.Type.ObjectType{} -> "OBJECT"
               %GraphQL.Type.Interface{} -> "INTERFACE"
-              #%GraphQL.Type.Union{} -> "UNION"
+              %GraphQL.Type.Union{} -> "UNION"
               %GraphQL.Type.Enum{} -> "ENUM"
               #%GraphQL.Type.Input{} -> "INPUT_OBJECT"
               %GraphQL.Type.List{} -> "LIST"
@@ -126,7 +125,7 @@ defmodule GraphQL.Type.Introspection do
               thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
               Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
             (s, _, _) ->
-              []
+              nil
           end
           # resolve(type, { includeDeprecated }) {
           #   if (type instanceof GraphQLObjectType ||
@@ -153,13 +152,10 @@ defmodule GraphQL.Type.Introspection do
         possibleTypes: %{
           type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.type}},
           resolve: fn
-            (%GraphQL.Type.Interface{name: name}, args, info) ->
-              # TODO simplify this logic
-              GraphQL.Schema.reduce_types(info.schema)
-              |> Enum.filter(fn {_, t} ->
-                Map.get(t, :interfaces, [])
-                |> Enum.filter(&(&1.name === name)) !== []
-              end) |> Enum.map(fn({k,v}) -> v end)
+            (%GraphQL.Type.Interface{name: name}=interface, args, info) ->
+              GraphQL.Type.Interface.possible_types(interface, info.schema)
+            (%GraphQL.Type.Union{name: name}, args, info) ->
+              GraphQL.Schema.reduce_types(info.schema)[name].types
             (_, _, _) -> nil
           end
           # resolve(type) {
