@@ -6,6 +6,9 @@ defmodule GraphQL.Type.String do
     represent free-form human-readable text.
     """
 
+  def coerce(value) when is_map(value) do
+    for {k, v} <- value, into: %{}, do: {to_string(k), v}
+  end
   def coerce(value), do: to_string(value)
 end
 

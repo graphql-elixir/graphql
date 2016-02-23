@@ -115,8 +115,27 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     %Schema{ query: test_type }
   end
 
-  test "just don't crash" do
-    test_type
+  test "Handles objects and nullability using inline structs executes with complex input" do
+    query = """
+    {
+      field_with_object_input(input: {a: "foo", b: ["bar"], c: "baz"})
+    }
+    """
+
+    assert_execute {query, schema},
+    # the inner value should be a string as part of String.coerce.
+    # for now just get the right data..
+    %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
+  end
+
+  test "Handles objects and nullability using inline structs properly parses single value to list" do
+    query = """
+    {
+      field_with_object_input(input: {a: "foo", b: "bar", c: "baz"})
+    }
+    """
+    assert_execute {query, schema},
+    %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
   end
 
 end
