@@ -138,4 +138,12 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
   end
 
+  test "Handles objects and nullability using inline structs does not use incorrect value" do
+    query = """
+    {
+      field_with_object_input(input: ["foo", "bar", "baz"])
+    }
+    """
+    assert_execute {query, schema}, %{"field_with_object_input" => nil}
+  end
 end

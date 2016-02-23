@@ -59,3 +59,9 @@ defmodule GraphQL.Type do
   def is_named?(%GraphQL.Type.ObjectType{}), do: true
   def is_named?(_), do: false
 end
+
+defimpl GraphQL.Types, for: GraphQL.Type.List do
+  def parse_value(_, value) when is_list(value), do: value
+  def parse_value(_, value), do: List.wrap(value)
+  def serialize(_, value), do: value
+end

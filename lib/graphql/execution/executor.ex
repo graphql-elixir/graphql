@@ -219,7 +219,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp value_from_ast(%{kind: :Argument, value: obj=%{kind: :ObjectValue}}, %{type: type=%GraphQL.Type.Input{}}, variable_values) do
+  defp value_from_ast(%{kind: :Argument, value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
     input_fields = maybe_unwrap(type.fields)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
@@ -234,6 +234,8 @@ defmodule GraphQL.Execution.Executor do
       end
     end)
   end
+  defp value_from_ast(_, %{type: type=%Input{}}, _), do: nil
+
 
   defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
     variable_value = Map.get(variable_values, value)
@@ -242,12 +244,12 @@ defmodule GraphQL.Execution.Executor do
 
   defp value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _variable_values) do
     GraphQL.Types.parse_value(type.type, Enum.map(values_ast, fn(value_ast) ->
-      GraphQL.Types.parse_value(type.type, value_ast.value)
+      value_ast.value
     end))
   end
 
   defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
-  defp value_from_ast(value_ast, type, variable_values) do
+  defp value_from_ast(value_ast, type, _variable_values) do
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
