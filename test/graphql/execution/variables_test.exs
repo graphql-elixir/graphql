@@ -10,7 +10,6 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   alias GraphQL.Type.String
   alias GraphQL.Type.Input
 
-  IO.inspect GraphQL.Types
   defmodule GraphQL.Type.TestComplexScalar do
     defstruct name: "ComplexScalar", description: ""
   end
@@ -145,5 +144,16 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     }
     """
     assert_execute {query, schema}, %{"field_with_object_input" => nil}
+  end
+
+  def using_variables_query do  """
+    query q($input: TestInputObject) {
+      field_with_object_input(input: $input)
+    }
+  """ end
+  test "Handles objects and nullability using variables executes with complex input" do
+    params = %{ "input" => %{ a: 'foo', b: [ 'bar' ], c: 'baz' } }
+    assert_execute {using_variables_query, schema, nil, params},
+    %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
   end
 end

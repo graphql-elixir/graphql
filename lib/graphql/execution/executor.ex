@@ -36,7 +36,7 @@ defmodule GraphQL.Execution.Executor do
       fragments: %{},
       root_value: root_value,
       operation: nil,
-      variable_values: variable_values,
+      variable_values: variable_values, # TODO: We need to deeply set keys as strings or atoms. not allow both.
       errors: []
     }, fn(definition, context) ->
       case definition do
@@ -106,7 +106,7 @@ defmodule GraphQL.Execution.Executor do
     field_ast = hd(field_asts)
     field_name = String.to_atom(field_ast.name.value)
 
-    if field_def = field_definition(context.schema, parent_type, field_name) do
+    if field_def = field_definition(parent_type, field_name) do
       return_type = field_def.type
 
       args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
@@ -196,7 +196,7 @@ defmodule GraphQL.Execution.Executor do
   end
   def maybe_unwrap(item), do: item
 
-  defp field_definition(_schema, parent_type, field_name) do
+  defp field_definition(parent_type, field_name) do
     case field_name do
       :__typename -> GraphQL.Type.Introspection.meta(:typename)
       :__schema -> GraphQL.Type.Introspection.meta(:schema)
@@ -219,7 +219,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp value_from_ast(%{kind: :Argument, value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
+  defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
     input_fields = maybe_unwrap(type.fields)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
@@ -234,22 +234,26 @@ defmodule GraphQL.Execution.Executor do
       end
     end)
   end
-  defp value_from_ast(_, %{type: type=%Input{}}, _), do: nil
-
 
   defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
     variable_value = Map.get(variable_values, value)
     GraphQL.Types.parse_value(type.type, variable_value)
   end
 
-  defp value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _variable_values) do
+  # if it isn't a variable or object input type, that means it's invalid
+  # and we shoud return a nil
+  defp value_from_ast(_, %{type: %Input{}}, _) do
+    nil
+  end
+
+  defp value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _) do
     GraphQL.Types.parse_value(type.type, Enum.map(values_ast, fn(value_ast) ->
       value_ast.value
     end))
   end
 
   defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
-  defp value_from_ast(value_ast, type, _variable_values) do
+  defp value_from_ast(value_ast, type, _) do
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
