@@ -53,7 +53,11 @@ defmodule TestSchema do
         fields: %{
           greeting: %{
             type: %GraphQL.Type.String{},
-            resolve: &TestSchema.greeting/3
+            resolve: &TestSchema.greeting/3,
+            description: "Greeting",
+            args: %{
+              name: %{type: %GraphQL.Type.String{}, description: "The name of who you'd like to greet."},
+            }
           }
         }
       }
