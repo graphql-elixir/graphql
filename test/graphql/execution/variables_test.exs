@@ -320,6 +320,15 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   end
 
   # Handles lists and nullability
+  test "Handles lists and nullability allows lists to be null" do
+    query = """
+      query q($input: [String]) {
+        list(input: $input)
+      }
+    """
 
+    assert_execute {query, schema, nil, %{ "input" => nil }},
+      %{"list" => nil}
+  end
 
 end

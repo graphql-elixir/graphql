@@ -8,7 +8,10 @@ defmodule GraphQL.Schema do
 
   def type_from_ast(nil, _), do: nil
   def type_from_ast(%{kind: :NonNullType,} = input_type_ast, schema) do
-    type_from_ast(input_type_ast.type, schema)
+    %GraphQL.Type.NonNull{ofType: type_from_ast(input_type_ast.type, schema)}
+  end
+  def type_from_ast(%{kind: :ListType,} = input_type_ast, schema) do
+    %GraphQL.Type.List{ofType: type_from_ast(input_type_ast.type, schema)}
   end
   def type_from_ast(%{kind: :NamedType} = input_type_ast, schema) do
     reduce_types(schema) |> Map.get(input_type_ast.name.value, :not_found)

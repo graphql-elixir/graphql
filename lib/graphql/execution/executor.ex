@@ -33,10 +33,7 @@ defmodule GraphQL.Execution.Executor do
   defp get_variable_values(schema, definition_asts, inputs) do
     Enum.reduce(definition_asts, %{}, fn(ast, result) ->
       name = ast.variable.name.value
-      case x = get_variable_value(schema, ast, inputs[name]) do
-        nil -> result
-        _ -> Map.put(result, name, x)
-      end
+      Map.put(result, name, get_variable_value(schema, ast, inputs[name]))
     end)
   end
 
