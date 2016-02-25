@@ -65,7 +65,10 @@ defmodule GraphQL.Execution.Executor.VariableTest do
           args: %{
             input: %{ type: %NonNull{ofType: %String{} } }
           },
-          resolve: fn(_, %{input: input}, _) -> input end
+          resolve: fn
+            (_, %{input: input}, _) -> input
+            (_, _, _) -> nil
+          end
         },
         field_with_default_parameter: %{
           type: %String{},
@@ -218,11 +221,105 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     assert_execute {query, schema, nil, params}, "should have errored"
   end
 
- # @tag :skip
+  # Handles nullable scalars
   test "Handles nullable scalars allows nullable inputs to be omitted" do
     query = "{ field_with_nullable_string_input }"
     assert_execute {query, schema},
       %{"field_with_nullable_string_input" => nil}
   end
+
+  test "Handles nullable scalars allows nullable inputs to be omitted in a variable" do
+    query = """
+      query set_nullable($value: String) {
+        field_with_nullable_string_input(input: $value)
+      }
+    """
+    assert_execute {query, schema},
+      %{"field_with_nullable_string_input" => nil}
+  end
+
+  test "Handles nullable scalars allows nullable inputs to be omitted in an unlisted variable" do
+    query = """
+      query set_nullable {
+        field_with_nullable_string_input(input: $value)
+      }
+    """
+    assert_execute {query, schema},
+      %{"field_with_nullable_string_input" => nil}
+  end
+
+  test "Handles nullable scalars allows nullable inputs to be set to null in a variable" do
+    query = """
+      query set_nullable($value: String) {
+        field_with_nullable_string_input(input: $value)
+      }
+    """
+    assert_execute {query, schema, nil, %{"value" => nil}},
+      %{"field_with_nullable_string_input" => nil}
+  end
+
+  test "Handles nullable scalars allows nullable inputs to be set to a value in a variable" do
+    query = """
+      query set_nullable($value: String) {
+        field_with_nullable_string_input(input: $value)
+      }
+    """
+    assert_execute {query, schema, nil, %{"value" => "a"}},
+      %{"field_with_nullable_string_input" => "a"}
+  end
+
+  test "Handles nullable scalars allows non-nullable inputs to be set to a value directly" do
+    query = ~s[ { field_with_nullable_string_input(input: "a") } ]
+    assert_execute {query, schema},
+      %{"field_with_nullable_string_input" => "a"}
+  end
+
+  # Handles non-nullable scalars
+  @tag :skip
+  test "Handles non-nullable scalars does not allow non-nullable inputs to be omitted in a variable" do
+    query = """
+      query sets_non_nullable($value: String!) {
+        field_with_nonnullable_string_input(input: $value)
+      }
+    """
+    assert_execute {query, schema}, "should have errored"
+  end
+
+  @tag :skip
+  test "Handles non-nullable scalars does not allow non-nullable inputs to be set to null in a variable" do
+    query = """
+      query sets_non_nullable($value: String!) {
+        field_with_nonnullable_string_input(input: $value)
+      }
+    """
+    assert_execute {query, schema, nil, %{"value" => nil}}, "should have errored"
+  end
+
+  test "Handles non-nullable scalars allows non-nullable inputs to be set to a value in a variable" do
+    query = """
+      query sets_non_nullable($value: String!) {
+        field_with_nonnullable_string_input(input: $value)
+      }
+    """
+    assert_execute {query, schema, nil, %{"value" => "a"}},
+      %{"field_with_nonnullable_string_input" => "a"}
+  end
+
+  test "Handles non-nullable scalars allows non-nullable inputs to be set to a value directly" do
+    query = ~s[ { field_with_nonnullable_string_input(input: "a") } ]
+
+    assert_execute {query, schema, nil},
+      %{"field_with_nonnullable_string_input" => "a"}
+  end
+
+  test "Handles non-nullable scalars passes along null for non-nullable inputs if explcitly set in the query" do
+    query = ~s[ { field_with_nonnullable_string_input } ]
+
+    assert_execute {query, schema, nil},
+      %{"field_with_nonnullable_string_input" => nil}
+  end
+
+  # Handles lists and nullability
+
 
 end

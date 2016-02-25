@@ -33,17 +33,25 @@ defmodule GraphQL.Execution.Executor do
   defp get_variable_values(schema, definition_asts, inputs) do
     Enum.reduce(definition_asts, %{}, fn(ast, result) ->
       name = ast.variable.name.value
-      Map.put(result, name, get_variable_value(schema, ast, inputs[name]))
+      case x = get_variable_value(schema, ast, inputs[name]) do
+        nil -> result
+        _ -> Map.put(result, name, x)
+      end
     end)
   end
 
   defp get_variable_value(schema, ast, input) do
     type = GraphQL.Schema.type_from_ast(ast.type, schema)
     # todo soooooo much error handling. so much.
-    case input do
-      nil -> value_from_ast(%{value: ast.defaultValue}, %{type: type}, nil)
-      _ -> GraphQL.Types.serialize(%{type: type}, input) # ???
-    end
+    value_for(ast, type, input)
+  end
+
+  defp value_for(%{defaultValue: default}, type, nil) do
+    value_from_ast(%{value: default}, %{type: type}, nil)
+  end
+  defp value_for(_, _, nil), do: nil
+  defp value_for(_, type, input) do
+    GraphQL.Types.serialize(%{type: type}, input)
   end
 
   defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
