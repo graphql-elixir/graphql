@@ -156,4 +156,14 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     assert_execute {using_variables_query, schema, nil, params},
     %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
   end
+
+  test "Handles objects and nullability using variables uses default value when not provided" do
+    query = """
+      query q($input: TestInputObject = {a: "foo", b: ["bar"], c: "baz"}) {
+        field_with_object_input(input: $input)
+      }
+    """
+    assert_execute {query, schema},
+    %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}}
+  end
 end

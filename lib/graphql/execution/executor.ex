@@ -30,6 +30,22 @@ defmodule GraphQL.Execution.Executor do
     put_in(context.errors, [%{"message" => msg} | context.errors])
   end
 
+  defp get_variable_values(schema, definition_asts, inputs) do
+    Enum.reduce(definition_asts, %{}, fn(ast, result) ->
+      name = ast.variable.name.value
+      Map.put(result, name, get_variable_value(schema, ast, inputs[name]))
+    end)
+  end
+
+  defp get_variable_value(schema, ast, input) do
+    type = GraphQL.Schema.type_from_ast(ast.type, schema)
+    # todo soooooo much error handling. so much.
+    case input do
+      nil -> value_from_ast(%{value: ast.defaultValue}, %{type: type}, nil)
+      _ -> GraphQL.Types.serialize(%{type: type}, input) # ???
+    end
+  end
+
   defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
     Enum.reduce document.definitions, %{
       schema: schema,
@@ -39,6 +55,11 @@ defmodule GraphQL.Execution.Executor do
       variable_values: variable_values, # TODO: We need to deeply set keys as strings or atoms. not allow both.
       errors: []
     }, fn(definition, context) ->
+
+      variable_definitions = Map.get(definition, :variableDefinitions, [])
+      variable_values = get_variable_values(schema, variable_definitions, variable_values)
+      context = Map.put(context, :variable_values, variable_values)
+
       case definition do
         %{kind: :OperationDefinition} ->
           cond do
