@@ -55,7 +55,10 @@ defmodule GraphQL.Execution.Executor.VariableTest do
           args: %{
             input: %{ type: %String{} }
           },
-          resolve: fn(_, %{input: input}, _) -> input end
+          resolve: fn
+            (_, %{input: input}, _) -> input
+            (_, _, _) -> nil
+          end
         },
         field_with_nonnullable_string_input: %{
           type: %String{},
@@ -122,9 +125,9 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     """
 
     assert_execute {query, schema},
-    # the inner value should be a string as part of String.coerce.
-    # for now just get the right data..
-    %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
+      # the inner value should be a string as part of String.coerce.
+      # for now just get the right data..
+      %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
   end
 
   test "Handles objects and nullability using inline structs properly parses single value to list" do
@@ -134,7 +137,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     }
     """
     assert_execute {query, schema},
-    %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
+      %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
   end
 
   test "Handles objects and nullability using inline structs does not use incorrect value" do
@@ -143,7 +146,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       field_with_object_input(input: ["foo", "bar", "baz"])
     }
     """
-    assert_execute {query, schema}, %{"field_with_object_input" => nil}
+    assert_execute {query, schema},
+      %{"field_with_object_input" => nil}
   end
 
   def using_variables_query do  """
@@ -154,7 +158,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   test "Handles objects and nullability using variables executes with complex input" do
     params = %{ "input" => %{ a: 'foo', b: [ 'bar' ], c: 'baz' } }
     assert_execute {using_variables_query, schema, nil, params},
-    %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
+      %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
   end
 
   test "Handles objects and nullability using variables uses default value when not provided" do
@@ -164,6 +168,61 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
     assert_execute {query, schema},
-    %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}}
+      %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}}
   end
+
+  test "Handles objects and nullability using variables properly parses single value to list" do
+    query = """
+      query q($input: TestInputObject = {a: "foo", b: "bar", c: "baz"}) {
+        field_with_object_input(input: $input)
+      }
+    """
+    assert_execute {query, schema},
+      %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}}
+  end
+
+  test "Handles objects and nullability using variables executes with complex scalar input" do
+    params = %{ "input" => %{ c: 'foo', d: 'SerializedValue' } };
+
+    assert_execute {using_variables_query, schema, nil, params},
+      %{"field_with_object_input" => %{"c" => 'foo', "d" => 'SerializedValue'}}
+  end
+
+  @tag :skip
+  test "Handles objects and nullability using variables errors on null for nested non-null" do
+    params = %{ "input" => %{ a: 'foo', b: 'bar', c: nil } }
+
+    assert_execute {using_variables_query, schema, nil, params}, "should have errored"
+  end
+
+  @tag :skip
+  test "Handles objects and nullability using variables errors on incorrect type" do
+    params = %{ "input" => "foo bar" }
+    assert_execute {using_variables_query, schema, nil, params}, "should have errored"
+  end
+
+  @tag :skip
+  test "Handles objects and nullability using variables errors on omission of nested non-null" do
+    params = %{ "input" => %{ a: 'foo', b: 'bar' } }
+    assert_execute {using_variables_query, schema, nil, params}, "should have errored"
+  end
+
+  @tag :skip
+  test "Handles objects and nullability using variables errors on deep nested errors and with many errors" do
+    params = %{ "input" => %{ na: %{ a: 'foo' } } }
+    query = """
+      query q($input: TestNestedInputObject) {
+        fieldWithNestedObjectInput(input: $input)
+      }
+    """
+    assert_execute {query, schema, nil, params}, "should have errored"
+  end
+
+ # @tag :skip
+  test "Handles nullable scalars allows nullable inputs to be omitted" do
+    query = "{ field_with_nullable_string_input }"
+    assert_execute {query, schema},
+      %{"field_with_nullable_string_input" => nil}
+  end
+
 end
