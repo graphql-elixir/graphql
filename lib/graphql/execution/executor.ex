@@ -237,8 +237,12 @@ defmodule GraphQL.Execution.Executor do
     end
     Enum.reduce arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def
-      if value_ast = arg_ast_map[arg_def_name] do
-        Map.put(result, arg_def_name, value_from_ast(value_ast, arg_def_type, variable_values))
+      value_ast = Map.get(arg_ast_map, arg_def_name, nil)
+
+      value = value_from_ast(value_ast, arg_def_type, variable_values)
+      value = if value, do: value, else: Map.get(arg_def_type, :defaultValue, nil)
+      if value do
+        Map.put(result, arg_def_name, value)
       else
         result
       end
@@ -268,9 +272,7 @@ defmodule GraphQL.Execution.Executor do
 
   # if it isn't a variable or object input type, that means it's invalid
   # and we shoud return a nil
-  defp value_from_ast(_, %{type: %Input{}}, _) do
-    nil
-  end
+  defp value_from_ast(_, %{type: %Input{}}, _), do: nil
 
   defp value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _) do
     GraphQL.Types.parse_value(type.type, Enum.map(values_ast, fn(value_ast) ->
@@ -279,7 +281,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
-  defp value_from_ast(value_ast, type, _) do
+  defp value_from_ast(value_ast, type, _) do # need to exclude scalartype and enumtype
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
