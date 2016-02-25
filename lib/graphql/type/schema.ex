@@ -8,7 +8,7 @@ defmodule GraphQL.Schema do
 
   def type_from_ast(nil, _), do: nil
   def type_from_ast(%{kind: :NonNullType,} = input_type_ast, schema) do
-    inner_type = type_from_ast(input_type_ast.type, schema)
+    type_from_ast(input_type_ast.type, schema)
   end
   def type_from_ast(%{kind: :NamedType} = input_type_ast, schema) do
     reduce_types(schema) |> Map.get(input_type_ast.name.value, :not_found)
@@ -51,6 +51,9 @@ defmodule GraphQL.Schema do
     end
   end
 
+  def reduce_types(typemap, %{name: name} = type), do: Map.put(typemap, name, type)
+  def reduce_types(typemap, nil), do: typemap
+
   defp _reduce_arguments(typemap, %{args: args}) do
     field_arg_types = Enum.map(args, fn{_,v} -> v.type end)
     Enum.reduce(field_arg_types, typemap, fn(fieldtype,typemap) ->
@@ -58,8 +61,4 @@ defmodule GraphQL.Schema do
     end)
   end
   defp _reduce_arguments(typemap, _), do: typemap
-
-
-  def reduce_types(typemap, %{name: name} = type), do: Map.put(typemap, name, type)
-  def reduce_types(typemap, nil), do: typemap
 end
