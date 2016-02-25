@@ -15,6 +15,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   end
   # TODO: Why can't I have a defimpl in here?
   # Should I put this in a support file?
+
   alias GraphQL.Type.TestComplexScalar
 
   def test_input_object do
@@ -56,7 +57,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %String{} }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input
+            (_, %{input: input}, _) -> input && Poison.encode!(input)
             (_, _, _) -> nil
           end
         },
@@ -66,7 +67,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %NonNull{ofType: %String{} } }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input
+            (_, %{input: input}, _) -> input && Poison.encode!(input)
             (_, _, _) -> nil
           end
         },
@@ -75,21 +76,22 @@ defmodule GraphQL.Execution.Executor.VariableTest do
           args: %{
             input: %{ type: %String{}, defaultValue: "Hello World" }
           },
-          resolve: fn(_, %{input: input}, _) -> input end
+          resolve: fn(_, %{input: input}, _) -> input && Poison.encode!(input) end
         },
         field_with_nested_input: %{
           type: %String{},
           args: %{
             input: %{ type: test_nested_input_object, defaultValue: "Hello World" }
           },
-          resolve: fn(_, %{input: input}, _) -> input end
+          resolve: fn(_, %{input: input}, _) -> input && Poison.encode!(input) end
         },
         list: %{
           type: %String{},
           args: %{
             input: %{ type: %List{ofType: %String{} } }
           },
-          resolve: fn(_, %{input: input}, _) -> input end
+          resolve: fn(_, %{input: input}, _) -> input && Poison.encode!(input)
+        end
         },
         nnList: %{
           type: %String{},
@@ -265,13 +267,13 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
     assert_execute {query, schema, nil, %{"value" => "a"}},
-      %{"field_with_nullable_string_input" => "a"}
+      %{"field_with_nullable_string_input" => ~s("a")}
   end
 
   test "Handles nullable scalars allows non-nullable inputs to be set to a value directly" do
     query = ~s[ { field_with_nullable_string_input(input: "a") } ]
     assert_execute {query, schema},
-      %{"field_with_nullable_string_input" => "a"}
+      %{"field_with_nullable_string_input" => ~s("a")}
   end
 
   # Handles non-nullable scalars
@@ -302,14 +304,14 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
     assert_execute {query, schema, nil, %{"value" => "a"}},
-      %{"field_with_nonnullable_string_input" => "a"}
+      %{"field_with_nonnullable_string_input" => ~s("a")}
   end
 
   test "Handles non-nullable scalars allows non-nullable inputs to be set to a value directly" do
     query = ~s[ { field_with_nonnullable_string_input(input: "a") } ]
 
     assert_execute {query, schema, nil},
-      %{"field_with_nonnullable_string_input" => "a"}
+      %{"field_with_nonnullable_string_input" => ~s("a")}
   end
 
   test "Handles non-nullable scalars passes along null for non-nullable inputs if explcitly set in the query" do
@@ -331,4 +333,25 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       %{"list" => nil}
   end
 
+  test "Handles lists and nullability allows lists to contain values" do
+    query = """
+      query q($input: [String]) {
+        list(input: $input)
+      }
+    """
+
+    assert_execute {query, schema, nil, %{ "input" => ["A"] }},
+      %{"list" => ~s(["A"])}
+  end
+
+  test "Handles lists and nullability allows lists to contain null" do
+    query = """
+      query q($input: [String]) {
+        list(input: $input)
+      }
+    """
+
+    assert_execute {query, schema, nil, %{ "input" => ["A", nil, "B"] }},
+      %{"list" => ~s(["A",null,"B"])}
+  end
 end
