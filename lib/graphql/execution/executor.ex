@@ -135,7 +135,7 @@ defmodule GraphQL.Execution.Executor do
     if field_def = field_definition(parent_type, field_name) do
       return_type = field_def.type
 
-      args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
+      args = Map.merge(argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values), context.variable_values || %{})
       info = %{
         field_name: field_name,
         field_asts: field_asts,
