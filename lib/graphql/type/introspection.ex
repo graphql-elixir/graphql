@@ -98,7 +98,7 @@ defmodule GraphQL.Type.Introspection do
               %GraphQL.Type.Interface{} -> "INTERFACE"
               %GraphQL.Type.Union{} -> "UNION"
               %GraphQL.Type.Enum{} -> "ENUM"
-              #%GraphQL.Type.Input{} -> "INPUT_OBJECT"
+              %GraphQL.Type.Input{} -> "INPUT_OBJECT"
               %GraphQL.Type.List{} -> "LIST"
               %GraphQL.Type.NonNull{} -> "NON_NULL"
               # since we can't subclass, maybe we can just check
@@ -184,10 +184,20 @@ defmodule GraphQL.Type.Introspection do
         },
         inputFields: %{
           type: %List{ofType: %NonNull{ofType: GraphQL.Type.Introspection.input_value}},
-          resolve: nil
+          resolve: fn
+            (%GraphQL.Type.Input{}=type, _args, _info) ->
+              fields = type.fields
+              Enum.map(Map.keys(fields), fn(key) ->
+                %{
+                  name: key,
+                  type: fields[key].type
+                }
+              end)
+            (_,_,_) -> nil
+          end
           # resolve(type) {
           #   if (type instanceof GraphQLInputObjectType) {
-          #     var fieldMap = type.getFields();
+          #     const fieldMap = type.getFields();
           #     return Object.keys(fieldMap).map(fieldName => fieldMap[fieldName]);
           #   }
           # }
