@@ -279,7 +279,7 @@ defmodule GraphQL.Execution.Executor do
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
-  defp input_value_from_ast(input_fields, obj, type, variable_values) do
+  defp input_value_from_ast(input_fields, obj, _type, variable_values) do
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
     end)
