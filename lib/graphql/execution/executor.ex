@@ -251,18 +251,12 @@ defmodule GraphQL.Execution.Executor do
 
   defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
     input_fields = maybe_unwrap(type.fields)
-    field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
-      Map.put(result, ast.name.value, ast)
-    end)
-    Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
-      field = Map.get(input_fields, field_name)
-      field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
-      inner_result = value_from_ast(field_ast, field, variable_values)
-      case inner_result do
-        nil -> result
-        _ -> Map.put(result, field_name, inner_result)
-      end
-    end)
+    input_value_from_ast(input_fields, obj, type, variable_values)
+  end
+
+  defp value_from_ast(%{kind: :Argument, value: obj=%{kind: :ObjectValue}}, %{type: %GraphQL.Type.NonNull{ofType: %GraphQL.Type.Input{}}} = type, variable_values) do
+    input_fields = maybe_unwrap(type.type.ofType.fields) # WTF?
+    input_value_from_ast(input_fields, obj, type, variable_values)
   end
 
   defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
@@ -283,6 +277,21 @@ defmodule GraphQL.Execution.Executor do
   defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
   defp value_from_ast(value_ast, type, _) do # need to exclude scalartype and enumtype
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
+  end
+
+  defp input_value_from_ast(input_fields, obj, type, variable_values) do
+    field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
+      Map.put(result, ast.name.value, ast)
+    end)
+    Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
+      field = Map.get(input_fields, field_name)
+      field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
+      inner_result = value_from_ast(field_ast, field, variable_values)
+      case inner_result do
+        nil -> result
+        _ -> Map.put(result, field_name, inner_result)
+      end
+    end)
   end
 
   defp field_entry_key(field) do
