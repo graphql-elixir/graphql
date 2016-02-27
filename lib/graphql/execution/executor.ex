@@ -251,18 +251,12 @@ defmodule GraphQL.Execution.Executor do
 
   defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
     input_fields = maybe_unwrap(type.fields)
-    field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
-      Map.put(result, ast.name.value, ast)
-    end)
-    Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
-      field = Map.get(input_fields, field_name)
-      field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
-      inner_result = value_from_ast(field_ast, field, variable_values)
-      case inner_result do
-        nil -> result
-        _ -> Map.put(result, field_name, inner_result)
-      end
-    end)
+    input_value_from_ast(input_fields, obj, type, variable_values)
+  end
+
+  defp value_from_ast(%{kind: :Argument, value: obj=%{kind: :ObjectValue}}, %{type: %GraphQL.Type.NonNull{ofType: %GraphQL.Type.Input{}}} = type, variable_values) do
+    input_fields = maybe_unwrap(type.type.ofType.fields) # WTF?
+    input_value_from_ast(input_fields, obj, type, variable_values)
   end
 
   defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
@@ -285,6 +279,21 @@ defmodule GraphQL.Execution.Executor do
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
+  defp input_value_from_ast(input_fields, obj, _type, variable_values) do
+    field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
+      Map.put(result, ast.name.value, ast)
+    end)
+    Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
+      field = Map.get(input_fields, field_name)
+      field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
+      inner_result = value_from_ast(field_ast, field, variable_values)
+      case inner_result do
+        nil -> result
+        _ -> Map.put(result, field_name, inner_result)
+      end
+    end)
+  end
+
   defp field_entry_key(field) do
     Map.get(field, :alias, field.name)
   end
@@ -303,10 +312,11 @@ defmodule GraphQL.Execution.Executor do
     |> GraphQL.Schema.type_from_ast(context.schema)
 
     cond do
-      # type_from_ast was :not_found, so ... false. Probably should be a validation error
-      typed_condition == :not_found -> false
       # there's no type condition exists, so everything matches
       typed_condition == nil -> true
+      Map.get(selection, :typeCondition).name.value == runtime_type.name -> true
+      # type_from_ast was :not_found, so ... false. Probably should be a validation error
+      typed_condition == :not_found -> false
       GraphQL.Type.is_abstract?(typed_condition) ->
         GraphQL.AbstractType.possible_type?(typed_condition, runtime_type)
       GraphQL.Type.is_named?(typed_condition) ->
