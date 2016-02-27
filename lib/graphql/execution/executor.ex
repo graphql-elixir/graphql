@@ -9,6 +9,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
+  alias GraphQL.Type.NonNull
   alias GraphQL.Type.Input
   alias GraphQL.Type.Union
 
@@ -249,14 +250,24 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
-    input_fields = maybe_unwrap(type.fields)
-    input_value_from_ast(input_fields, obj, type, variable_values)
+  defp value_from_ast(value_ast, %{type: %NonNull{ofType: inner_type}}, variable_values) do
+    value_from_ast(value_ast, %{type: inner_type}, variable_values)
   end
 
-  defp value_from_ast(%{kind: :Argument, value: obj=%{kind: :ObjectValue}}, %{type: %GraphQL.Type.NonNull{ofType: %GraphQL.Type.Input{}}} = type, variable_values) do
-    input_fields = maybe_unwrap(type.type.ofType.fields) # WTF?
-    input_value_from_ast(input_fields, obj, type, variable_values)
+  defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
+    input_fields = maybe_unwrap(type.fields)
+    field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
+      Map.put(result, ast.name.value, ast)
+    end)
+    Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
+      field = Map.get(input_fields, field_name)
+      field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
+      inner_result = value_from_ast(field_ast, field, variable_values)
+      case inner_result do
+        nil -> result
+        _ -> Map.put(result, field_name, inner_result)
+      end
+    end)
   end
 
   defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
@@ -279,21 +290,6 @@ defmodule GraphQL.Execution.Executor do
     GraphQL.Types.parse_value(type.type, value_ast.value.value)
   end
 
-  defp input_value_from_ast(input_fields, obj, _type, variable_values) do
-    field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
-      Map.put(result, ast.name.value, ast)
-    end)
-    Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
-      field = Map.get(input_fields, field_name)
-      field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
-      inner_result = value_from_ast(field_ast, field, variable_values)
-      case inner_result do
-        nil -> result
-        _ -> Map.put(result, field_name, inner_result)
-      end
-    end)
-  end
-
   defp field_entry_key(field) do
     Map.get(field, :alias, field.name)
   end
@@ -308,20 +304,27 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp typecondition_matches?(context, selection, runtime_type) do
-    typed_condition = Map.get(selection, :typeCondition)
-    |> GraphQL.Schema.type_from_ast(context.schema)
+    condition_ast = Map.get(selection, :typeCondition)
+    typed_condition = GraphQL.Schema.type_from_ast(condition_ast, context.schema)
 
     cond do
-      # there's no type condition exists, so everything matches
+      # no type condition was defined on this selectionset, so it's ok to run
       typed_condition == nil -> true
-      Map.get(selection, :typeCondition).name.value == runtime_type.name -> true
-      # type_from_ast was :not_found, so ... false. Probably should be a validation error
-      typed_condition == :not_found -> false
+      # if the type condition is an interface or union, check to see if the
+      # type implements the interface or belongs to the union.
       GraphQL.Type.is_abstract?(typed_condition) ->
         GraphQL.AbstractType.possible_type?(typed_condition, runtime_type)
-      GraphQL.Type.is_named?(typed_condition) ->
-        runtime_type.name == typed_condition.name
-      true -> false
+      # in some cases with interfaces, the type won't be associated anywhere
+      # else in the schema besides in the resolve function, which we can't
+      # peek into when the typemap is generated. Because of this, the type
+      # won't be found (:not_found). Before we return `false` because of that,
+      # make a last check to see if the type exists after the interface's
+      # resolve function has run.
+      condition_ast.name.value == runtime_type.name -> true
+      # the type doesn't exist, so, it can't match
+      typed_condition == :not_found -> false
+      # last chance to check if the type names (which are unique) match
+      true -> runtime_type.name == typed_condition.name
     end
   end
 end
