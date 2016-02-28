@@ -45,7 +45,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp value_for(%{defaultValue: default}, type, nil) do
-    value_from_ast(%{value: default}, %{type: type}, nil)
+    value_from_ast(%{value: default}, type, nil)
   end
   defp value_for(_, _, nil), do: nil
   defp value_for(_, type, input) do
@@ -240,7 +240,7 @@ defmodule GraphQL.Execution.Executor do
       {arg_def_name, arg_def_type} = arg_def
       value_ast = Map.get(arg_ast_map, arg_def_name, nil)
 
-      value = value_from_ast(value_ast, arg_def_type, variable_values)
+      value = value_from_ast(value_ast, arg_def_type.type, variable_values)
       value = if value, do: value, else: Map.get(arg_def_type, :defaultValue, nil)
       if value do
         Map.put(result, arg_def_name, value)
@@ -250,11 +250,11 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp value_from_ast(value_ast, %{type: %NonNull{ofType: inner_type}}, variable_values) do
-    value_from_ast(value_ast, %{type: inner_type}, variable_values)
+  defp value_from_ast(value_ast, %NonNull{ofType: inner_type}, variable_values) do
+    value_from_ast(value_ast, inner_type, variable_values)
   end
 
-  defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, %{type: type=%Input{}}, variable_values) do
+  defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
     input_fields = maybe_unwrap(type.fields)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
@@ -262,7 +262,7 @@ defmodule GraphQL.Execution.Executor do
     Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
       field = Map.get(input_fields, field_name)
       field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
-      inner_result = value_from_ast(field_ast, field, variable_values)
+      inner_result = value_from_ast(field_ast, field.type, variable_values)
       case inner_result do
         nil -> result
         _ -> Map.put(result, field_name, inner_result)
@@ -272,26 +272,26 @@ defmodule GraphQL.Execution.Executor do
 
   defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
     variable_value = Map.get(variable_values, value)
-    GraphQL.Types.parse_value(type.type, variable_value)
+    GraphQL.Types.parse_value(type, variable_value)
   end
 
   # if it isn't a variable or object input type, that means it's invalid
   # and we shoud return a nil
-  defp value_from_ast(_, %{type: %Input{}}, _), do: nil
+  defp value_from_ast(_, %Input{}, _), do: nil
 
   defp value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _) do
-    GraphQL.Types.parse_value(type.type, Enum.map(values_ast, fn(value_ast) ->
+    GraphQL.Types.parse_value(type, Enum.map(values_ast, fn(value_ast) ->
       value_ast.value
     end))
   end
 
-  defp value_from_ast(value_ast, %{type: %List{ofType: inner_type}}, variable_values) do
-    [ value_from_ast(value_ast, %{type: inner_type}, variable_values) ]
+  defp value_from_ast(value_ast, %List{ofType: inner_type}, variable_values) do
+    [ value_from_ast(value_ast, inner_type, variable_values) ]
   end
 
   defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
-  defp value_from_ast(value_ast, type, _) do # need to exclude scalartype and enumtype
-    GraphQL.Types.parse_literal(type.type, value_ast.value)
+  defp value_from_ast(value_ast, type, _) do
+    GraphQL.Types.parse_literal(type, value_ast.value)
   end
 
   defp field_entry_key(field) do
