@@ -285,9 +285,13 @@ defmodule GraphQL.Execution.Executor do
     end))
   end
 
+  defp value_from_ast(value_ast, %{type: %List{ofType: inner_type}}, variable_values) do
+    [ value_from_ast(value_ast, %{type: inner_type}, variable_values) ]
+  end
+
   defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
   defp value_from_ast(value_ast, type, _) do # need to exclude scalartype and enumtype
-    GraphQL.Types.parse_value(type.type, value_ast.value.value)
+    GraphQL.Types.parse_literal(type.type, value_ast.value)
   end
 
   defp field_entry_key(field) do

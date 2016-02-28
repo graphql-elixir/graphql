@@ -16,4 +16,6 @@ end
 defimpl GraphQL.Types, for: GraphQL.Type.String do
   def parse_value(_, value), do: GraphQL.Type.String.coerce(value)
   def serialize(_, value), do: GraphQL.Type.String.coerce(value)
+  def parse_literal(_, %{kind: :StringValue, value: value}), do: value
+  def parse_literal(_, _), do: nil
 end

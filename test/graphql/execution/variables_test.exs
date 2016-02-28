@@ -509,7 +509,6 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       %{"field_with_default_parameter" => ~s("Hello World")}
   end
 
-  @tag :skip # need to stop EnumValue and ScalarValue from being inputs
   test "Execute: Uses argument default values when argument provided cannot be parsed" do
     query = "{ field_with_default_parameter(input: WRONG_TYPE) }"
     assert_execute {query, schema},
