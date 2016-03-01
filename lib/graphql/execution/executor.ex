@@ -64,7 +64,19 @@ defmodule GraphQL.Execution.Executor do
 
       variable_definitions = Map.get(definition, :variableDefinitions, [])
       variable_values = get_variable_values(schema, variable_definitions, variable_values)
-      context = Map.put(context, :variable_values, variable_values)
+
+      # We need to accumulate context[:variable_values] so that if
+      # length(document.definitions) > 1, we don't clobber previously
+      # set variable_values. This occurs when we use fragments alongside
+      # a mutation or query. See variables_test.exs#"Does not clobber
+      # variable_values when there's multiple document.definitions"
+      context = put_in(
+        context[:variable_values],
+        Map.merge(
+          context[:variable_values],
+          variable_values
+        )
+      )
 
       case definition do
         %{kind: :OperationDefinition} ->
