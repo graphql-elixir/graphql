@@ -58,7 +58,7 @@ defmodule GraphQL.Execution.Executor do
       fragments: %{},
       root_value: root_value,
       operation: nil,
-      variable_values: variable_values, # TODO: We need to deeply set keys as strings or atoms. not allow both.
+      variable_values: variable_values || %{}, # TODO: We need to deeply set keys as strings or atoms. not allow both.
       errors: []
     }, fn(definition, context) ->
 
