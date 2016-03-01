@@ -180,6 +180,22 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
   end
 
+  test "Does not clobber variable_values when there's multiple document.definitions" do
+    query = """
+      query q($input: TestInputObject!) {
+        field_with_object_input(input: $input) {
+          ...F0
+        }
+      }
+      fragment F0 on TestType {
+        field_with_object_input
+      }
+    """
+    params = %{ "input" => %{ a: 'foo', b: [ 'bar' ], c: 'baz' } }
+    assert_execute {query, schema, nil, params},
+      %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
+  end
+
   test "Handles objects and nullability using variables uses default value when not provided" do
     query = """
       query q($input: TestInputObject = {a: "foo", b: ["bar"], c: "baz"}) {
