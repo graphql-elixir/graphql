@@ -169,6 +169,40 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_execute {~S[{ person(id: "1") { id name age } }], schema, data}, %{person: %{id: "1", name: "Dave", age: 34}}
   end
 
+  test "returns error when query returns an error" do
+    schema = %Schema{
+      query: %ObjectType{
+        name: "PersonQuery",
+        fields: %{
+          person: %{
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}, resolve: fn(p, _, _) -> p.id   end},
+                name: %{name: "name", type: %String{}, resolve: fn(p, _, _) -> p.name end},
+                age:  %{name: "age",  type: %Int{},    resolve: fn(p, _, _) -> p.age  end}
+              }
+            },
+            args: %{
+              id: %{type: %ID{}}
+            },
+            resolve: fn(data, %{id: id}, _) ->
+              {:error, "Failure happened."}
+            end
+          }
+        }
+      }
+    }
+
+    data = [
+      %{id: "0", name: "Kate", age: 25},
+      %{id: "1", name: "Dave", age: 34},
+      %{id: "2", name: "Jeni", age: 45}
+    ]
+
+    assert_execute {~S[{ person(id: "1") { name } }], schema, data}, %{person: nil}
+  end
+
   test "use specified query operation" do
     schema = %Schema{
       query: %ObjectType{
