@@ -12,13 +12,17 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.Interface
   alias GraphQL.Type.Union
 
+  @type error :: %{message: String.t}
+
   @doc """
   Execute a query against a schema.
 
       # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
   """
+  @spec execute(GraphQL.Schema.t, Map, Map, Map, String.t) :: Map
   def execute(schema, document, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
+    IEx.pry
     context = build_execution_context(schema, document, root_value, variable_values, operation_name)
     case context.errors do
       [] -> execute_operation(context, context.operation, root_value)
@@ -26,10 +30,21 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
+  @spec report_error(context, String.t) :: context
   defp report_error(context, msg) do
     put_in(context.errors, [%{"message" => msg} | context.errors])
   end
 
+  @type context :: %{
+    schema: GraphQL.Schema.t,
+    fragments: struct,
+    root_value: Map,
+    operation: Map,
+    variable_values: Map,
+    errors: list(error)
+  }
+
+  @spec build_execution_context(GraphQL.Schema.t, Map, Map, Map, String.t) :: context
   defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
     Enum.reduce document.definitions, %{
       schema: schema,
@@ -54,6 +69,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
+  @spec execute_operation(context, Map, Map) :: {atom, any}
   defp execute_operation(context, operation, root_value) do
     type = operation_root_type(context.schema, operation)
     %{fields: fields} = collect_fields(context, type, operation.selectionSet)
@@ -65,6 +81,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
+  @spec operation_root_type(GraphQL.Schema.t, Map) :: String.t
   defp operation_root_type(schema, operation) do
     Map.get(schema, operation.operation)
   end
@@ -88,11 +105,13 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
+  @spec execute_fields(any, struct, struct, list) :: any
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
+        # :undefined is used to indicate that there was no field definition in the schema
         :undefined -> results
-        value -> Map.put(results, field_name.value, value)
+        value      -> Map.put(results, field_name.value, value)
       end
     end
   end
