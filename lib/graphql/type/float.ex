@@ -21,4 +21,5 @@ end
 defimpl GraphQL.Types, for: GraphQL.Type.Float do
   def parse_value(_, value), do: GraphQL.Type.Float.coerce(value)
   def serialize(_, value), do: GraphQL.Type.Float.coerce(value)
+  def parse_literal(_, v), do: v.value
 end

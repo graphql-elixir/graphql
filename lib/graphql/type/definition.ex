@@ -3,6 +3,7 @@
 defprotocol GraphQL.Types do
   @fallback_to_any true
   def parse_value(type, value)
+  def parse_literal(type, value)
   def serialize(type, value)
 end
 
@@ -18,6 +19,7 @@ end
 
 defimpl GraphQL.Types, for: Any do
   def parse_value(_, v), do:  v
+  def parse_literal(_, v), do: v.value
   def serialize(_, v), do: v
 end
 
@@ -58,4 +60,12 @@ defmodule GraphQL.Type do
 
   def is_named?(%GraphQL.Type.ObjectType{}), do: true
   def is_named?(_), do: false
+end
+
+defimpl GraphQL.Types, for: GraphQL.Type.List do
+  def parse_value(_, nil), do: nil
+  def parse_value(_, value) when is_list(value), do: value
+  def parse_value(_, value), do: List.wrap(value)
+  def serialize(_, value), do: value
+  def parse_literal(_, v), do: v.value
 end

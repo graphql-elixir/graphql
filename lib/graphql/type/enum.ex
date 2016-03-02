@@ -30,6 +30,10 @@ defimpl GraphQL.Types, for: GraphQL.Type.Enum do
     GraphQL.Type.Enum.values(struct) |> Map.get(String.to_atom(value))
   end
 
+  def parse_literal(struct, value) do
+    GraphQL.Type.Enum.values(struct) |> Map.get(String.to_atom(value.value))
+  end
+
   def serialize(struct, wanted) do
     values = GraphQL.Type.Enum.values(struct)
     case Enum.find(values, fn({_, v}) -> v == wanted end) do

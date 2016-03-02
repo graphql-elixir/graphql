@@ -9,6 +9,8 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
+  alias GraphQL.Type.NonNull
+  alias GraphQL.Type.Input
   alias GraphQL.Type.Union
 
   @doc """
@@ -29,15 +31,53 @@ defmodule GraphQL.Execution.Executor do
     put_in(context.errors, [%{"message" => msg} | context.errors])
   end
 
+  defp get_variable_values(schema, definition_asts, inputs) do
+    Enum.reduce(definition_asts, %{}, fn(ast, result) ->
+      name = ast.variable.name.value
+      Map.put(result, name, get_variable_value(schema, ast, inputs[name]))
+    end)
+  end
+
+  defp get_variable_value(schema, ast, input) do
+    type = GraphQL.Schema.type_from_ast(ast.type, schema)
+    # todo soooooo much error handling. so much.
+    value_for(ast, type, input)
+  end
+
+  defp value_for(%{defaultValue: default}, type, nil) do
+    value_from_ast(%{value: default}, type, nil)
+  end
+  defp value_for(_, _, nil), do: nil
+  defp value_for(_, type, input) do
+    GraphQL.Types.serialize(%{type: type}, input)
+  end
+
   defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
     Enum.reduce document.definitions, %{
       schema: schema,
       fragments: %{},
       root_value: root_value,
       operation: nil,
-      variable_values: variable_values,
+      variable_values: variable_values || %{}, # TODO: We need to deeply set keys as strings or atoms. not allow both.
       errors: []
     }, fn(definition, context) ->
+
+      variable_definitions = Map.get(definition, :variableDefinitions, [])
+      variable_values = get_variable_values(schema, variable_definitions, variable_values)
+
+      # We need to accumulate context[:variable_values] so that if
+      # length(document.definitions) > 1, we don't clobber previously
+      # set variable_values. This occurs when we use fragments alongside
+      # a mutation or query. See variables_test.exs#"Does not clobber
+      # variable_values when there's multiple document.definitions"
+      context = put_in(
+        context[:variable_values],
+        Map.merge(
+          context[:variable_values],
+          variable_values
+        )
+      )
+
       case definition do
         %{kind: :OperationDefinition} ->
           cond do
@@ -105,10 +145,10 @@ defmodule GraphQL.Execution.Executor do
     field_ast = hd(field_asts)
     field_name = String.to_atom(field_ast.name.value)
 
-    if field_def = field_definition(context.schema, parent_type, field_name) do
+    if field_def = field_definition(parent_type, field_name) do
       return_type = field_def.type
 
-      args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
+      args = Map.merge(argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values), context.variable_values || %{})
       info = %{
         field_name: field_name,
         field_asts: field_asts,
@@ -195,7 +235,7 @@ defmodule GraphQL.Execution.Executor do
   end
   def maybe_unwrap(item), do: item
 
-  defp field_definition(_schema, parent_type, field_name) do
+  defp field_definition(parent_type, field_name) do
     case field_name do
       :__typename -> GraphQL.Type.Introspection.meta(:typename)
       :__schema -> GraphQL.Type.Introspection.meta(:schema)
@@ -210,27 +250,60 @@ defmodule GraphQL.Execution.Executor do
     end
     Enum.reduce arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def
-      if value_ast = arg_ast_map[arg_def_name] do
-        Map.put(result, arg_def_name, value_from_ast(value_ast, arg_def_type, variable_values))
+      value_ast = Map.get(arg_ast_map, arg_def_name, nil)
+
+      value = value_from_ast(value_ast, arg_def_type.type, variable_values)
+      value = if value, do: value, else: Map.get(arg_def_type, :defaultValue, nil)
+      if value do
+        Map.put(result, arg_def_name, value)
       else
         result
       end
     end
   end
 
-  defp value_from_ast(%{kind: :Argument, value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
-    variable_value = Map.get(variable_values, value)
-    GraphQL.Types.parse_value(type.type, variable_value)
+  defp value_from_ast(value_ast, %NonNull{ofType: inner_type}, variable_values) do
+    value_from_ast(value_ast, inner_type, variable_values)
   end
 
-  defp value_from_ast(%{kind: :Argument, value: %{kind: :ListValue, values: values_ast}}, type, _variable_values) do
-    GraphQL.Types.parse_value(type.type, Enum.map(values_ast, fn(value_ast) ->
-      GraphQL.Types.parse_value(type.type, value_ast.value)
+  defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
+    input_fields = maybe_unwrap(type.fields)
+    field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
+      Map.put(result, ast.name.value, ast)
+    end)
+    Enum.reduce(Map.keys(input_fields), %{}, fn(field_name, result) ->
+      field = Map.get(input_fields, field_name)
+      field_ast =  Map.get(field_asts, to_string(field_name)) # this feels... brittle.
+      inner_result = value_from_ast(field_ast, field.type, variable_values)
+      case inner_result do
+        nil -> result
+        _ -> Map.put(result, field_name, inner_result)
+      end
+    end)
+  end
+
+  defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
+    variable_value = Map.get(variable_values, value)
+    GraphQL.Types.parse_value(type, variable_value)
+  end
+
+  # if it isn't a variable or object input type, that means it's invalid
+  # and we shoud return a nil
+  defp value_from_ast(_, %Input{}, _), do: nil
+
+  defp value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _) do
+    GraphQL.Types.parse_value(type, Enum.map(values_ast, fn(value_ast) ->
+      value_ast.value
     end))
   end
 
-  defp value_from_ast(value_ast, type, _variable_values) do
-    GraphQL.Types.parse_value(type.type, value_ast.value.value)
+  defp value_from_ast(value_ast, %List{ofType: inner_type}, variable_values) do
+    [ value_from_ast(value_ast, inner_type, variable_values) ]
+  end
+
+  defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
+  defp value_from_ast(value_ast, type, _) do
+    GraphQL.Types.parse_literal(type, value_ast.value)
   end
 
   defp field_entry_key(field) do
@@ -247,19 +320,27 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp typecondition_matches?(context, selection, runtime_type) do
-    typed_condition = Map.get(selection, :typeCondition)
-    |> GraphQL.Schema.type_from_ast(context.schema)
+    condition_ast = Map.get(selection, :typeCondition)
+    typed_condition = GraphQL.Schema.type_from_ast(condition_ast, context.schema)
 
     cond do
-      # type_from_ast was :not_found, so ... false. Probably should be a validation error
-      typed_condition == :not_found -> false
-      # there's no type condition exists, so everything matches
+      # no type condition was defined on this selectionset, so it's ok to run
       typed_condition == nil -> true
+      # if the type condition is an interface or union, check to see if the
+      # type implements the interface or belongs to the union.
       GraphQL.Type.is_abstract?(typed_condition) ->
         GraphQL.AbstractType.possible_type?(typed_condition, runtime_type)
-      GraphQL.Type.is_named?(typed_condition) ->
-        runtime_type.name == typed_condition.name
-      true -> false
+      # in some cases with interfaces, the type won't be associated anywhere
+      # else in the schema besides in the resolve function, which we can't
+      # peek into when the typemap is generated. Because of this, the type
+      # won't be found (:not_found). Before we return `false` because of that,
+      # make a last check to see if the type exists after the interface's
+      # resolve function has run.
+      condition_ast.name.value == runtime_type.name -> true
+      # the type doesn't exist, so, it can't match
+      typed_condition == :not_found -> false
+      # last chance to check if the type names (which are unique) match
+      true -> runtime_type.name == typed_condition.name
     end
   end
 end

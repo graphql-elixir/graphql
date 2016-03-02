@@ -12,4 +12,5 @@ end
 defimpl GraphQL.Types, for: GraphQL.Type.Boolean do
   def parse_value(_, value), do: GraphQL.Type.Boolean.coerce(value)
   def serialize(_, value), do: GraphQL.Type.Boolean.coerce(value)
+  def parse_literal(_, v), do: v.value
 end
