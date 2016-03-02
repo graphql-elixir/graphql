@@ -180,7 +180,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         fields: %{b: %{ type: %String{}}}
       }
     }
-    data = %{a: "A", b: "B"}
+    data = %{"a" => "A", b: "B"}
     assert_execute {"query Q { a } mutation M { b }", schema, data, nil, "Q"}, %{a: "A"}
   end
 

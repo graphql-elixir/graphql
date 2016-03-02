@@ -1,8 +1,8 @@
 defmodule GraphQL.Execution.Executor do
-  @moduledoc ~S"""
+  @moduledoc """
   Execute a GraphQL query against a given schema / datastore.
 
-      # iex> GraphQL.execute schema, "{ hello }"
+      # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: "world"}}
   """
 
@@ -12,6 +12,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.Input
   alias GraphQL.Type.Union
+  alias GraphQL.Type.NonNull
 
   @doc """
   Execute a query against a schema.
@@ -169,8 +170,9 @@ defmodule GraphQL.Execution.Executor do
           resolve.(source, args, info)
         _ ->
           cond do
-            resolution ->  resolution
-            true -> Map.get(source, field_name, nil)
+            resolution -> resolution
+            Map.has_key?(source, field_name) -> Map.get(source, field_name)
+            true -> Map.get(source, Atom.to_string(field_name))
           end
       end
       complete_value_catching_error(context, return_type, field_asts, info, result)
@@ -192,7 +194,7 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %GraphQL.Type.NonNull{ofType: inner_type}, field_asts, info, result) do
+  defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
     complete_value(context, inner_type, field_asts, info, result)
   end
