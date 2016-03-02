@@ -6,6 +6,7 @@ defmodule GraphQL.Execution.Executor do
       # {:ok, %{hello: "world"}}
   """
 
+  require IEx
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
@@ -129,11 +130,15 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp execute_fields(context, parent_type, source_value, fields) do
-    Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
-      case resolve_field(context, parent_type, source_value, field_asts) do
-        :undefined -> results
-        value -> Map.put(results, field_name.value, value)
-      end
+    case source_value do
+      {:error, message} -> nil
+      _ ->
+        Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
+          case resolve_field(context, parent_type, source_value, field_asts) do
+            :undefined -> results
+            value -> Map.put(results, field_name.value, value)
+          end
+        end
     end
   end
 
@@ -167,6 +172,8 @@ defmodule GraphQL.Execution.Executor do
         {mod, fun}    -> apply(mod, fun, [source, args, info])
         {mod, fun, _} -> apply(mod, fun, [source, args, info])
         resolve when is_function(resolve) ->
+          IO.inspect source
+
           resolve.(source, args, info)
         _ ->
           cond do
@@ -182,7 +189,6 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value_catching_error(context, return_type, field_asts, info, result) do
-
     # TODO lots of error checking
     complete_value(context, return_type, field_asts, info, result)
   end
