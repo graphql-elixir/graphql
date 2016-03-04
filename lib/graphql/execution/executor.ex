@@ -12,7 +12,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.Interface
   alias GraphQL.Type.Union
 
-  @type error :: %{message: String.t}
+  @type result_data :: {:ok, Map}
 
   @doc """
   Execute a query against a schema.
@@ -20,9 +20,8 @@ defmodule GraphQL.Execution.Executor do
       # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
   """
-  @spec execute(GraphQL.Schema.t, Map, Map, Map, String.t) :: Map
+  @spec execute(GraphQL.Schema.t, GraphQL.Document.t, map, map, String.t) :: result_data | {:error, %{errors: list}}
   def execute(schema, document, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
-    IEx.pry
     context = build_execution_context(schema, document, root_value, variable_values, operation_name)
     case context.errors do
       [] -> execute_operation(context, context.operation, root_value)
@@ -41,10 +40,15 @@ defmodule GraphQL.Execution.Executor do
     root_value: Map,
     operation: Map,
     variable_values: Map,
-    errors: list(error)
+    errors: list(GraphQL.Error.t)
   }
 
-  @spec build_execution_context(GraphQL.Schema.t, Map, Map, Map, String.t) :: context
+  @type operation :: %{
+    kind: :OperationDefintion,
+    operation: atom
+  }
+
+  @spec build_execution_context(GraphQL.Schema.t, GraphQL.Document.t, map, map, String.t) :: context
   defp build_execution_context(schema, document, root_value, variable_values, operation_name) do
     Enum.reduce document.definitions, %{
       schema: schema,
@@ -69,7 +73,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  @spec execute_operation(context, Map, Map) :: {atom, any}
+  @spec execute_operation(context, operation, map) :: result_data | {:error, String.t}
   defp execute_operation(context, operation, root_value) do
     type = operation_root_type(context.schema, operation)
     %{fields: fields} = collect_fields(context, type, operation.selectionSet)
@@ -81,7 +85,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  @spec operation_root_type(GraphQL.Schema.t, Map) :: String.t
+  @spec operation_root_type(GraphQL.Schema.t, operation) :: atom
   defp operation_root_type(schema, operation) do
     Map.get(schema, operation.operation)
   end
@@ -105,7 +109,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  @spec execute_fields(any, struct, struct, list) :: any
+  @spec execute_fields(context, atom | Map, any, any) :: any
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
@@ -116,6 +120,7 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
+  @spec execute_fields_serially(context, atom, map, any) :: any
   defp execute_fields_serially(context, parent_type, source_value, fields) do
     # call execute_fields because no async operations yet
     execute_fields(context, parent_type, source_value, fields)
@@ -166,28 +171,34 @@ defmodule GraphQL.Execution.Executor do
 
   defp complete_value(_, _, _, _, nil), do: nil
 
+  @spec complete_value(context, %ObjectType{}, GraphQL.Document.t, any, map) :: map
   defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
+    _ = IEx.pry
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
+  @spec complete_value(context, %GraphQL.Type.NonNull{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %GraphQL.Type.NonNull{ofType: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
     complete_value(context, inner_type, field_asts, info, result)
   end
 
+  @spec complete_value(context, %Interface{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
     runtime_type = GraphQL.AbstractType.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
+  @spec complete_value(context, %Union{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
     runtime_type = GraphQL.AbstractType.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
+  @spec complete_value(context, %List{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
     Enum.map result, fn(item) ->
       complete_value_catching_error(context, list_type, field_asts, info, item)
