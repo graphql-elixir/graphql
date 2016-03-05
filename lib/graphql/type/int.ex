@@ -2,6 +2,7 @@ defmodule GraphQL.Type.Int do
   @max_int 2147483647
   @min_int -2147483648
 
+  @type t :: %GraphQL.Type.Int{name: binary, description: binary}
   defstruct name: "Int", description:
     """
     The `Int` scalar type represents non-fractional signed whole numeric

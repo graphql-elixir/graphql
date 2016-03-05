@@ -93,7 +93,6 @@ defmodule GraphQL.Type.Introspection do
           type: %NonNull{ofType: GraphQL.Type.Introspection.typekind},
           resolve: fn(schema, _, _) ->
             case schema do
-              %GraphQL.Type.ScalarType{} -> "SCALAR"
               %GraphQL.Type.ObjectType{} -> "OBJECT"
               %GraphQL.Type.Interface{} -> "INTERFACE"
               %GraphQL.Type.Union{} -> "UNION"
