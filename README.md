@@ -1,6 +1,6 @@
 # GraphQL Elixir
 
-[![Build Status](https://travis-ci.org/joshprice/graphql-elixir.svg)](https://travis-ci.org/joshprice/graphql-elixir)
+[![Build Status](https://travis-ci.org/graphql-elixir/graphql-elixir.svg)](https://travis-ci.org/graphql-elixir/graphql-elixir)
 [![Public Slack Discussion](https://graphql-slack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
 
 An Elixir implementation of Facebook's GraphQL.
@@ -9,8 +9,8 @@ This is the core GraphQL query parsing and execution engine whose goal is to be
 transport, server and datastore agnostic.
 
 In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will
-need [plug_graphql](https://github.com/joshprice/plug_graphql).
-Examples for Phoenix can be found at [hello_graphql_phoenix](https://github.com/joshprice/hello_graphql_phoenix), so look here for a starting point for writing your own schemas.
+need [plug_graphql](https://github.com/graphql-elixir/plug_graphql).
+Examples for Phoenix can be found at [hello_graphql_phoenix](https://github.com/graphql-elixir/hello_graphql_phoenix), so look here for a starting point for writing your own schemas.
 
 Other ways of handling queries will be added in due course.
 
@@ -118,7 +118,7 @@ If you spot anything that isn't following Elixir conventions though, that's a mi
 Clone the repo and fetch its dependencies:
 
 ```
-$ git clone https://github.com/joshprice/graphql-elixir.git
+$ git clone https://github.com/graphql-elixir/graphql-elixir.git
 $ cd graphql-elixir
 $ mix deps.get
 $ mix test
@@ -144,4 +144,4 @@ If you're planning to implement anything major, please let us know before you ge
 
 ## License
 
-[BSD](https://github.com/joshprice/graphql-elixir/blob/master/LICENSE).
+[BSD](https://github.com/graphql-elixir/graphql-elixir/blob/master/LICENSE).

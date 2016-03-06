@@ -4,7 +4,7 @@ defmodule GraphQL.Mixfile do
   @version "0.1.2"
 
   @description "Elixir implementation of GraphQL"
-  @repo_url "https://github.com/joshprice/graphql-elixir"
+  @repo_url "https://github.com/graphql-elixir/graphql-elixir"
 
   def project do
     [app: :graphql,
