@@ -128,7 +128,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
           },
           resolve: fn(_, %{input: input}, _) -> input && Poison.encode!(input) end
         }
-      } # /fields
+      }
     }
   end
 
@@ -169,11 +169,14 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       %{"field_with_object_input" => nil}
   end
 
-  def using_variables_query do  """
+  def using_variables_query do
+    """
     query q($input: TestInputObject) {
       field_with_object_input(input: $input)
     }
-  """ end
+    """
+  end
+
   test "Handles objects and nullability using variables executes with complex input" do
     params = %{ "input" => %{ a: 'foo', b: [ 'bar' ], c: 'baz' } }
     assert_execute {using_variables_query, schema, nil, params},
@@ -206,6 +209,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}}
   end
 
+  # TODO looks the same as test above?
   test "Handles objects and nullability using variables properly parses single value to list" do
     query = """
       query q($input: TestInputObject = {a: "foo", b: "bar", c: "baz"}) {
@@ -529,5 +533,24 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     query = "{ field_with_default_parameter(input: WRONG_TYPE) }"
     assert_execute {query, schema},
       %{"field_with_default_parameter" => ~s("Hello World")}
+  end
+
+  test "default arguments" do
+    schema = %Schema{
+      query: %ObjectType{
+        name: "DefaultArguments",
+        fields: %{
+          greeting: %{
+            type: %String{},
+            args: %{
+              name: %{type: %String{}}
+            },
+            resolve: fn(_, %{name: name}, _) -> "Hello #{name}" end
+          }
+        }
+      }
+    }
+
+    assert_execute {~S[query g($name: String = "Joe") { greeting(name: $name) }], schema}, %{greeting: "Hello Joe"}
   end
 end

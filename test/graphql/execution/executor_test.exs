@@ -276,5 +276,4 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
     assert_execute {~S[{ person { id name } person { id } }], schema}, %{person: %{id: "1", name: "Dave"}}
   end
-
 end
