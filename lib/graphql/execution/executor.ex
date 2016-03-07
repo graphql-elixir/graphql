@@ -36,27 +36,6 @@ defmodule GraphQL.Execution.Executor do
     put_in(context.errors, [%{"message" => msg} | context.errors])
   end
 
-  defp get_variable_values(schema, definition_asts, inputs) do
-    Enum.reduce(definition_asts, %{}, fn(ast, result) ->
-      name = ast.variable.name.value
-      Map.put(result, name, get_variable_value(schema, ast, inputs[name]))
-    end)
-  end
-
-  defp get_variable_value(schema, ast, input) do
-    type = GraphQL.Schema.type_from_ast(ast.type, schema)
-    # todo soooooo much error handling. so much.
-    value_for(ast, type, input)
-  end
-
-  defp value_for(%{defaultValue: default}, type, nil) do
-    value_from_ast(%{value: default}, type, nil)
-  end
-  defp value_for(_, _, nil), do: nil
-  defp value_for(_, type, input) do
-    GraphQL.Types.serialize(%{type: type}, input)
-  end
-
   @type context :: %{
     schema: GraphQL.Schema.t,
     fragments: struct,
@@ -82,29 +61,14 @@ defmodule GraphQL.Execution.Executor do
       errors: []
     }, fn(definition, context) ->
 
-      variable_definitions = Map.get(definition, :variableDefinitions, [])
-      variable_values = get_variable_values(schema, variable_definitions, variable_values)
-
-      # We need to accumulate context[:variable_values] so that if
-      # length(document.definitions) > 1, we don't clobber previously
-      # set variable_values. This occurs when we use fragments alongside
-      # a mutation or query. See variables_test.exs#"Does not clobber
-      # variable_values when there's multiple document.definitions"
-      context = put_in(
-        context[:variable_values],
-        Map.merge(
-          context[:variable_values],
-          variable_values
-        )
-      )
-
       case definition do
         %{kind: :OperationDefinition} ->
           cond do
             !operation_name && context.operation ->
               report_error(context, "Must provide operation name if query contains multiple operations.")
             !operation_name || definition.name.value === operation_name ->
-              put_in(context.operation, definition)
+              context = %{context | operation: definition}
+              %{context | variable_values: GraphQL.Execution.Variables.extract(context) }
             true -> context
           end
         %{kind: :FragmentDefinition} ->
@@ -292,11 +256,11 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp value_from_ast(value_ast, %NonNull{ofType: inner_type}, variable_values) do
+  def value_from_ast(value_ast, %NonNull{ofType: inner_type}, variable_values) do
     value_from_ast(value_ast, inner_type, variable_values)
   end
 
-  defp value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
+  def value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
     input_fields = maybe_unwrap(type.fields)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
@@ -312,27 +276,27 @@ defmodule GraphQL.Execution.Executor do
     end)
   end
 
-  defp value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
+  def value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
     variable_value = Map.get(variable_values, value)
     GraphQL.Types.parse_value(type, variable_value)
   end
 
   # if it isn't a variable or object input type, that means it's invalid
   # and we shoud return a nil
-  defp value_from_ast(_, %Input{}, _), do: nil
+  def value_from_ast(_, %Input{}, _), do: nil
 
-  defp value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _) do
+  def value_from_ast(%{value: %{kind: :ListValue, values: values_ast}}, type, _) do
     GraphQL.Types.parse_value(type, Enum.map(values_ast, fn(value_ast) ->
       value_ast.value
     end))
   end
 
-  defp value_from_ast(value_ast, %List{ofType: inner_type}, variable_values) do
+  def value_from_ast(value_ast, %List{ofType: inner_type}, variable_values) do
     [ value_from_ast(value_ast, inner_type, variable_values) ]
   end
 
-  defp value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
-  defp value_from_ast(value_ast, type, _) do
+  def value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
+  def value_from_ast(value_ast, type, _) do
     GraphQL.Types.parse_literal(type, value_ast.value)
   end
 

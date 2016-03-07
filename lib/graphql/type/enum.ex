@@ -1,8 +1,9 @@
-defmodule GraphQL.Type.EnumValue do
-  defstruct name: "", value: "", description: ""
-end
-
 defmodule GraphQL.Type.Enum do
+  @type t :: %GraphQL.Type.Enum{
+    name: binary,
+    description: binary,
+    values: %{binary => GraphQL.Type.EnumValue.t}
+  }
   defstruct name: "", values: %{}, description: ""
 
   def new(map) do

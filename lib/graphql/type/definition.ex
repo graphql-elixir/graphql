@@ -7,16 +7,6 @@ defprotocol GraphQL.Types do
   def serialize(type, value)
 end
 
-defprotocol GraphQL.AbstractType do
-  @type t :: GraphQL.Type.Union.t | GraphQL.Type.Interface.t
-
-  @spec possible_type?(GraphQL.AbstractType.t, GraphQL.Type.ObjectType.t) :: boolean
-  def possible_type?(abstract_type, object)
-
-  @spec get_object_type(GraphQL.AbstractType.t, %{}, GraphQL.Schema.t) :: GraphQL.Type.ObjectType.t
-  def get_object_type(abstract_type, object, schema)
-end
-
 defimpl GraphQL.Types, for: Any do
   def parse_value(_, v), do:  v
   def parse_literal(_, v), do: v.value
@@ -24,29 +14,6 @@ defimpl GraphQL.Types, for: Any do
 end
 
 defmodule GraphQL.Type do
-  defmodule ObjectType do
-    @type t :: %GraphQL.Type.ObjectType{
-      name: binary,
-      description: binary | nil,
-      fields: Map,
-      interfaces: [GraphQL.AbstractType.t] | nil,
-      isTypeOf: (any -> boolean)
-    }
-    defstruct name: "", description: "", fields: %{}, interfaces: [], isTypeOf: nil
-  end
-
-  defmodule ScalarType do
-    defstruct name: "", description: ""
-  end
-
-  defmodule List do
-    defstruct ofType: nil
-  end
-
-  defmodule NonNull do
-    defstruct ofType: nil
-  end
-
   @spec implements?(GraphQL.Type.ObjectType.t, GraphQL.Type.Interface.t) :: boolean
   def implements?(object, interface) do
     Map.get(object, :interfaces, [])
@@ -62,10 +29,4 @@ defmodule GraphQL.Type do
   def is_named?(_), do: false
 end
 
-defimpl GraphQL.Types, for: GraphQL.Type.List do
-  def parse_value(_, nil), do: nil
-  def parse_value(_, value) when is_list(value), do: value
-  def parse_value(_, value), do: List.wrap(value)
-  def serialize(_, value), do: value
-  def parse_literal(_, v), do: v.value
-end
+

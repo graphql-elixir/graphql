@@ -1,4 +1,5 @@
 defmodule GraphQL.Type.Float do
+  @type t :: %GraphQL.Type.Float{name: binary, description: binary}
   defstruct name: "Float", description:
     """
     The `Float` scalar type represents signed double-precision fractional
