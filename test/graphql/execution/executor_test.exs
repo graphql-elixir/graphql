@@ -16,7 +16,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       %Schema{
         query: %ObjectType{
           name: "Recursive1",
-          fields: quote do %{
+          fields: fn() -> %{
             id:   %{type: %ID{}, resolve: 1},
             name: %{type: %String{}, resolve: "Mark"},
             b: %{type: TestSchema.recursive_schema.query, resolve: fn(_,_,_) -> %{} end },
@@ -29,7 +29,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     def recursive_schema_2 do
       %ObjectType{
         name: "Recursive2",
-        fields: quote do %{
+        fields: fn() -> %{
           id:   %{type: %ID{}, resolve: 2},
           name: %{type: %String{}, resolve: "Kate"},
           b: %{type: TestSchema.recursive_schema.query, resolve: fn(_,_,_) -> %{} end }

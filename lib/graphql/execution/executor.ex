@@ -114,11 +114,16 @@ defmodule GraphQL.Execution.Executor do
   end
 
   @spec execute_fields(context, atom | Map, any, any) :: any
+  defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
+    execute_fields(context, apply(parent_type, :type, []), source_value, fields)
+  end
+
+  @spec execute_fields(context, atom | Map, any, any) :: any
   defp execute_fields(context, parent_type, source_value, fields) do
-    Enum.reduce fields, %{}, fn({field_name, field_asts}, results) ->
+    Enum.reduce fields, %{}, fn({field_name_ast, field_asts}, results) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
         :undefined -> results
-        value -> Map.put(results, field_name.value, value)
+        value -> Map.put(results, field_name_ast.value, value)
       end
     end
   end
@@ -150,11 +155,14 @@ defmodule GraphQL.Execution.Executor do
       }
 
       resolution = Map.get(field_def, :resolve)
+      if !is_nil(source) && is_atom(source) do
+        source = apply(source, :type, [])
+      end
       result = case resolution do
-        {mod, fun}    -> apply(mod, fun, [source, args, info])
+        {mod, fun} ->    apply(mod, fun, [source, args, info])
         {mod, fun, _} -> apply(mod, fun, [source, args, info])
         resolve when is_function(resolve) ->
-          resolve.(source, args, info)
+                         apply(resolve, [source, args, info])
         _ ->
           cond do
             resolution -> resolution
@@ -169,7 +177,6 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value_catching_error(context, return_type, field_asts, info, result) do
-
     # TODO lots of error checking
     complete_value(context, return_type, field_asts, info, result)
   end
@@ -182,7 +189,11 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
-  @spec complete_value(context, %GraphQL.Type.NonNull{}, GraphQL.Document.t, any, any) :: map
+  defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) when is_atom(inner_type) do
+    complete_value(context, %NonNull{ofType: apply(inner_type, :type, [])}, field_asts, info, result)
+  end
+
+  @spec complete_value(context, %NonNull{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
     complete_value(context, inner_type, field_asts, info, result)
@@ -202,11 +213,20 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
+  defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) when is_atom(list_type) do
+    complete_value(context, %List{ofType: apply(list_type, :type, [])}, field_asts, info, result)
+  end
+
   @spec complete_value(context, %List{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
     Enum.map result, fn(item) ->
       complete_value_catching_error(context, list_type, field_asts, info, item)
     end
+  end
+
+  defp complete_value(context, return_type, field_asts, info, result) when is_atom(return_type) do
+    type = apply(return_type, :type, [])
+    complete_value(context, type, field_asts, info, result)
   end
 
   defp complete_value(_context, return_type, _field_asts, _info, result) do
@@ -223,18 +243,28 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  def maybe_unwrap(item) when is_tuple(item) do
-    {result, _} = Code.eval_quoted(item)
-    result
+  defp get_field(type, field_name) when is_atom(type) do
+    get_fields(apply(type, :type, []))[field_name]
   end
-  def maybe_unwrap(item), do: item
+
+  defp get_field(type, field_name) do
+    get_fields(type)[field_name]
+  end
+
+  def get_fields(type) do
+    if is_function(type.fields) do
+      type.fields.()
+    else
+      type.fields
+    end
+  end
 
   defp field_definition(parent_type, field_name) do
     case field_name do
       :__typename -> GraphQL.Type.Introspection.meta(:typename)
       :__schema -> GraphQL.Type.Introspection.meta(:schema)
       :__type -> GraphQL.Type.Introspection.meta(:type)
-      _ -> maybe_unwrap(parent_type.fields)[field_name]
+      _ -> get_field(parent_type, field_name)
     end
   end
 
@@ -242,7 +272,7 @@ defmodule GraphQL.Execution.Executor do
     arg_ast_map = Enum.reduce arg_asts, %{}, fn(arg_ast, result) ->
       Map.put(result, String.to_atom(arg_ast.name.value), arg_ast)
     end
-    Enum.reduce arg_defs, %{}, fn(arg_def, result) ->
+    Enum.reduce(arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def
       value_ast = Map.get(arg_ast_map, arg_def_name, nil)
 
@@ -253,7 +283,7 @@ defmodule GraphQL.Execution.Executor do
       else
         result
       end
-    end
+    end)
   end
 
   def value_from_ast(value_ast, %NonNull{ofType: inner_type}, variable_values) do
@@ -261,7 +291,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
-    input_fields = maybe_unwrap(type.fields)
+    input_fields = get_fields(type)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
     end)
@@ -296,6 +326,11 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
+
+  def value_from_ast(value_ast, type, variable_values) when is_atom(type) do
+    value_from_ast(value_ast, apply(type, :type, []), variable_values)
+  end
+
   def value_from_ast(value_ast, type, _) do
     GraphQL.Types.parse_literal(type, value_ast.value)
   end
