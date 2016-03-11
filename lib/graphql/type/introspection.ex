@@ -134,11 +134,11 @@ defmodule GraphQL.Type.Introspection do
             args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
             resolve: fn
               (%ObjectType{} = schema, _, _) ->
-                thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
+                thunk_fields = GraphQL.Execution.Executor.get_fields(schema)
                 Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
                 # |> filter_deprecated
               (%Interface{} = schema, _, _) ->
-                thunk_fields = GraphQL.Execution.Executor.maybe_unwrap(schema.fields)
+                thunk_fields = GraphQL.Execution.Executor.get_fields(schema)
                 Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
               (_, _, _) -> nil
             end

@@ -243,18 +243,20 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  def maybe_unwrap(item) when is_tuple(item) do
-    {result, _} = Code.eval_quoted(item)
-    result
-  end
-  def maybe_unwrap(item), do: item
-
-  defp get_fields(type, field_name) when is_atom(type) do
-    get_fields(apply(type, :type, []), field_name)
+  defp get_field(type, field_name) when is_atom(type) do
+    get_fields(apply(type, :type, []))[field_name]
   end
 
-  defp get_fields(type, field_name) do
-    maybe_unwrap(type.fields)[field_name]
+  defp get_field(type, field_name) do
+    get_fields(type)[field_name]
+  end
+
+  def get_fields(type) do
+    if is_function(type.fields) do
+      type.fields.()
+    else
+      type.fields
+    end
   end
 
   defp field_definition(parent_type, field_name) do
@@ -262,7 +264,7 @@ defmodule GraphQL.Execution.Executor do
       :__typename -> GraphQL.Type.Introspection.meta(:typename)
       :__schema -> GraphQL.Type.Introspection.meta(:schema)
       :__type -> GraphQL.Type.Introspection.meta(:type)
-      _ -> get_fields(parent_type, field_name)
+      _ -> get_field(parent_type, field_name)
     end
   end
 
@@ -289,7 +291,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
-    input_fields = maybe_unwrap(type.fields)
+    input_fields = get_fields(type)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
     end)
