@@ -38,4 +38,9 @@ defmodule GraphQL.Type do
 
   def is_named?(%GraphQL.Type.ObjectType{}), do: true
   def is_named?(_), do: false
+
+  def is_composite_type?(%GraphQL.Type.ObjectType{}), do: true
+  def is_composite_type?(%GraphQL.Type.Interface{}), do: true
+  def is_composite_type?(%GraphQL.Type.Union{}), do: true
+  def is_composite_type?(_), do: false
 end
