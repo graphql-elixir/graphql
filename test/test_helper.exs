@@ -4,6 +4,7 @@ defmodule ExUnit.TestHelpers do
   import ExUnit.Assertions
 
   alias GraphQL.Lang.Parser
+  alias GraphQL.Validation.Validator
 
   def stringify_keys(map) when is_map(map) do
     Enum.reduce(map, %{}, fn({k, v}, acc) -> Map.put(acc, stringify_key(k), stringify_keys(v)) end)
@@ -43,5 +44,15 @@ defmodule ExUnit.TestHelpers do
 
   def assert_execute_error({query, schema, data}, expected_output) do
     assert GraphQL.execute(schema, query, data) == {:error, %{errors: stringify_keys(expected_output)}}
+  end
+
+  def assert_valid_document(schema, document, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
+    {:ok, document_ast} = Parser.parse(document)
+    assert Validator.validate(schema, document_ast, root_value, variable_values, operation_name) == :ok
+  end
+
+  def assert_invalid_document(schema, document, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil, errors) do
+    {:ok, document_ast} = Parser.parse(document)
+    assert Validator.validate(schema, document_ast, root_value, variable_values, operation_name) == {:error, errors}
   end
 end
