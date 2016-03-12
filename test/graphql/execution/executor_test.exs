@@ -254,4 +254,27 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
     assert_execute {"{numbers(nums: [1, 2])}", schema}, %{numbers: [1, 2]}
   end
+
+  test "multiple definitions of the same field should be merged" do
+    schema = %Schema{
+      query: %ObjectType{
+        name: "PersonQuery",
+        fields: %{
+          person: %{
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}}
+              }
+            },
+            resolve: fn(_, _, _) -> %{id: "1", name: "Dave"} end
+          }
+        }
+      }
+    }
+
+    assert_execute {~S[{ person { id name } person { id } }], schema}, %{person: %{id: "1", name: "Dave"}}
+  end
+
 end

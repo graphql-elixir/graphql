@@ -97,7 +97,10 @@ defmodule GraphQL.Execution.Executor do
   defp collect_fields(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
     Enum.reduce selection_set[:selections], field_fragment_map, fn(selection, field_fragment_map) ->
       case selection do
-        %{kind: :Field} -> put_in(field_fragment_map.fields[field_entry_key(selection)], [selection])
+        %{kind: :Field} ->
+          field_name = field_entry_key(selection)
+          fields = field_fragment_map.fields[field_name] || []
+          put_in(field_fragment_map.fields[field_name], [selection | fields])
         %{kind: :InlineFragment} ->
           collect_fragment(context, runtime_type, selection, field_fragment_map)
         %{kind: :FragmentSpread} ->
