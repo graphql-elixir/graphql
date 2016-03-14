@@ -14,6 +14,7 @@ defmodule GraphQL.Schema do
 
   defstruct query: nil, mutation: nil, types: []
 
+  # FIXME: I think *schema* should be the first argument in this module.
   def type_from_ast(nil, _), do: nil
   def type_from_ast(%{kind: :NonNullType,} = input_type_ast, schema) do
     %GraphQL.Type.NonNull{ofType: type_from_ast(input_type_ast.type, schema)}
