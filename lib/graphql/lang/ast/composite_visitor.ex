@@ -6,6 +6,15 @@ alias GraphQL.Lang.AST.PostprocessingVisitor
 defmodule GraphQL.Lang.AST.CompositeVisitor do
   @moduledoc """
   A CompositeVisitor composes two Visitor implementations into a single Visitor.
+
+  This provides the ability to chain an arbitrary number of visitors together.
+
+  The *outer_visitor* notionally wraps the *inner_visitor*. The order of operations is thus:
+
+  1. outer_visitor.enter
+  2. inner_visitor.enter
+  3. inner_visitor.leave
+  4. outer_visitor.leave
   """
 
   defstruct outer_visitor: nil, inner_visitor: nil
