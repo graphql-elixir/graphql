@@ -23,15 +23,8 @@ defmodule GraphQL.Lang.AST.CompositeVisitor do
   The order of the list is outer-to-inner.  The leftmost visitor will be invoked first
   upon 'enter' and last upon 'leave'.
   """
-  def compose(visitors) when is_list(visitors) and length(visitors) >= 2 do
-    [outer_visitor|[inner_visitor|rest]] = visitors 
-    composite_visitor = compose(outer_visitor, inner_visitor)
-    if length(rest) > 0 do
-      compose([composite_visitor] ++ rest)
-    else
-      composite_visitor
-    end
-  end
+  def compose([visitor]), do: visitor
+  def compose([outer_visitor|rest]), do: compose(outer_visitor, compose(rest))
 end
 
 defimpl Visitor, for: GraphQL.Lang.AST.CompositeVisitor do
