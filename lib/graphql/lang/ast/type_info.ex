@@ -1,7 +1,4 @@
 
-alias GraphQL.Lang.AST.Visitor
-alias GraphQL.Lang.AST.InitialisingVisitor
-
 defmodule GraphQL.Lang.AST.TypeInfo do
   @moduledoc ~S"""
   TypeInfo maintains type metadata pertaining to the current node of a query AST,
