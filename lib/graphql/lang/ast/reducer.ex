@@ -10,9 +10,9 @@ defmodule GraphQL.Lang.AST.Reducer do
   alias GraphQL.Lang.AST.Nodes
 
   def reduce(node, visitor, accumulator) do
-    accumulator = visitor |> InitialisingVisitor.init(accumulator)
+    accumulator = InitialisingVisitor.init(visitor, accumulator)
     { _, accumulator } = visit(node, visitor, accumulator)
-    visitor |> PostprocessingVisitor.finish(accumulator)
+    PostprocessingVisitor.finish(visitor, accumulator)
   end
 
   defp visit([child|rest], visitor, accumulator) do
@@ -28,12 +28,12 @@ defmodule GraphQL.Lang.AST.Reducer do
   # FIXME: we need to enforce an invariant that if a enter is called for a node, we guarantee
   # that leave is called on a node. That means :break means "do not go deeper".
   defp visit(node, visitor, accumulator) do
-    { next_action, accumulator } = visitor |> Visitor.enter(node, accumulator) 
+    { next_action, accumulator } = Visitor.enter(visitor, node, accumulator) 
     case next_action do
       :continue ->
         { next_action, accumulator } = visit_children(node, visitor, accumulator)
         case next_action do
-          :continue -> visitor |> Visitor.leave(node, accumulator)
+          :continue -> Visitor.leave(visitor, node, accumulator)
           :break -> { :break, accumulator }
         end
       :break -> { :break, accumulator }

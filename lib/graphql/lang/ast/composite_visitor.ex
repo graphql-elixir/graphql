@@ -81,8 +81,8 @@ defimpl InitialisingVisitor, for: GraphQL.Lang.AST.CompositeVisitor do
   Returns the accumulator of the *inner* visitor.
   """
   def init(composite_visitor, accumulator) do
-    accumulator = composite_visitor.outer_visitor |> InitialisingVisitor.init(accumulator)
-    composite_visitor.inner_visitor |> InitialisingVisitor.init(accumulator)
+    accumulator = InitialisingVisitor.init(composite_visitor.outer_visitor, accumulator)
+    InitialisingVisitor.init(composite_visitor.inner_visitor, accumulator)
   end
 end
 
@@ -94,8 +94,8 @@ defimpl PostprocessingVisitor, for: GraphQL.Lang.AST.CompositeVisitor do
   Returns the accumulator of the *outer* visitor.
   """
   def finish(composite_visitor, accumulator) do
-    accumulator = composite_visitor.inner_visitor |> PostprocessingVisitor.finish(accumulator)
-    composite_visitor.outer_visitor |> PostprocessingVisitor.finish(accumulator)
+    accumulator = PostprocessingVisitor.finish(composite_visitor.inner_visitor, accumulator)
+    PostprocessingVisitor.finish(composite_visitor.outer_visitor, accumulator)
   end
 end
 

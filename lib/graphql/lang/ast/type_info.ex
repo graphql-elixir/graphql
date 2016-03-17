@@ -25,7 +25,7 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   @doc """
   Return the top of the type stack, or nil if empty.
   """
-  def type(type_info), do: type_info.type_stack |> Stack.peek()
+  def type(type_info), do: Stack.peek(type_info.type_stack)
 
   def named_type(type_info, type) do
     if type === %List{} || type === %NonNull{} do
@@ -39,18 +39,18 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   Return the top of the parent type stack, or nil if empty.
   """
   def parent_type(type_info) do
-    type_info.parent_type_stack |> Stack.peek() 
+    Stack.peek(type_info.parent_type_stack) 
   end
 
   @doc """
   Return the top of the field def stack, or nil if empty.
   """
   def field_def(type_info) do
-    type_info.field_def_stack |> Stack.peek()
+    Stack.peek(type_info.field_def_stack)
   end
 
   def find_field_def(schema, parent_type, field_node) do
-    name = field_node.name.value |> String.to_atom()
+    name = String.to_atom(field_node.name.value)
     cond do
       name == Introspection.meta(:schema)[:name] && schema.query == parent_type ->
         Introspection.meta(:schema)
