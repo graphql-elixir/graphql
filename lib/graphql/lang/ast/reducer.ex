@@ -41,7 +41,7 @@ defmodule GraphQL.Lang.AST.Reducer do
   end
 
   defp visit_children(node = %{kind: kind}, visitor, accumulator) when is_atom(kind) do
-    children = for child_key <- Nodes.kinds[node[:kind]], !!node[child_key], do: node[child_key]
+    children = for child_key <- Nodes.kinds[node[:kind]], Map.has_key?(node, child_key), do: node[child_key]
     visit_each_child(children, visitor, accumulator)
   end
 
