@@ -1,6 +1,6 @@
 # GraphQL Elixir
 
-[![Build Status](https://travis-ci.org/graphql-elixir/graphql-elixir.svg)](https://travis-ci.org/graphql-elixir/graphql-elixir)
+[![Build Status](https://travis-ci.org/graphql-elixir/graphql.svg)](https://travis-ci.org/graphql-elixir/graphql)
 [![Public Slack Discussion](https://graphql-slack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
 
 An Elixir implementation of Facebook's GraphQL.
@@ -118,8 +118,8 @@ If you spot anything that isn't following Elixir conventions though, that's a mi
 Clone the repo and fetch its dependencies:
 
 ```
-$ git clone https://github.com/graphql-elixir/graphql-elixir.git
-$ cd graphql-elixir
+$ git clone https://github.com/graphql-elixir/graphql.git
+$ cd graphql
 $ mix deps.get
 $ mix test
 ```
@@ -144,4 +144,4 @@ If you're planning to implement anything major, please let us know before you ge
 
 ## License
 
-[BSD](https://github.com/graphql-elixir/graphql-elixir/blob/master/LICENSE).
+[BSD](https://github.com/graphql-elixir/graphql/blob/master/LICENSE).
