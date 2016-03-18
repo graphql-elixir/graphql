@@ -12,11 +12,11 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.Introspection
 
-  @behavior Access
+  @behaviour Access
   defstruct schema: nil,
             type_stack: %Stack{},
             parent_type_stack: %Stack{},
-            input_type_stack: %Stack{}, 
+            input_type_stack: %Stack{},
             field_def_stack: %Stack{},
             directive: nil,
             argument: nil
@@ -38,7 +38,7 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   Return the top of the parent type stack, or nil if empty.
   """
   def parent_type(type_info) do
-    Stack.peek(type_info.parent_type_stack) 
+    Stack.peek(type_info.parent_type_stack)
   end
 
   @doc """
@@ -64,4 +64,3 @@ defmodule GraphQL.Lang.AST.TypeInfo do
     end
   end
 end
-

@@ -13,7 +13,6 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
   alias GraphQL.Util.Stack
   alias GraphQL.Lang.AST.TypeInfo
   alias GraphQL.Lang.AST.Visitor
-  alias GraphQL.Lang.AST.InitialisingVisitor
 
   defstruct name: "TypeInfoVisitor"
 
@@ -132,7 +131,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
             input_field = accumulator[:type_info] |> object_type.fields[node.name.value]
             field_type = if input_field, do: input_field.type, else: nil
             stack_push(:input_type_stack, field_type)
-          else 
+          else
             stack_push(:input_type_stack, nil)
           end
         _ ->
@@ -163,8 +162,3 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
     end
   end
 end
-
-
-
-
-
