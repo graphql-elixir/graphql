@@ -16,6 +16,7 @@ defmodule GraphQL.Mixfile do
      homepage_url: @repo_url,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     consolidate_protocols: Mix.env == :prod,
      deps: deps,
      name: "GraphQL",
      docs: [main: "README", extras: ["README.md"]]]
