@@ -13,6 +13,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
   alias GraphQL.Util.Stack
   alias GraphQL.Lang.AST.TypeInfo
   alias GraphQL.Lang.AST.Visitor
+  alias GraphQL.Schema
 
   defstruct name: "TypeInfoVisitor"
 
@@ -93,13 +94,13 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           stack_push(:type_stack, type)
         kind when kind in [:InlineFragment, :FragmentDefinition] ->
           output_type = if node.typeCondition do
-            Schema.type_from_ast(accumulator[:type_info].schema, node.typeCondition)
+            Schema.type_from_ast(node.typeCondition, accumulator[:type_info].schema)
           else
             TypeInfo.type(accumulator[:type_info])
           end
           stack_push(:type_stack, output_type)
         :VariableDefinition ->
-          input_type =  Schema.type_from_ast(accumulator[:type_info].schema, node.type)
+          input_type = Schema.type_from_ast(node.type, accumulator[:type_info].schema)
           stack_push(:input_type_stack, input_type)
         :Argument ->
           field_or_directive = TypeInfo.directive(accumulator[:type_info]) ||

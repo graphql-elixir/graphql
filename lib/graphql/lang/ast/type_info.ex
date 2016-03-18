@@ -58,7 +58,12 @@ defmodule GraphQL.Lang.AST.TypeInfo do
       name == Introspection.meta(:typename)[:name] ->
         Introspection.meta(:typename)
       parent_type.__struct__ == GraphQL.Type.ObjectType || parent_type.__struct__ == GraphQL.Type.Interface ->
-        parent_type.fields[name]
+        # FIXME: this "function or map" logic is repeated in the executor. DRY IT UP.
+        if is_function(parent_type.fields) do
+          parent_type.fields.()[name]
+        else
+          parent_type.fields[name]
+        end
       true ->
         nil
     end
