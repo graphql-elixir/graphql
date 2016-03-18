@@ -11,32 +11,32 @@ defmodule GraphQL.Lang.AST.Reducer do
 
   def reduce(node, visitor, accumulator) do
     accumulator = InitialisingVisitor.init(visitor, accumulator)
-    { _, accumulator } = visit(node, visitor, accumulator)
+    {_, accumulator} = visit(node, visitor, accumulator)
     PostprocessingVisitor.finish(visitor, accumulator)
   end
 
   defp visit([child|rest], visitor, accumulator) do
-    { next_action, accumulator } = visit(child, visitor, accumulator)
+    {next_action, accumulator} = visit(child, visitor, accumulator)
     case next_action do
       :continue -> visit(rest, visitor, accumulator)
-      :break -> { :break, accumulator }
+      :break -> {:break, accumulator}
     end
   end
 
-  defp visit([], _visitor, accumulator), do: { :continue, accumulator }
+  defp visit([], _visitor, accumulator), do: {:continue, accumulator}
 
   # FIXME: we need to enforce an invariant that if a enter is called for a node, we guarantee
   # that leave is called on a node. That means :break means "do not go deeper".
   defp visit(node, visitor, accumulator) do
-    { next_action, accumulator } = Visitor.enter(visitor, node, accumulator) 
+    {next_action, accumulator} = Visitor.enter(visitor, node, accumulator) 
     case next_action do
       :continue ->
-        { next_action, accumulator } = visit_children(node, visitor, accumulator)
+        {next_action, accumulator} = visit_children(node, visitor, accumulator)
         case next_action do
           :continue -> Visitor.leave(visitor, node, accumulator)
-          :break -> { :break, accumulator }
+          :break -> {:break, accumulator}
         end
-      :break -> { :break, accumulator }
+      :break -> {:break, accumulator}
     end
   end
 
@@ -46,12 +46,12 @@ defmodule GraphQL.Lang.AST.Reducer do
   end
 
   defp visit_each_child([child|rest], visitor, accumulator) do
-    { next_action, accumulator } = visit(child, visitor, accumulator)
+    {next_action, accumulator} = visit(child, visitor, accumulator)
     case next_action do
       :continue -> visit_each_child(rest, visitor, accumulator)
-      :break -> { :break, accumulator }
+      :break -> {:break, accumulator}
     end
   end
 
-  defp visit_each_child([], _visitor, accumulator), do: { :continue, accumulator }
+  defp visit_each_child([], _visitor, accumulator), do: {:continue, accumulator}
 end

@@ -13,11 +13,11 @@ defmodule GraphQL.Lang.AST.ReducerTest do
 
   defimpl Visitor, for: TracingVisitor do
     def enter(_visitor, node, accumulator) do
-      { :continue, Map.merge(accumulator, %{ calls: ["Entering: #{node[:kind]}"] ++ accumulator[:calls] }) }
+      {:continue, Map.merge(accumulator, %{calls: ["Entering: #{node[:kind]}"] ++ accumulator[:calls]})}
     end
 
     def leave(_visitor, node, accumulator) do
-      { :continue, Map.merge(accumulator, %{ calls: ["Leaving: #{node[:kind]}"] ++ accumulator[:calls] }) }
+      {:continue, Map.merge(accumulator, %{calls: ["Leaving: #{node[:kind]}"] ++ accumulator[:calls]})}
     end
   end
 
@@ -33,11 +33,11 @@ defmodule GraphQL.Lang.AST.ReducerTest do
 
   defimpl Visitor, for: BalancedCallsVisitor do
     def enter(_visitor, _node, accumulator) do
-      { :continue, %{ accumulator | count: accumulator[:count] + 1 }}
+      {:continue, %{accumulator | count: accumulator[:count] + 1}}
     end
 
     def leave(_visitor, _node, accumulator) do
-      { :continue, %{ accumulator | count: accumulator[:count] - 1 }}
+      {:continue, %{accumulator | count: accumulator[:count] - 1}}
     end
   end
 
@@ -46,13 +46,13 @@ defmodule GraphQL.Lang.AST.ReducerTest do
   end
 
   test "Enter and leave calls should be balanced" do
-    {:ok, ast } = Parser.parse "type Person { name: String }"
+    {:ok, ast} = Parser.parse "type Person {name: String}"
     count = Reducer.reduce(ast, %BalancedCallsVisitor{}, %{count: 0})
     assert count == 0
   end
 
   test "All nodes are visited" do
-    {:ok, ast } = Parser.parse "type Person { name: String }"
+    {:ok, ast} = Parser.parse "type Person {name: String}"
     log = Reducer.reduce(ast, %TracingVisitor{}, %{calls: []})
     assert log == [
       "Entering: Document",

@@ -9,12 +9,12 @@ defmodule GraphQL.Util.Stack do
   defstruct elements: []
 
   def push(stack, node) do
-    %Stack{ stack | elements: [node] ++ stack.elements }
+    %Stack{stack | elements: [node] ++ stack.elements}
   end
 
   def pop(stack) do
     case stack.elements do
-      [_|rest] -> %Stack{ stack | elements: rest }
+      [_|rest] -> %Stack{stack | elements: rest}
       [] -> nil
     end
   end

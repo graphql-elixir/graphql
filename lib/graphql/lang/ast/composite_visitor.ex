@@ -23,7 +23,7 @@ defmodule GraphQL.Lang.AST.CompositeVisitor do
   Composes two Visitors, returning a new one.
   """
   def compose(outer_visitor, inner_visitor) do
-    %GraphQL.Lang.AST.CompositeVisitor{ outer_visitor: outer_visitor, inner_visitor: inner_visitor }
+    %GraphQL.Lang.AST.CompositeVisitor{outer_visitor: outer_visitor, inner_visitor: inner_visitor}
   end
 
   @doc """
@@ -68,9 +68,9 @@ defimpl Visitor, for: GraphQL.Lang.AST.CompositeVisitor do
 
   # Visits two visitors in the order specified and invokes the supplied Visitor function.
   defp call_in_order(v1, v2, node, accumulator, fun) do
-    { v1_next_action, v1_accumulator } = fun.(v1, node, accumulator)
+    {v1_next_action, v1_accumulator} = fun.(v1, node, accumulator)
     accumulator = Map.merge(accumulator, v1_accumulator)
-    { v2_next_action, v2_accumulator } = fun.(v2, node, accumulator)
+    {v2_next_action, v2_accumulator} = fun.(v2, node, accumulator)
 
     next_action = if v1_next_action == :break do
       :break
@@ -78,7 +78,7 @@ defimpl Visitor, for: GraphQL.Lang.AST.CompositeVisitor do
       v2_next_action
     end
     
-    { next_action, v2_accumulator }
+    {next_action, v2_accumulator}
   end
 end
 

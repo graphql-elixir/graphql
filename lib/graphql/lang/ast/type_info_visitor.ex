@@ -22,8 +22,8 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
     defmacrop stack_push(stack_name, value) do
       quote do
         old_type_info = var!(accumulator)[:type_info]
-        new_type_info = %TypeInfo{ old_type_info |
-          unquote(stack_name) => Stack.push(old_type_info.unquote(stack_name), unquote(value)) }
+        new_type_info = %TypeInfo{old_type_info |
+          unquote(stack_name) => Stack.push(old_type_info.unquote(stack_name), unquote(value))}
         var!(accumulator) = put_in(var!(accumulator)[:type_info], new_type_info)
       end
     end
@@ -31,7 +31,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
     defmacrop stack_pop(stack_name) do
       quote do
         old_type_info = var!(accumulator)[:type_info]
-        new_type_info = %TypeInfo{ old_type_info |
+        new_type_info = %TypeInfo{old_type_info |
           unquote(stack_name) => Stack.pop(old_type_info.unquote(stack_name))}
         var!(accumulator) = put_in(var!(accumulator)[:type_info], new_type_info)
       end
@@ -138,7 +138,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         _ ->
           :ignore
       end
-      { :continue, accumulator }
+      {:continue, accumulator}
     end
 
     def leave(_visitor, node, accumulator) do
@@ -159,7 +159,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         _ ->
           :ignore
       end
-      { :continue, accumulator }
+      {:continue, accumulator}
     end
   end
 end

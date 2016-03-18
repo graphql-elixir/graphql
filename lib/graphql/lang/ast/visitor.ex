@@ -41,8 +41,8 @@ defmodule GraphQL.Lang.AST do
   end
 
   defimpl Visitor, for: Any do
-    def enter(_visitor, _node, accumulator), do: { :continue, accumulator }
-    def leave(_visitor, _node, accumulator), do: { :continue, accumulator }
+    def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
+    def leave(_visitor, _node, accumulator), do: {:continue, accumulator}
   end
 
   defprotocol InitialisingVisitor do
