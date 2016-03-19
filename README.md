@@ -20,7 +20,7 @@ First, add GraphQL to your `mix.exs` dependencies:
 
 ```elixir
 defp deps do
-  [{:graphql, "~> 0.1.2"}]
+  [{:graphql, "~> 0.2"}]
 end
 ```
 
@@ -92,6 +92,7 @@ This is a work in progress, right now here's what is done:
   - [x] Extract variable values
 - [x] Introspection
 - [WIP] Query validation
+- [ ] Directives
 
 ## Resources
 
