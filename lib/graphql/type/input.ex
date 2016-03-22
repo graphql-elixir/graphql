@@ -2,7 +2,7 @@ defmodule GraphQL.Type.Input do
   @type t :: %GraphQL.Type.Input{
     name: binary,
     description: binary,
-    fields: map
+    fields: Map.t | function
   }
 
   defstruct name: "Input", description: "", fields: %{}

@@ -1,9 +1,12 @@
 defmodule GraphQL.Type.Interface do
+
+  alias GraphQL.Type.AbstractType
+
   @type t :: %GraphQL.Type.Interface{
     name: binary,
     description: binary | nil,
-    fields: Map.t,
-    resolver: (any -> GraphQL.Type.ObjectType.t) | nil
+    fields: Map.t | function,
+    resolver: (any -> GraphQL.Type.Object.t) | nil
   }
   defstruct name: "", description: "", fields: %{}, resolver: nil
 
