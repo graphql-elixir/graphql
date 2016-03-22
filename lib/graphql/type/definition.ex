@@ -42,5 +42,6 @@ defmodule GraphQL.Type do
   def is_composite_type?(%GraphQL.Type.Object{}), do: true
   def is_composite_type?(%GraphQL.Type.Interface{}), do: true
   def is_composite_type?(%GraphQL.Type.Union{}), do: true
+  def is_composite_type?(%GraphQL.Type.Input{}), do: true
   def is_composite_type?(_), do: false
 end

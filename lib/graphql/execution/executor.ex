@@ -13,6 +13,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.Input
   alias GraphQL.Type.Union
   alias GraphQL.Type.NonNull
+  alias GraphQL.Type.CompositeType
   alias GraphQL.Type.AbstractType
 
   @type result_data :: {:ok, Map}
@@ -247,28 +248,12 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp get_field(type, field_name) when is_atom(type) do
-    get_fields(apply(type, :type, []))[field_name]
-  end
-
-  defp get_field(type, field_name) do
-    get_fields(type)[field_name]
-  end
-
-  def get_fields(type) do
-    if is_function(type.fields) do
-      type.fields.()
-    else
-      type.fields
-    end
-  end
-
   defp field_definition(parent_type, field_name) do
     case field_name do
       :__typename -> GraphQL.Type.Introspection.meta(:typename)
       :__schema -> GraphQL.Type.Introspection.meta(:schema)
       :__type -> GraphQL.Type.Introspection.meta(:type)
-      _ -> get_field(parent_type, field_name)
+      _ -> CompositeType.get_field(parent_type, field_name)
     end
   end
 
@@ -295,7 +280,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
-    input_fields = get_fields(type)
+    input_fields = CompositeType.get_fields(type)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
     end)

@@ -10,6 +10,7 @@ defmodule GraphQL.Schema do
   alias GraphQL.Type.Union
   alias GraphQL.Type.Object
   alias GraphQL.Type.Introspection
+  alias GraphQL.Type.CompositeType
 
   defstruct query: nil, mutation: nil, types: []
 
@@ -52,7 +53,7 @@ defmodule GraphQL.Schema do
       typemap
     else
       typemap = Map.put(typemap, type.name, type)
-      thunk_fields = GraphQL.Execution.Executor.get_fields(type)
+      thunk_fields = CompositeType.get_fields(type)
       typemap = Enum.reduce(thunk_fields, typemap, fn({_,fieldtype},typemap) ->
         _reduce_arguments(typemap, fieldtype)
         |> reduce_types(fieldtype.type)

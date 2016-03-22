@@ -8,6 +8,7 @@ defmodule GraphQL.Type.Introspection do
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.String
   alias GraphQL.Type.Boolean
+  alias GraphQL.Type.CompositeType
   alias GraphQL.Type.AbstractType
 
   alias GraphQL.Type.Introspection.Schema
@@ -135,11 +136,11 @@ defmodule GraphQL.Type.Introspection do
             args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
             resolve: fn
               (%Object{} = schema, _, _) ->
-                thunk_fields = GraphQL.Execution.Executor.get_fields(schema)
+                thunk_fields = CompositeType.get_fields(schema)
                 Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
                 # |> filter_deprecated
               (%Interface{} = schema, _, _) ->
-                thunk_fields = GraphQL.Execution.Executor.get_fields(schema)
+                thunk_fields = CompositeType.get_fields(schema)
                 Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
               (_, _, _) -> nil
             end
