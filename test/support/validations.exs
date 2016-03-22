@@ -38,7 +38,7 @@ defmodule ValidationsSupport do
       %Interface{
         name: "Pet",
         fields: %{
-          name: %String{},
+          name: %{ type: %String{} },
           args: %{ surname: %{ type: %Boolean{} } }
         }
       }
@@ -50,7 +50,7 @@ defmodule ValidationsSupport do
       %Interface{
         name: "Canine",
         fields: %{
-          name: %String{},
+          name: %{ type: %String{} },
           args: %{ surname: %{ type: %Boolean{} } }
         }
       }
