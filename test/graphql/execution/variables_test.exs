@@ -537,7 +537,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
 
   test "default arguments" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "DefaultArguments",
         fields: %{
           greeting: %{
