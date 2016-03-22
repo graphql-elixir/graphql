@@ -27,13 +27,9 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   """
   def type(type_info), do: Stack.peek(type_info.type_stack)
 
-  def named_type(type_info, type) do
-    if type === %List{} || type === %NonNull{} do
-      named_type(type_info, type.ofType)
-    else
-      type
-    end
-  end
+  def named_type(type_info, %List{} = type), do: named_type(type_info, type.ofType)
+  def named_type(type_info, %NonNull{} = type), do: named_type(type_info, type.ofType)
+  def named_type(_, type), do: type
 
   @doc """
   Return the top of the parent type stack, or nil if empty.
