@@ -4,10 +4,12 @@
 # languages due to its reliance on generating side-effects.
 defmodule GraphQL.Lang.AST.Reducer do
 
-  alias GraphQL.Lang.AST.Visitor
-  alias GraphQL.Lang.AST.InitialisingVisitor
-  alias GraphQL.Lang.AST.PostprocessingVisitor
-  alias GraphQL.Lang.AST.Nodes
+  alias GraphQL.Lang.AST.{
+    Visitor,
+    InitialisingVisitor,
+    PostprocessingVisitor,
+    Nodes
+  }
 
   def reduce(node, visitor, accumulator) do
     accumulator = InitialisingVisitor.init(visitor, accumulator)
