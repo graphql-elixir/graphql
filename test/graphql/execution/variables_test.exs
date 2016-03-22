@@ -4,7 +4,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   import ExUnit.TestHelpers
 
   alias GraphQL.Schema
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.List
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.String
@@ -41,7 +41,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   end
 
   def test_type do
-    %ObjectType{
+    %Object{
       name: "TestType",
       fields: %{
         field_with_object_input: %{
@@ -492,7 +492,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       "should have errored"
   end
 
-  @tag :skip # input cannot be TestType is an ObjectType, which can't be input?
+  @tag :skip # input cannot be TestType is an Object, which can't be input?
   test "Handles lists and nullability does not allow invalid types to be used as values" do
     query = """
       query q($input: TestType!) {

@@ -3,7 +3,7 @@ defmodule ValidationsSupport do
   use ExUnit.Case, async: true
 
   alias GraphQL.Schema
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.List
   alias GraphQL.Type.ID
   alias GraphQL.Type.String
@@ -72,7 +72,7 @@ defmodule ValidationsSupport do
 
   defmodule Dog do
     def type do
-      %ObjectType{
+      %Object{
         name: "Dog",
         fields: fn() -> %{
           name: %{
@@ -127,7 +127,7 @@ defmodule ValidationsSupport do
 
   defmodule Cat do
     def type do
-      %ObjectType{
+      %Object{
         name: "Cat",
         fields: fn() -> %{
           name: %{
@@ -166,7 +166,7 @@ defmodule ValidationsSupport do
 
   defmodule Human do
     def type do
-      %ObjectType{
+      %Object{
         name: "Human",
         interfaces: [ Being.type, Intelligent.type ],
         fields: fn() -> %{
@@ -184,7 +184,7 @@ defmodule ValidationsSupport do
 
   defmodule Alien do
     def type do
-      %ObjectType{
+      %Object{
         name: "Alien",
         interfaces: [ Being.type, Intelligent.type ],
         fields: %{
@@ -222,7 +222,7 @@ defmodule ValidationsSupport do
   defmodule TestSchema do
     def schema do
       %Schema{
-        query: %ObjectType{
+        query: %Object{
           name: "QueryRoot",
           fields: fn() -> %{
             human: %{

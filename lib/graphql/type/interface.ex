@@ -44,7 +44,7 @@ defmodule GraphQL.Type.Interface do
       if interface.resolver do
         interface.resolver.(object)
       else
-        GraphQL.Type.Interface.possible_types(interface, schema)
+        AbstractType.possible_types(interface, schema)
         |> Enum.find(fn(x) -> x.isTypeOf.(object) end)
       end
     end

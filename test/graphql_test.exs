@@ -4,12 +4,12 @@ defmodule GraphQLTest do
 
   import ExUnit.TestHelpers
 
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.String
 
   def schema do
     %GraphQL.Schema{
-      query: %ObjectType{
+      query: %Object{
         fields: %{
           a: %{type: %String{}}
         }

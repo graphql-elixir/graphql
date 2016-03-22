@@ -11,7 +11,7 @@ defmodule GraphQL.Type.Union do
     struct(GraphQL.Type.Union, map)
   end
 
-  defimpl GraphQL.AbstractType do
+  defimpl GraphQL.Type.AbstractType do
     @doc """
     Returns a boolean indicating if the typedef provided is part of the provided
     union type.

@@ -1,6 +1,6 @@
 defmodule StarWars.Schema do
 
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
   alias GraphQL.Type.String
@@ -49,7 +49,7 @@ defmodule StarWars.Schema do
 
   defmodule Human do
     def type do
-      %ObjectType{
+      %Object{
         name: "Human",
         description: "A humanoid creature in the Star Wars universe",
         fields: %{
@@ -69,7 +69,7 @@ defmodule StarWars.Schema do
 
   defmodule Droid do
     def type do
-      %ObjectType{
+      %Object{
         name: "Droid",
         description: "A mechanical creature in the Star Wars universe",
         fields: %{
@@ -88,7 +88,7 @@ defmodule StarWars.Schema do
   end
 
   def query do
-    %ObjectType{
+    %Object{
       name: "Query",
       fields: %{
         hero: %{

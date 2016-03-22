@@ -22,7 +22,7 @@ defmodule GraphQL.Type do
     module_type |> Atom.to_string |> String.split(".") |> Enum.reverse |> hd
   end
 
-  @spec implements?(GraphQL.Type.ObjectType.t, GraphQL.Type.Interface.t) :: boolean
+  @spec implements?(GraphQL.Type.Object.t, GraphQL.Type.Interface.t) :: boolean
   def implements?(object, interface) do
     Map.get(object, :interfaces, [])
     |> Enum.map(fn
@@ -36,10 +36,10 @@ defmodule GraphQL.Type do
   def is_abstract?(%GraphQL.Type.Interface{}), do: true
   def is_abstract?(_), do: false
 
-  def is_named?(%GraphQL.Type.ObjectType{}), do: true
+  def is_named?(%GraphQL.Type.Object{}), do: true
   def is_named?(_), do: false
 
-  def is_composite_type?(%GraphQL.Type.ObjectType{}), do: true
+  def is_composite_type?(%GraphQL.Type.Object{}), do: true
   def is_composite_type?(%GraphQL.Type.Interface{}), do: true
   def is_composite_type?(%GraphQL.Type.Union{}), do: true
   def is_composite_type?(_), do: false

@@ -4,13 +4,13 @@ defmodule GraphQL.Type.IntrospectionTest do
   import ExUnit.TestHelpers
 
   alias GraphQL.Schema
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.String
 
   defmodule EmptySchema do
     def schema do
       %Schema{
-        query: %ObjectType{
+        query: %Object{
           name: "QueryRoot",
           fields: %{
             onlyField: %{type: %String{}}
@@ -28,7 +28,7 @@ defmodule GraphQL.Type.IntrospectionTest do
   @tag :skip # order matters for this... ... hm.
   test "exposes descriptions on types and fields" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "QueryRoot",
         fields: %{onlyField: %{type: %String{}}}
       }

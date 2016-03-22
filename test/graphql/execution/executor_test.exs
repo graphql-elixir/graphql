@@ -5,7 +5,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   import ExUnit.TestHelpers
 
   alias GraphQL.Schema
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.List
   alias GraphQL.Type.ID
   alias GraphQL.Type.String
@@ -14,7 +14,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   defmodule TestSchema do
     def recursive_schema do
       %Schema{
-        query: %ObjectType{
+        query: %Object{
           name: "Recursive1",
           fields: fn() -> %{
             id:   %{type: %ID{}, resolve: 1},
@@ -27,7 +27,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     end
 
     def recursive_schema_2 do
-      %ObjectType{
+      %Object{
         name: "Recursive2",
         fields: fn() -> %{
           id:   %{type: %ID{}, resolve: 2},
@@ -39,7 +39,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
     def schema do
       %Schema{
-        query: %ObjectType{
+        query: %Object{
           name: "RootQueryType",
           fields: %{
             greeting: %{
@@ -68,7 +68,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "anonymous fragments are processed" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "X",
         fields: %{
           id: %{type: %ID{}, resolve: 1},
@@ -81,7 +81,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "TypeChecked inline fragments run the correct type" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "BType",
         fields: %{
           id: %{type: %ID{}, resolve: 1},
@@ -95,7 +95,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "TypeChecked fragments run the correct type" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "BType",
         fields: %{
           id: %{type: %ID{}, resolve: 1},
@@ -109,7 +109,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "allow {module, function, args} style of resolve" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "Q",
         fields: %{
           g: %{type: %String{}, resolve: {TestSchema, :greeting}},
@@ -136,11 +136,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "simple selection set" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "PersonQuery",
         fields: %{
           person: %{
-            type: %ObjectType{
+            type: %Object{
               name: "Person",
               fields: %{
                 id:   %{name: "id",   type: %ID{}, resolve: fn(p, _, _) -> p.id   end},
@@ -171,11 +171,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "use specified query operation" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "Q",
         fields: %{a: %{ type: %String{}}}
       },
-      mutation: %ObjectType{
+      mutation: %Object{
         name: "M",
         fields: %{b: %{ type: %String{}}}
       }
@@ -186,11 +186,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "use specified mutation operation" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "Q",
         fields: %{a: %{ type: %String{}}}
       },
-      mutation: %ObjectType{
+      mutation: %Object{
         name: "M",
         fields: %{b: %{ type: %String{}}}
       }
@@ -200,7 +200,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "lists of things" do
-    book = %ObjectType{
+    book = %Object{
       name: "Book",
       fields: %{
         isbn:  %{type: %Int{}},
@@ -209,7 +209,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     }
 
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "ListsOfThings",
         fields: %{
           numbers: %{
@@ -238,7 +238,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "list arguments" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "ListsAsArguments",
         fields: %{
           numbers: %{
@@ -257,11 +257,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
   test "multiple definitions of the same field should be merged" do
     schema = %Schema{
-      query: %ObjectType{
+      query: %Object{
         name: "PersonQuery",
         fields: %{
           person: %{
-            type: %ObjectType{
+            type: %Object{
               name: "Person",
               fields: %{
                 id:   %{name: "id",   type: %ID{}},

@@ -1,6 +1,6 @@
 defmodule GraphQL.Type.Introspection do
 
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.Interface
   alias GraphQL.Type.Input
   alias GraphQL.Type.Union
@@ -8,6 +8,7 @@ defmodule GraphQL.Type.Introspection do
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.String
   alias GraphQL.Type.Boolean
+  alias GraphQL.Type.AbstractType
 
   alias GraphQL.Type.Introspection.Schema
   alias GraphQL.Type.Introspection.Directive
@@ -19,7 +20,7 @@ defmodule GraphQL.Type.Introspection do
 
   defmodule Schema do
     def type do
-      %ObjectType{
+      %Object{
         name: "__Schema",
         description:
           """
@@ -62,7 +63,7 @@ defmodule GraphQL.Type.Introspection do
 
   defmodule Directive do
     def type do
-      %ObjectType{
+      %Object{
         name: "__Directive",
         description:
           """
@@ -91,7 +92,7 @@ defmodule GraphQL.Type.Introspection do
 
   defmodule Type do
     def type do
-      %ObjectType{
+      %Object{
         name: "__Type",
         description:
           """
@@ -110,7 +111,7 @@ defmodule GraphQL.Type.Introspection do
             type: %NonNull{ofType: TypeKind},
             resolve: fn(schema, _, _) ->
               case schema do
-                %ObjectType{} -> "OBJECT"
+                %Object{} -> "OBJECT"
                 %Interface{} -> "INTERFACE"
                 %Union{} -> "UNION"
                 %GraphQL.Type.Enum{} -> "ENUM"
@@ -133,7 +134,7 @@ defmodule GraphQL.Type.Introspection do
             type: %List{ofType: %NonNull{ofType: Field}},
             args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
             resolve: fn
-              (%ObjectType{} = schema, _, _) ->
+              (%Object{} = schema, _, _) ->
                 thunk_fields = GraphQL.Execution.Executor.get_fields(schema)
                 Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
                 # |> filter_deprecated
@@ -146,7 +147,7 @@ defmodule GraphQL.Type.Introspection do
           interfaces: %{
             type: %List{ofType: %NonNull{ofType: Type}},
             resolve: fn
-              (%ObjectType{} = schema, _, _) ->
+              (%Object{} = schema, _, _) ->
                 schema.interfaces
               (_, _, _) -> nil
             end
@@ -155,7 +156,7 @@ defmodule GraphQL.Type.Introspection do
             type: %List{ofType: %NonNull{ofType: Type}},
             resolve: fn
               (%GraphQL.Type.Interface{name: _name} = interface, _args, info) ->
-                GraphQL.Type.Interface.possible_types(interface, info.schema)
+                AbstractType.possible_types(interface, info.schema)
               (%GraphQL.Type.Union{name: name}, _args, info) ->
                 GraphQL.Schema.reduce_types(info.schema)[name].types
               (_, _, _) -> nil
@@ -234,7 +235,7 @@ defmodule GraphQL.Type.Introspection do
 
   defmodule Field do
     def type do
-      %ObjectType{
+      %Object{
         name: "__Field",
         description:
           """
@@ -265,7 +266,7 @@ defmodule GraphQL.Type.Introspection do
 
   defmodule InputValue do
     def type do
-      %ObjectType{
+      %Object{
         name: "__InputValue",
         description:
           """
@@ -291,7 +292,7 @@ defmodule GraphQL.Type.Introspection do
 
   defmodule EnumValue do
     def type do
-      %ObjectType{
+      %Object{
         name: "__EnumValue",
         description:
           """

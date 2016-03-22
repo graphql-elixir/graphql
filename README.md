@@ -48,7 +48,7 @@ First setup your schema
 defmodule TestSchema do
   def schema do
     %GraphQL.Schema{
-      query: %GraphQL.Type.ObjectType{
+      query: %GraphQL.Type.Object{
         name: "RootQueryType",
         fields: %{
           greeting: %{

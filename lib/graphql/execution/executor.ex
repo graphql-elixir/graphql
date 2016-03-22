@@ -6,13 +6,14 @@ defmodule GraphQL.Execution.Executor do
       # {:ok, %{hello: "world"}}
   """
 
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.Input
   alias GraphQL.Type.Union
   alias GraphQL.Type.NonNull
+  alias GraphQL.Type.AbstractType
 
   @type result_data :: {:ok, Map}
 
@@ -186,8 +187,8 @@ defmodule GraphQL.Execution.Executor do
 
   defp complete_value(_, _, _, _, nil), do: nil
 
-  @spec complete_value(context, %ObjectType{}, GraphQL.Document.t, any, map) :: map
-  defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
+  @spec complete_value(context, %Object{}, GraphQL.Document.t, any, map) :: map
+  defp complete_value(context, %Object{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
@@ -204,14 +205,14 @@ defmodule GraphQL.Execution.Executor do
 
   @spec complete_value(context, %Interface{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
-    runtime_type = GraphQL.AbstractType.get_object_type(return_type, result, info.schema)
+    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
   @spec complete_value(context, %Union{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
-    runtime_type = GraphQL.AbstractType.get_object_type(return_type, result, info.schema)
+    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
@@ -361,7 +362,7 @@ defmodule GraphQL.Execution.Executor do
       # if the type condition is an interface or union, check to see if the
       # type implements the interface or belongs to the union.
       GraphQL.Type.is_abstract?(typed_condition) ->
-        GraphQL.AbstractType.possible_type?(typed_condition, runtime_type)
+        AbstractType.possible_type?(typed_condition, runtime_type)
       # in some cases with interfaces, the type won't be associated anywhere
       # else in the schema besides in the resolve function, which we can't
       # peek into when the typemap is generated. Because of this, the type

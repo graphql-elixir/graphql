@@ -2,7 +2,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
   use ExUnit.Case, async: true
   import ExUnit.TestHelpers
 
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.Int
   alias GraphQL.Type.String
 
@@ -19,7 +19,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
     end
 
     def query do
-      %ObjectType{
+      %Object{
         name: "Query",
         fields: %{
           color_enum: %{

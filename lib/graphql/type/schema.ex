@@ -3,13 +3,12 @@ defmodule GraphQL.Schema do
   @type t :: %GraphQL.Schema{
     query: Map,
     mutation: Map,
-    types: [GraphQL.AbstractType.t | GraphQL.Type.ObjectType.t]
+    types: [GraphQL.Type.AbstractType.t | GraphQL.Type.Object.t]
   }
-
 
   alias GraphQL.Type.Interface
   alias GraphQL.Type.Union
-  alias GraphQL.Type.ObjectType
+  alias GraphQL.Type.Object
   alias GraphQL.Type.Introspection
 
   defstruct query: nil, mutation: nil, types: []
@@ -48,7 +47,7 @@ defmodule GraphQL.Schema do
     end)
   end
 
-  def reduce_types(typemap, %ObjectType{} = type) do
+  def reduce_types(typemap, %Object{} = type) do
     if Map.has_key?(typemap, type.name) do
       typemap
     else
