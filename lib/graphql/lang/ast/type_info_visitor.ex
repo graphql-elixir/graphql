@@ -93,7 +93,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           end
           stack_push(:type_stack, type)
         kind when kind in [:InlineFragment, :FragmentDefinition] ->
-          output_type = if node.typeCondition do
+          output_type = if Map.has_key?(node, :typeCondition) do
             Schema.type_from_ast(node.typeCondition, accumulator[:type_info].schema)
           else
             TypeInfo.type(accumulator[:type_info])
@@ -111,7 +111,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
               fn(arg) -> arg.name == node.name.value end
             )
             set_argument(arg_def)
-            stack_push(:input_type_stack, (if arg_def.type, do: arg_def.type, else: nil))
+            stack_push(:input_type_stack, (if Map.has_key?(arg_def, :type), do: arg_def.type, else: nil))
           else
             set_argument(nil)
             stack_push(:input_type_stack, nil)
