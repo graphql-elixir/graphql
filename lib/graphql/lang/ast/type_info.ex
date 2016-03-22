@@ -13,8 +13,6 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   alias GraphQL.Type.Introspection
   alias GraphQL.Type.CompositeType
 
-  # FIXME: check this Access behaviour is really needed. It generates warnings
-  @behaviour Access
   defstruct schema: nil,
             type_stack: %Stack{},
             parent_type_stack: %Stack{},
