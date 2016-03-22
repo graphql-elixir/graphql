@@ -21,8 +21,6 @@ defmodule ValidationsSupport do
 
   alias GraphQL.Lang.AST.Reducer
 
-  import ExUnit.TestHelpers
-
   defmodule Being do
     def type do
       %Interface{
