@@ -21,6 +21,8 @@ defmodule ValidationsSupport do
 
   alias GraphQL.Lang.AST.Reducer
 
+  import ExUnit.TestHelpers
+
   defmodule Being do
     def type do
       %Interface{
@@ -276,8 +278,8 @@ defmodule ValidationsSupport do
     assert_valid(TestSchema.schema, query_string, [ rule ])
   end
 
-  def assert_fails_rule(query_string, rule, errors) do
-    assert_invalid(TestSchema.schema, query_string, [ rule ], errors)
+  def assert_fails_rule(query_string, rule, expected_errors) do
+    assert_invalid(TestSchema.schema, query_string, [ rule ], expected_errors)
   end
 
   def assert_fails_rule(query_string, rule) do
