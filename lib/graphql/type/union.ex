@@ -20,6 +20,10 @@ defmodule GraphQL.Type.Union do
       Enum.any?(union.types, fn(t) -> t.name === object.name end)
     end
 
+    def possible_types(union, _schema) do
+      union.types
+    end
+
     @doc """
     Returns the typedef for the object that was passed in, which could be a
     struct or map.

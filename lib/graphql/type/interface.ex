@@ -14,27 +14,28 @@ defmodule GraphQL.Type.Interface do
     struct(GraphQL.Type.Interface, map)
   end
 
-  @doc """
-  Unlike Union, Interfaces don't explicitly declare what Types implement them,
-  so we have to iterate over a full typemap and filter the Types in the Schema
-  down to just those that implement the provided interface.
-  """
-  def possible_types(interface, schema) do
-    # get the complete typemap from this scheme
-    GraphQL.Schema.reduce_types(schema)
-    # filter them down to a list of types that implement this interface
-    |> Enum.filter(fn {_, typedef} -> GraphQL.Type.implements?(typedef, interface) end)
-    # then return the type, instead of the {name, type} tuple that comes from
-    # the reduce_types call
-    |> Enum.map(fn({_,v}) -> v end)
-  end
 
-  defimpl GraphQL.AbstractType do
+  defimpl AbstractType do
     @doc """
     Returns a boolean indicating if the provided type implements the interface
     """
     def possible_type?(interface, object) do
       GraphQL.Type.implements?(object, interface)
+    end
+
+    @doc """
+    Unlike Union, Interfaces don't explicitly declare what Types implement them,
+    so we have to iterate over a full typemap and filter the Types in the Schema
+    down to just those that implement the provided interface.
+    """
+    def possible_types(interface, schema) do
+      # get the complete typemap from this schema
+      GraphQL.Schema.reduce_types(schema)
+      # filter them down to a list of types that implement this interface
+      |> Enum.filter(fn {_, typedef} -> GraphQL.Type.implements?(typedef, interface) end)
+      # then return the type, instead of the {name, type} tuple that comes from
+      # the reduce_types call
+      |> Enum.map(fn({_,v}) -> v end)
     end
 
     @doc """
