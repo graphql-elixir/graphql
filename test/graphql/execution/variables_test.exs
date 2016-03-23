@@ -4,7 +4,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   import ExUnit.TestHelpers
 
   alias GraphQL.Schema
-  alias GraphQL.Type.Object
+  alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.String
@@ -41,7 +41,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   end
 
   def test_type do
-    %Object{
+    %ObjectType{
       name: "TestType",
       fields: %{
         field_with_object_input: %{
@@ -537,7 +537,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
 
   test "default arguments" do
     schema = %Schema{
-      query: %Object{
+      query: %ObjectType{
         name: "DefaultArguments",
         fields: %{
           greeting: %{

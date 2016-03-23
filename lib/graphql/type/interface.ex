@@ -6,7 +6,7 @@ defmodule GraphQL.Type.Interface do
     name: binary,
     description: binary | nil,
     fields: Map.t | function,
-    resolver: (any -> GraphQL.Type.Object.t) | nil
+    resolver: (any -> GraphQL.Type.ObjectType.t) | nil
   }
   defstruct name: "", description: "", fields: %{}, resolver: nil
 
@@ -39,10 +39,10 @@ defmodule GraphQL.Type.Interface do
     end
 
     @doc """
-    Returns the typedef of the provided Object using either the Interface's
+    Returns the typedef of the provided ObjectType using either the Interface's
     resolve function (if it exists), or by iterating over all the typedefs that
     implement this Interface and returning the first one that matches against
-    the Object's isTypeOf function.
+    the ObjectType's isTypeOf function.
     """
     def get_object_type(interface, object, schema) do
       if interface.resolver do

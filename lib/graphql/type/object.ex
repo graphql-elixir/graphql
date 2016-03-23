@@ -1,5 +1,5 @@
-defmodule GraphQL.Type.Object do
-  @type t :: %GraphQL.Type.Object{
+defmodule GraphQL.Type.ObjectType do
+  @type t :: %GraphQL.Type.ObjectType{
     name: binary,
     description: binary | nil,
     fields: Map.t | function,

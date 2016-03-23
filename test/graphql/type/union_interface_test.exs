@@ -3,7 +3,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
   import ExUnit.TestHelpers
 
   alias GraphQL.Type.String
-  alias GraphQL.Type.Object
+  alias GraphQL.Type.ObjectType
   alias GraphQL.Type.Boolean
   alias GraphQL.Type.List
 
@@ -29,7 +29,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
   end
 
   def dog_type do
-    %Object{
+    %ObjectType{
       name: "Dog",
       interfaces: [named_type],
       fields: %{
@@ -41,7 +41,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
   end
 
   def cat_type do
-    %Object{
+    %ObjectType{
       name: "Cat",
       interfaces: [named_type],
       fields: %{
@@ -64,7 +64,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
   end
 
   def person_type do
-    %Object{
+    %ObjectType{
       name: "Person",
       interfaces: [named_type],
       fields: %{

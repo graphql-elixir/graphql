@@ -5,7 +5,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
   import ExUnit.TestHelpers
 
   alias GraphQL.Schema
-  alias GraphQL.Type.Object
+  alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.ID
   alias GraphQL.Type.String
@@ -36,7 +36,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
   end
 
   test "Handle execution with a complex schema" do
-    image = %Object{
+    image = %ObjectType{
       name: "Image",
       description: "Images for an article or a profile picture",
       fields: %{
@@ -46,7 +46,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       }
     }
 
-    author = %Object{
+    author = %ObjectType{
       name: "Author",
       description: "Author of the blog, with their profile picture and latest article",
       fields: %{
@@ -64,7 +64,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       }
     }
 
-    article = %Object{
+    article = %ObjectType{
       name: "Article",
       fields: %{
         id: %{type: %ID{}},
@@ -80,7 +80,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
     author  = put_in author.fields.recentArticle, %{type: article}
     article = put_in article.fields.author, %{type: author}
 
-    blog_query = %Object{
+    blog_query = %ObjectType{
       name: "Query",
       fields: %{
         article: %{

@@ -2,8 +2,8 @@ defmodule GraphQL.Type.Union do
   @type t :: %GraphQL.Type.Union{
     name: binary,
     description: binary | nil,
-    resolver: (any -> GraphQL.Type.Object.t),
-    types: [GraphQL.Type.Object.t]
+    resolver: (any -> GraphQL.Type.ObjectType.t),
+    types: [GraphQL.Type.ObjectType.t]
   }
   defstruct name: "", description: "", resolver: nil, types: []
 

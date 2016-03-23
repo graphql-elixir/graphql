@@ -127,7 +127,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         :ObjectField ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
           object_type = TypeInfo.named_type(accumulator[:type_info], input_type)
-          if %GraphQL.Type.Object{} = object_type do
+          if %GraphQL.Type.ObjectType{} = object_type do
             # WTF: can't understand what I'm piping to here.
             input_field = accumulator[:type_info] |> object_type.fields[node.name.value]
             field_type = if input_field, do: input_field.type, else: nil

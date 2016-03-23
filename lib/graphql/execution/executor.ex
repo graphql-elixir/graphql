@@ -6,7 +6,7 @@ defmodule GraphQL.Execution.Executor do
       # {:ok, %{hello: "world"}}
   """
 
-  alias GraphQL.Type.Object
+  alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
   alias GraphQL.Type.NonNull
@@ -188,8 +188,8 @@ defmodule GraphQL.Execution.Executor do
 
   defp complete_value(_, _, _, _, nil), do: nil
 
-  @spec complete_value(context, %Object{}, GraphQL.Document.t, any, map) :: map
-  defp complete_value(context, %Object{} = return_type, field_asts, _info, result) do
+  @spec complete_value(context, %ObjectType{}, GraphQL.Document.t, any, map) :: map
+  defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
     sub_field_asts = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end

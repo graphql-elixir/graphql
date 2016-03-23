@@ -2,7 +2,7 @@
 defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
 
   alias GraphQL.Lang.AST.{Visitor, TypeInfo}
-  alias GraphQL.Type.{CompositeType, Object, AbstractType}
+  alias GraphQL.Type.{CompositeType, ObjectType, AbstractType}
   alias GraphQL.Type
 
   defstruct name: "FieldsOnCorrectType"
@@ -46,7 +46,7 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
 
     defp field_usage_count({_, count}), do: count
 
-    defp is_a_graphql_object_type(type), do: %Object{} = type
+    defp is_a_graphql_object_type(type), do: %ObjectType{} = type
 
     defp to_self_and_interfaces(type), do: [type] ++ type.interfaces
 

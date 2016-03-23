@@ -54,7 +54,7 @@ defmodule GraphQL.Lang.AST.TypeInfo do
         Introspection.meta(:type)
       name == String.to_atom(Introspection.meta(:typename)[:name]) ->
         Introspection.meta(:typename)
-      parent_type.__struct__ == GraphQL.Type.Object || parent_type.__struct__ == GraphQL.Type.Interface ->
+      parent_type.__struct__ == GraphQL.Type.ObjectType || parent_type.__struct__ == GraphQL.Type.Interface ->
         CompositeType.get_field(parent_type, name)
       true ->
         nil
