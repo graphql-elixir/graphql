@@ -119,7 +119,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         :List ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
           list_type =  TypeInfo.nullable_type(accumulator[:type_info], input_type)
-          if list_type === %GraphQL.Type.List{} do
+          if list_type === %Type.List{} do
             stack_push(:input_type_stack, list_type.ofType)
           else
             stack_push(:input_type_stack, nil)
@@ -127,9 +127,12 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         :ObjectField ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
           object_type = TypeInfo.named_type(accumulator[:type_info], input_type)
-          if %GraphQL.Type.ObjectType{} = object_type do
-            # WTF: can't understand what I'm piping to here.
-            input_field = accumulator[:type_info] |> object_type.fields[node.name.value]
+          if %Type.ObjectType{} = object_type do
+            input_field = TypeInfo.find_field_def(
+              accumulator[:type_info].schema,
+              object_type,
+              node
+            )
             field_type = if input_field, do: input_field.type, else: nil
             stack_push(:input_type_stack, field_type)
           else
