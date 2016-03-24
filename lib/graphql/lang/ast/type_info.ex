@@ -8,10 +8,14 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   """
 
   alias GraphQL.Util.Stack
-  alias GraphQL.Type.List
-  alias GraphQL.Type.NonNull
-  alias GraphQL.Type.Introspection
-  alias GraphQL.Type.CompositeType
+  alias GraphQL.Type.{
+    CompositeType,
+    Introspection,
+    List,
+    NonNull,
+    Interface,
+    ObjectType
+  }
 
   defstruct schema: nil,
             type_stack: %Stack{},
@@ -44,20 +48,24 @@ defmodule GraphQL.Lang.AST.TypeInfo do
     Stack.peek(type_info.field_def_stack)
   end
 
-  # FIXME: pattern match on function heads
   def find_field_def(schema, parent_type, field_node) do
-    name = String.to_atom(field_node.name.value)
     cond do
-      name == String.to_atom(Introspection.meta(:schema)[:name]) && schema.query == parent_type ->
+      field_node.name.value == Introspection.meta(:schema)[:name] && schema.query == parent_type ->
         Introspection.meta(:schema)
-      name == String.to_atom(Introspection.meta(:type)[:name]) && schema.query == parent_type ->
+      field_node.name.value == Introspection.meta(:type)[:name] && schema.query == parent_type ->
         Introspection.meta(:type)
-      name == String.to_atom(Introspection.meta(:typename)[:name]) ->
+      field_node.name.value == Introspection.meta(:typename)[:name] ->
         Introspection.meta(:typename)
-      parent_type.__struct__ == GraphQL.Type.ObjectType || parent_type.__struct__ == GraphQL.Type.Interface ->
-        CompositeType.get_field(parent_type, name)
       true ->
-        nil
+        find_field_def(parent_type, field_node)
     end
   end
+
+  defp find_field_def(%Interface{} = parent_type, field_node) do
+    CompositeType.get_field(parent_type, field_node.name.value)
+  end
+  defp find_field_def(%ObjectType{} = parent_type, field_node) do
+    CompositeType.get_field(parent_type, field_node.name.value)
+  end
+  defp find_field_def(_, _), do: nil
 end
