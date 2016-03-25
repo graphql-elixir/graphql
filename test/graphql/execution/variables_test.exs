@@ -492,7 +492,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       "should have errored"
   end
 
-  @tag :skip # input cannot be TestType is an ObjectType, which can't be input?
+  @tag :skip # input cannot be TestType is an Object, which can't be input?
   test "Handles lists and nullability does not allow invalid types to be used as values" do
     query = """
       query q($input: TestType!) {

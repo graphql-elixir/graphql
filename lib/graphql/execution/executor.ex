@@ -13,6 +13,8 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.Input
   alias GraphQL.Type.Union
   alias GraphQL.Type.NonNull
+  alias GraphQL.Type.CompositeType
+  alias GraphQL.Type.AbstractType
 
   @type result_data :: {:ok, Map}
 
@@ -204,14 +206,14 @@ defmodule GraphQL.Execution.Executor do
 
   @spec complete_value(context, %Interface{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
-    runtime_type = GraphQL.AbstractType.get_object_type(return_type, result, info.schema)
+    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
   @spec complete_value(context, %Union{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
-    runtime_type = GraphQL.AbstractType.get_object_type(return_type, result, info.schema)
+    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
@@ -246,28 +248,12 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp get_field(type, field_name) when is_atom(type) do
-    get_fields(apply(type, :type, []))[field_name]
-  end
-
-  defp get_field(type, field_name) do
-    get_fields(type)[field_name]
-  end
-
-  def get_fields(type) do
-    if is_function(type.fields) do
-      type.fields.()
-    else
-      type.fields
-    end
-  end
-
   defp field_definition(parent_type, field_name) do
     case field_name do
       :__typename -> GraphQL.Type.Introspection.meta(:typename)
       :__schema -> GraphQL.Type.Introspection.meta(:schema)
       :__type -> GraphQL.Type.Introspection.meta(:type)
-      _ -> get_field(parent_type, field_name)
+      _ -> CompositeType.get_field(parent_type, field_name)
     end
   end
 
@@ -294,7 +280,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(%{value: obj=%{kind: :ObjectValue}}, type=%Input{}, variable_values) do
-    input_fields = get_fields(type)
+    input_fields = CompositeType.get_fields(type)
     field_asts = Enum.reduce(obj.fields, %{}, fn(ast, result) ->
       Map.put(result, ast.name.value, ast)
     end)
@@ -361,7 +347,7 @@ defmodule GraphQL.Execution.Executor do
       # if the type condition is an interface or union, check to see if the
       # type implements the interface or belongs to the union.
       GraphQL.Type.is_abstract?(typed_condition) ->
-        GraphQL.AbstractType.possible_type?(typed_condition, runtime_type)
+        AbstractType.possible_type?(typed_condition, runtime_type)
       # in some cases with interfaces, the type won't be associated anywhere
       # else in the schema besides in the resolve function, which we can't
       # peek into when the typemap is generated. Because of this, the type

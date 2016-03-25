@@ -38,7 +38,7 @@ defmodule ValidationsSupport do
       %Interface{
         name: "Pet",
         fields: %{
-          name: %String{},
+          name: %{ type: %String{} },
           args: %{ surname: %{ type: %Boolean{} } }
         }
       }
@@ -50,7 +50,7 @@ defmodule ValidationsSupport do
       %Interface{
         name: "Canine",
         fields: %{
-          name: %String{},
+          name: %{ type: %String{} },
           args: %{ surname: %{ type: %Boolean{} } }
         }
       }
@@ -276,8 +276,8 @@ defmodule ValidationsSupport do
     assert_valid(TestSchema.schema, query_string, [ rule ])
   end
 
-  def assert_fails_rule(query_string, rule, errors) do
-    assert_invalid(TestSchema.schema, query_string, [ rule ], errors)
+  def assert_fails_rule(query_string, rule, expected_errors) do
+    assert_invalid(TestSchema.schema, query_string, [ rule ], expected_errors)
   end
 
   def assert_fails_rule(query_string, rule) do

@@ -11,13 +11,17 @@ defmodule GraphQL.Type.Union do
     struct(GraphQL.Type.Union, map)
   end
 
-  defimpl GraphQL.AbstractType do
+  defimpl GraphQL.Type.AbstractType do
     @doc """
     Returns a boolean indicating if the typedef provided is part of the provided
     union type.
     """
     def possible_type?(union, object) do
       Enum.any?(union.types, fn(t) -> t.name === object.name end)
+    end
+
+    def possible_types(union, _schema) do
+      union.types
     end
 
     @doc """

@@ -8,11 +8,15 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   """
 
   alias GraphQL.Util.Stack
-  alias GraphQL.Type.List
-  alias GraphQL.Type.NonNull
-  alias GraphQL.Type.Introspection
+  alias GraphQL.Type.{
+    CompositeType,
+    Introspection,
+    List,
+    NonNull,
+    Interface,
+    ObjectType
+  }
 
-  @behaviour Access
   defstruct schema: nil,
             type_stack: %Stack{},
             parent_type_stack: %Stack{},
@@ -26,13 +30,9 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   """
   def type(type_info), do: Stack.peek(type_info.type_stack)
 
-  def named_type(type_info, type) do
-    if type === %List{} || type === %NonNull{} do
-      named_type(type_info, type.ofType)
-    else
-      type
-    end
-  end
+  def named_type(type_info, %List{} = type), do: named_type(type_info, type.ofType)
+  def named_type(type_info, %NonNull{} = type), do: named_type(type_info, type.ofType)
+  def named_type(_, type), do: type
 
   @doc """
   Return the top of the parent type stack, or nil if empty.
@@ -49,23 +49,23 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   end
 
   def find_field_def(schema, parent_type, field_node) do
-    name = String.to_atom(field_node.name.value)
     cond do
-      name == Introspection.meta(:schema)[:name] && schema.query == parent_type ->
+      field_node.name.value == Introspection.meta(:schema)[:name] && schema.query == parent_type ->
         Introspection.meta(:schema)
-      name == Introspection.meta(:type)[:name] && schema.query == parent_type ->
+      field_node.name.value == Introspection.meta(:type)[:name] && schema.query == parent_type ->
         Introspection.meta(:type)
-      name == Introspection.meta(:typename)[:name] ->
+      field_node.name.value == Introspection.meta(:typename)[:name] ->
         Introspection.meta(:typename)
-      parent_type.__struct__ == GraphQL.Type.ObjectType || parent_type.__struct__ == GraphQL.Type.Interface ->
-        # FIXME: this "function or map" logic is repeated in the executor. DRY IT UP.
-        if is_function(parent_type.fields) do
-          parent_type.fields.()[name]
-        else
-          parent_type.fields[name]
-        end
       true ->
-        nil
+        find_field_def(parent_type, field_node)
     end
   end
+
+  defp find_field_def(%Interface{} = parent_type, field_node) do
+    CompositeType.get_field(parent_type, field_node.name.value)
+  end
+  defp find_field_def(%ObjectType{} = parent_type, field_node) do
+    CompositeType.get_field(parent_type, field_node.name.value)
+  end
+  defp find_field_def(_, _), do: nil
 end
