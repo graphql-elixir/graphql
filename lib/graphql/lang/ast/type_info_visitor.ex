@@ -40,9 +40,8 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
     defmacrop set_directive(directive) do
       quote do
         var!(accumulator) = put_in(
-          var!(accumulator),
-          var!(accumulator)[:type_info].directive,
-          Schema.directive(var!(accumulator)[:type_info].schema, unquote(directive))
+          var!(accumulator)[:type_info],
+          %TypeInfo{ var!(accumulator)[:type_info] | directive: unquote(directive)}
         )
       end
     end
@@ -50,9 +49,8 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
     defmacrop set_argument(argument) do
       quote do
         var!(accumulator) = put_in(
-          var!(accumulator),
-          var!(accumulator)[:type_info].argument,
-          Schema.argument(var!(accumulator)[:type_info].schema, unquote(argument))
+          var!(accumulator)[:type_info],
+          %TypeInfo{var!(accumulator)[:type_info] | argument: unquote(argument)}
         )
       end
     end
@@ -103,15 +101,15 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           input_type = Schema.type_from_ast(node.type, accumulator[:type_info].schema)
           stack_push(:input_type_stack, input_type)
         :Argument ->
-          field_or_directive = TypeInfo.directive(accumulator[:type_info]) ||
+          field_or_directive = accumulator[:type_info].directive ||
                                TypeInfo.field_def(accumulator[:type_info])
           if field_or_directive do
             arg_def = Enum.find(
-              field_or_directive.arguments,
-              fn(arg) -> arg.name == node.name.value end
+              field_or_directive.args,
+              fn(arg) -> arg == node.name.value end
             )
             set_argument(arg_def)
-            stack_push(:input_type_stack, (if Map.has_key?(arg_def, :type), do: arg_def.type, else: nil))
+            stack_push(:input_type_stack, (if arg_def && Map.has_key?(arg_def, :type), do: arg_def.type, else: nil))
           else
             set_argument(nil)
             stack_push(:input_type_stack, nil)
@@ -119,7 +117,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         :List ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
           list_type =  TypeInfo.nullable_type(accumulator[:type_info], input_type)
-          if list_type === %Type.List{} do
+          if %Type.List{} === list_type  do
             stack_push(:input_type_stack, list_type.ofType)
           else
             stack_push(:input_type_stack, nil)
@@ -127,7 +125,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         :ObjectField ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
           object_type = TypeInfo.named_type(accumulator[:type_info], input_type)
-          if %Type.ObjectType{} = object_type do
+          if %Type.Input{} === object_type do
             input_field = TypeInfo.find_field_def(
               accumulator[:type_info].schema,
               object_type,

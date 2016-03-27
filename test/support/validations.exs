@@ -14,12 +14,7 @@ defmodule ValidationsSupport do
   alias GraphQL.Type.Enum
 
   alias GraphQL.Lang.Parser
-  alias GraphQL.Lang.AST.CompositeVisitor
-  alias GraphQL.Lang.AST.ParallelVisitor
-  alias GraphQL.Lang.AST.TypeInfoVisitor
-  alias GraphQL.Lang.AST.TypeInfo
-
-  alias GraphQL.Lang.AST.Reducer
+  alias GraphQL.Validation.Validator
 
   defmodule Being do
     def type do
@@ -243,18 +238,12 @@ defmodule ValidationsSupport do
     end
   end
 
-
   defp validate(schema, query_string, rules) do
-    {:ok, ast} = Parser.parse(query_string)
-    validation_pipeline = CompositeVisitor.compose([
-      %TypeInfoVisitor{},
-      %ParallelVisitor{visitors: rules}
-    ])
-    result = Reducer.reduce(ast, validation_pipeline, %{
-      type_info: %TypeInfo{schema: schema},
-      validation_errors: []
-    })
-    result[:validation_errors]
+    {:ok, document} = Parser.parse(query_string)
+    case Validator.validate_with_rules(schema, document, rules) do
+      :ok -> []
+      {:error, errors} -> errors
+    end
   end
 
   def assert_valid(schema, query_string, rules) do

@@ -13,6 +13,9 @@ defmodule GraphQL do
       # {:ok, %{hello: "world"}}
   """
 
+  alias GraphQL.Validation.Validator
+  alias GraphQL.Execution.Executor
+
   @doc """
   Execute a query against a schema.
 
@@ -22,9 +25,14 @@ defmodule GraphQL do
   def execute(schema, query, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
     case GraphQL.Lang.Parser.parse(query) do
       {:ok, document} ->
-        case GraphQL.Execution.Executor.execute(schema, document, root_value, variable_values, operation_name) do
-          {:ok, response} -> {:ok, %{data: response}}
-          {:error, errors} -> {:error, errors}
+        case Validator.validate(schema, document) do
+          :ok ->
+            case Executor.execute(schema, document, root_value, variable_values, operation_name) do
+              {:ok, response} -> {:ok, %{data: response}}
+              {:error, errors} -> {:error, errors}
+            end
+          {:error, errors} ->
+            {:error, errors}
         end
       {:error, errors} ->
         {:error, errors}
