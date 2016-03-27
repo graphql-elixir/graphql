@@ -32,7 +32,7 @@ defmodule GraphQL.Validation.Validator do
     })
     errors = result[:validation_errors]
     if length(errors) > 0 do
-      {:error, errors}
+      {:error, Enum.reverse(errors)}
     else
       :ok
     end
