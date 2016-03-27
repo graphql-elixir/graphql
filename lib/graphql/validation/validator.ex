@@ -9,10 +9,16 @@ defmodule GraphQL.Validation.Validator do
   alias GraphQL.Lang.AST.Reducer
   alias GraphQL.Validation.Rules
 
+  @doc """
+  Runs validations against the document with all known validation rules.
+  """
   def validate(schema, document) do
     validate_with_rules(schema, document, Rules.all)   
   end
 
+  @doc """
+  Runs validations against the document with only the specified rules.
+  """
   def validate_with_rules(schema, document, rules) do
     validation_pipeline = CompositeVisitor.compose([
       %TypeInfoVisitor{},
