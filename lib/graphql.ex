@@ -17,7 +17,7 @@ defmodule GraphQL do
   alias GraphQL.Execution.Executor
 
   @doc """
-  Execute a query against a schema.
+  Execute a query against a schema (with validation)
 
       # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
@@ -33,6 +33,24 @@ defmodule GraphQL do
             end
           {:error, errors} ->
             {:error, errors}
+        end
+      {:error, errors} ->
+        {:error, errors}
+    end
+  end
+
+  @doc """
+  Execute a query against a schema (without validation)
+
+      # iex> GraphQL.execute(schema, "{ hello }")
+      # {:ok, %{hello: world}}
+  """
+  def execute_without_validation(schema, query, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
+    case GraphQL.Lang.Parser.parse(query) do
+      {:ok, document} ->
+        case Executor.execute(schema, document, root_value, variable_values, operation_name) do
+          {:ok, response} -> {:ok, %{data: response}}
+          {:error, errors} -> {:error, errors}
         end
       {:error, errors} ->
         {:error, errors}
