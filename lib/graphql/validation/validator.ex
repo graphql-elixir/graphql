@@ -1,12 +1,14 @@
 
 defmodule GraphQL.Validation.Validator do
 
-  alias GraphQL.Lang.Parser
-  alias GraphQL.Lang.AST.CompositeVisitor
-  alias GraphQL.Lang.AST.ParallelVisitor
-  alias GraphQL.Lang.AST.TypeInfoVisitor
-  alias GraphQL.Lang.AST.TypeInfo
-  alias GraphQL.Lang.AST.Reducer
+  alias GraphQL.Lang.AST.{
+    CompositeVisitor,
+    ParallelVisitor,
+    TypeInfoVisitor,
+    TypeInfo,
+    Reducer
+  }
+
   alias GraphQL.Validation.Rules
 
   @doc """
