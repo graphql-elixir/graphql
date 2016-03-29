@@ -136,7 +136,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         }
       }
     """
-    assert_execute {query, schema, john},
+    assert_execute_without_validation {query, schema, john},
       %{"__typename" => "Person",
         "name" => "John",
         "pets" => [
@@ -189,7 +189,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
       }
     """
 
-    assert_execute {query, schema, john},
+    assert_execute_without_validation {query, schema, john},
       %{"__typename" => "Person",
         "friends" => [
           %{"__typename" => "Person", "name" => "Liz"},

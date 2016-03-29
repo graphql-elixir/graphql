@@ -37,6 +37,23 @@ defmodule ExUnit.TestHelpers do
       {:ok, %{data: stringify_keys(expected_output)}})
   end
 
+  def assert_execute_without_validation({query, schema}, expected_output) do
+    assert_execute_without_validation({query, schema, %{}}, expected_output)
+  end
+
+  def assert_execute_without_validation({query, schema, data}, expected_output) do
+    assert_execute_without_validation({query, schema, data, %{}}, expected_output)
+  end
+
+  def assert_execute_without_validation({query, schema, data, variables}, expected_output) do
+    assert_execute_without_validation({query, schema, data, variables, nil}, expected_output)
+  end
+
+  def assert_execute_without_validation({query, schema, data, variables, operation}, expected_output) do
+    assert(GraphQL.execute_without_validation(schema, query, data, variables, operation) ==
+      {:ok, %{data: stringify_keys(expected_output)}})
+  end
+
   def assert_execute_error({query, schema}, expected_output) do
     assert_execute_error({query, schema, %{}}, expected_output)
   end
