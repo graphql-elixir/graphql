@@ -9,6 +9,10 @@ defmodule GraphQL.Type.ID do
     """
 
   def coerce(value), do: to_string(value)
+
+  defimpl String.Chars do
+    def to_string(_), do: "ID"
+  end
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.ID do

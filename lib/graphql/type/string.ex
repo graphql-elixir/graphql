@@ -11,6 +11,10 @@ defmodule GraphQL.Type.String do
     for {k, v} <- value, into: %{}, do: {to_string(k), v}
   end
   def coerce(value), do: to_string(value)
+
+  defimpl String.Chars do
+    def to_string(_), do: "String"
+  end
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.String do

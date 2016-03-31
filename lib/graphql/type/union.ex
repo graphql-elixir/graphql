@@ -35,4 +35,8 @@ defmodule GraphQL.Type.Union do
       resolver.(object)
     end
   end
+
+  defimpl String.Chars do
+    def to_string(union), do: union.name
+  end
 end

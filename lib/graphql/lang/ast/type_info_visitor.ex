@@ -59,7 +59,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
       case node.kind do
         :SelectionSet ->
           type = TypeInfo.type(accumulator[:type_info])
-          named_type = TypeInfo.named_type(accumulator[:type_info], type)
+          named_type = TypeInfo.named_type(type)
           if Type.is_composite_type?(named_type) do
             stack_push(:parent_type_stack, named_type)
           else
@@ -81,7 +81,12 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
             stack_push(:type_stack, nil)
           end
         :Directive ->
-          set_directive(node.name.value)
+          # TODO: once we implement directive support in the schema,
+          # get the directive definition from the schema by name and
+          #this._directive = schema.getDirective(node.name.value); // JS example
+          # and set it like this
+          #set_directive(directive_def)
+          set_directive(nil)
         :OperationDefinition ->
           type = case node.operation do
             :query -> accumulator[:type_info].schema.query
@@ -101,11 +106,11 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           input_type = Schema.type_from_ast(node.type, accumulator[:type_info].schema)
           stack_push(:input_type_stack, input_type)
         :Argument ->
-          field_or_directive = accumulator[:type_info].directive ||
+          field_or_directive = TypeInfo.directive(accumulator[:type_info]) ||
                                TypeInfo.field_def(accumulator[:type_info])
           if field_or_directive do
             arg_def = Enum.find(
-              field_or_directive.args,
+              Map.get(field_or_directive, :arguments, %{}),
               fn(arg) -> arg == node.name.value end
             )
             set_argument(arg_def)
@@ -124,7 +129,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           end
         :ObjectField ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
-          object_type = TypeInfo.named_type(accumulator[:type_info], input_type)
+          object_type = TypeInfo.named_type(input_type)
           if %Type.Input{} === object_type do
             input_field = TypeInfo.find_field_def(
               accumulator[:type_info].schema,

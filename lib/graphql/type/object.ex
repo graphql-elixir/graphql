@@ -7,4 +7,8 @@ defmodule GraphQL.Type.ObjectType do
     isTypeOf: ((any) -> boolean)
   }
   defstruct name: "", description: "", fields: %{}, interfaces: [], isTypeOf: nil
+
+  defimpl String.Chars do
+    def to_string(obj), do: obj.name
+  end
 end

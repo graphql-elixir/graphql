@@ -30,6 +30,10 @@ defmodule GraphQL.Type.Int do
       nil
     end
   end
+
+  defimpl String.Chars do
+    def to_string(_), do: "Int"
+  end
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.Int do

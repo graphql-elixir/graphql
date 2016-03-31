@@ -1,6 +1,10 @@
 defmodule GraphQL.Type.List do
   @type t :: %{ofType: map}
   defstruct ofType: nil
+
+  defimpl String.Chars do
+    def to_string(list), do: "[#{list.ofType}]"
+  end
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.List do

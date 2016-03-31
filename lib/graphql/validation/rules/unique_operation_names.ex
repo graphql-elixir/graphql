@@ -1,8 +1,8 @@
 
 defmodule GraphQL.Validation.Rules.UniqueOperationNames do
 
-  alias GraphQL.Lang.AST.Visitor
-  alias GraphQL.Lang.AST.InitialisingVisitor
+  alias GraphQL.Lang.AST.{Visitor, InitialisingVisitor}
+  import GraphQL.Validation
 
   defstruct name: "UniqueOperationNames"
 
@@ -13,29 +13,29 @@ defmodule GraphQL.Validation.Rules.UniqueOperationNames do
   end
 
   defimpl Visitor do
-    def enter(_visitor, node, accumulator) do
-      if node.kind == :OperationDefinition && Map.has_key?(node, :name) do
-        op_name = node.name
-        if op_name.value do
-          if accumulator[:operation_names][op_name.value] do
-            accumulator = put_in(
-              accumulator[:validation_errors],
-              [duplicate_operation_message(op_name)] ++ accumulator[:validation_errors]
-            )
-          else
-            accumulator = put_in(accumulator[:operation_names][op_name.value], true)
-          end
-        end
+    def enter(_visitor, %{kind: :OperationDefinition, name: %{value: _} = op_name}, accumulator) do
+      accumulator = if seen_operation?(accumulator, op_name) do
+        report_error(accumulator, duplicate_operation_message(op_name))
+      else
+        mark_as_seen(accumulator, op_name)
       end
       {:continue, accumulator}
     end
 
-    def leave(_visitor, _node, accumulator) do
-      {:continue, accumulator}
-    end
+    def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
+
+    def leave(_visitor, _node, accumulator), do: {:continue, accumulator}
 
     defp duplicate_operation_message(op_name) do
       "There can only be one operation named '#{op_name.value}'."
+    end
+
+    defp seen_operation?(accumulator, op_name) do
+      Map.has_key?(accumulator[:operation_names], op_name.value)
+    end
+
+    defp mark_as_seen(accumulator, op_name) do
+      put_in(accumulator[:operation_names][op_name.value], true)
     end
   end
 end

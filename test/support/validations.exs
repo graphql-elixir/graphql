@@ -8,10 +8,13 @@ defmodule ValidationsSupport do
   alias GraphQL.Type.ID
   alias GraphQL.Type.String
   alias GraphQL.Type.Int
+  alias GraphQL.Type.Float
   alias GraphQL.Type.Boolean
   alias GraphQL.Type.Interface
   alias GraphQL.Type.Union
   alias GraphQL.Type.Enum
+  alias GraphQL.Type.NonNull
+  alias GraphQL.Type.Input
 
   alias GraphQL.Lang.Parser
   alias GraphQL.Validation.Validator
@@ -212,8 +215,100 @@ defmodule ValidationsSupport do
     end
   end
 
+  defmodule ComplexInput do
+    def type do
+      %Input{
+        fields: %{
+          requiredField: %{ type: %NonNull{ofType: %Boolean{}} },
+          intField: %{ type: %Int{} },
+          stringField: %{ type: %String{} },
+          booleanField: %{ type: %Boolean{} },
+          stringListField: %{ type: %List{ofType: %String{}} },
+        }
+      }
+    end
+  end
 
-       
+  defmodule ComplicatedArgs do
+    def type do
+      %ObjectType{
+        fields: fn() -> %{
+          intArgField: %{
+            type: %String{},
+            args: %{ intArg: %{ type: %Int{} } },
+          },
+          nonNullIntArgField: %{
+            type: %String{},
+            args: %{ nonNullIntArg: %{ type: %NonNull{ofType: %Int{}} } },
+          },
+          stringArgField: %{
+            type: %String{},
+            args: %{ stringArg: %{ type: %String{} } },
+          },
+          booleanArgField: %{
+            type: %String{},
+            args: %{ booleanArg: %{ type: %Boolean{} } },
+          },
+          enumArgField: %{
+            type: %String{},
+            args: %{ enumArg: %{ type: FurColor.type } },
+          },
+          floatArgField: %{
+            type: %String{},
+            args: %{ floatArg: %{ type: %Float{} } },
+          },
+          idArgField: %{
+            type: %String{},
+            args: %{ idArg: %{ type: %ID{} } },
+          },
+          stringListArgField: %{
+            type: %String{},
+            args: %{ stringListArg: %{ type: %List{ofType: %String{}} } },
+          },
+          complexArgField: %{
+            type: %String{},
+            args: %{ complexArg: %{ type: ComplexInput.type } },
+          },
+          multipleReqs: %{
+            type: %String{},
+            args: %{
+              req1: %{ type: %NonNull{ofType: %Int{}} },
+              req2: %{ type: %NonNull{ofType: %Int{}} },
+            },
+          },
+          multipleOpts: %{
+            type: %String{},
+            args: %{
+              opt1: %{
+                type: %Int{},
+                defaultValue: 0,
+              },
+              opt2: %{
+                type: %Int{},
+                defaultValue: 0,
+              },
+            },
+          },
+          multipleOptAndReq: %{
+            type: %String{},
+            args: %{
+              req1: %{ type: %NonNull{ofType: %Int{}} },
+              req2: %{ type: %NonNull{ofType: %Int{}} },
+              opt1: %{
+                type: %Int{},
+                defaultValue: 0,
+              },
+              opt2: %{
+                type: %Int{},
+                defaultValue: 0,
+              }
+            }
+          }
+        } end
+      }
+    end
+  end
+
   defmodule TestSchema do
     def schema do
       %Schema{
@@ -231,7 +326,7 @@ defmodule ValidationsSupport do
             catOrDog: %{ type: CatOrDog.type },
             dogOrHuman: %{ type: DogOrHuman.type },
             humanOrAlien: %{ type: HumanOrAlien.type },
-            #complicatedArgs: %{ type: ComplicatedArgs.type },
+            complicatedArgs: %{ type: ComplicatedArgs.type },
           } end
         }
       }
