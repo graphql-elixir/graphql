@@ -3,6 +3,7 @@ defmodule GraphQL.Validation.Rules.ProvidedNonNullArguments do
 
   alias GraphQL.Lang.AST.{Visitor, TypeInfo}
   alias GraphQL.Type
+  import GraphQL.Validation
 
   defstruct name: "ProvidedNonNullArguments"
 
@@ -56,12 +57,6 @@ defmodule GraphQL.Validation.Rules.ProvidedNonNullArguments do
       "Field \"#{field_name}\" argument \"#{arg_name}\" of type \"#{arg_type}\" is required but not provided."
     end
 
-    # TODO: factor this out. It's probably widely useful in validator impls.
-    defp report_error(acc, error) do
-      %{acc | validation_errors: [error] ++ acc[:validation_errors]}
-    end
-
-    # TODO: and this
     defp make_name_to_arg_map(node) do
       Enum.reduce(arguments_from_ast_node(node), %{}, fn(arg,map) ->
         Map.merge(%{ arg.name.value => arg}, map)

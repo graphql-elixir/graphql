@@ -225,7 +225,7 @@ defmodule GraphQL.Validation.Rules.ProvidedNonNullArgumentsTest do
   end
 
   @tag :skip
-  test "with directives of valid types" do
+  test "with directive with missing types" do
     assert_fails_rule(
       """ 
       {

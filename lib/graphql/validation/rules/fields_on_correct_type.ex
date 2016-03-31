@@ -4,6 +4,7 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
   alias GraphQL.Lang.AST.{Visitor, TypeInfo}
   alias GraphQL.Type.{CompositeType, ObjectType, AbstractType}
   alias GraphQL.Type
+  import GraphQL.Validation
 
   defstruct name: "FieldsOnCorrectType"
 
@@ -11,37 +12,34 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
 
     @max_type_suggestions 5
 
-    def enter(_visitor, node, accumulator) do
-      if node.kind == :Field do
-        schema = accumulator[:type_info].schema
-        parent_type = TypeInfo.parent_type(accumulator[:type_info])
-        if parent_type do
-          field_def = TypeInfo.find_field_def(schema, parent_type, node)
-          if !field_def do
-            accumulator = put_in(
-              accumulator[:validation_errors],
-              [  undefined_field_message(schema, node.name.value, parent_type)]
-              ++ accumulator[:validation_errors]
-            )
-          end
+    def enter(_visitor, %{kind: :Field} = node, accumulator) do
+      schema = accumulator[:type_info].schema
+      parent_type = TypeInfo.parent_type(accumulator[:type_info])
+      field_def = TypeInfo.find_field_def(schema, parent_type, node)
+      if parent_type do
+        if !field_def do
+          accumulator = report_error(
+            accumulator,
+            undefined_field_message(schema, node.name.value, parent_type)
+          )
         end
       end
       {:continue, accumulator}
     end
 
-    def leave(_visitor, _node, accumulator) do
-      {:continue, accumulator}
-    end
+    def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
+
+    def leave(_visitor, _node, accumulator), do: {:continue, accumulator}
 
     defp sibling_interfaces_including_field(schema, type, field_name) do
       AbstractType.possible_types(type, schema)
-        |> Enum.filter(&is_a_graphql_object_type/1)
-        |> Enum.flat_map(&to_self_and_interfaces/1)
-        |> Enum.reduce(%{}, to_field_usage_counts(field_name))
-        |> Enum.filter(&by_at_least_one_usage/1)
-        |> Enum.uniq()
-        |> Enum.sort_by(&field_usage_count/1)
-        |> Enum.map(fn({iface,_}) -> iface end)
+      |> Enum.filter(&is_a_graphql_object_type/1)
+      |> Enum.flat_map(&to_self_and_interfaces/1)
+      |> Enum.reduce(%{}, to_field_usage_counts(field_name))
+      |> Enum.filter(&by_at_least_one_usage/1)
+      |> Enum.uniq()
+      |> Enum.sort_by(&field_usage_count/1)
+      |> Enum.map(fn({iface,_}) -> iface end)
     end
 
     defp field_usage_count({_, count}), do: count
