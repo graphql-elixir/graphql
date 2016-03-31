@@ -34,9 +34,9 @@ defmodule GraphQL.Lang.AST.TypeInfo do
   Dereferences a type to a proper type. If the type is a List or NonNull it is dereferenced,
   otherwise it just returns its type argument.
   """
-  def named_type(type_info, %List{} = type), do: named_type(type_info, type.ofType)
-  def named_type(type_info, %NonNull{} = type), do: named_type(type_info, type.ofType)
-  def named_type(_, type), do: type
+  def named_type(%List{} = type), do: named_type(type.ofType)
+  def named_type(%NonNull{} = type), do: named_type(type.ofType)
+  def named_type(type), do: type
 
   @doc """
   Return the top of the parent type stack, or nil if empty.

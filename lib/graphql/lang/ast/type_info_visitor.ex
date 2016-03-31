@@ -59,7 +59,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
       case node.kind do
         :SelectionSet ->
           type = TypeInfo.type(accumulator[:type_info])
-          named_type = TypeInfo.named_type(accumulator[:type_info], type)
+          named_type = TypeInfo.named_type(type)
           if Type.is_composite_type?(named_type) do
             stack_push(:parent_type_stack, named_type)
           else
@@ -124,7 +124,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           end
         :ObjectField ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
-          object_type = TypeInfo.named_type(accumulator[:type_info], input_type)
+          object_type = TypeInfo.named_type(input_type)
           if %Type.Input{} === object_type do
             input_field = TypeInfo.find_field_def(
               accumulator[:type_info].schema,
