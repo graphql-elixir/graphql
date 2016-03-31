@@ -53,4 +53,8 @@ defmodule GraphQL.Type.Interface do
       end
     end
   end
+
+  defimpl String.Chars do
+    def to_string(iface), do: iface.name
+  end
 end

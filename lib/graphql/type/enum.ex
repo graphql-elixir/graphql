@@ -24,6 +24,10 @@ defmodule GraphQL.Type.Enum do
       %GraphQL.Type.EnumValue{name: name, value: val, description: desc}
     end)
   end
+
+  defimpl String.Chars do
+    def to_string(_), do: "Enum"
+  end
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.Enum do

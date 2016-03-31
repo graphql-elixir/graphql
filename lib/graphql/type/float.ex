@@ -17,6 +17,10 @@ defmodule GraphQL.Type.Float do
   def coerce(value) do
     value * 1.0
   end
+
+  defimpl String.Chars do
+    def to_string(_), do: "Float"
+  end
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.Float do
