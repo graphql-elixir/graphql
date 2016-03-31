@@ -59,6 +59,13 @@ defmodule GraphQL.Lang.AST.TypeInfo do
     Stack.peek(type_info.field_def_stack)
   end
 
+  @doc """
+  Return the current directive
+  """
+  def directive(type_info) do
+    type_info.directive
+  end
+
   def find_field_def(schema, parent_type, field_node) do
     cond do
       field_node.name.value == Introspection.meta(:schema)[:name] && schema.query == parent_type ->

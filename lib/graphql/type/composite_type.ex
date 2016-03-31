@@ -18,9 +18,6 @@ defmodule GraphQL.Type.CompositeType do
   def get_field(%ObjectType{fields: fields}, field_name), do: do_get_field(fields, field_name)
   def get_field(%Input{fields: fields}, field_name), do: do_get_field(fields, field_name)
 
-  defp do_get_fields(fields) when is_function(fields), do: fields.()
-  defp do_get_fields(fields) when is_map(fields), do: fields
-
   defp do_get_field(fields, field_name) when is_binary(field_name) do
     try do
       do_get_fields(fields)[String.to_existing_atom(field_name)]
@@ -32,4 +29,7 @@ defmodule GraphQL.Type.CompositeType do
   defp do_get_field(fields, field_name) when is_atom(field_name) do
     do_get_fields(fields)[field_name]
   end
+
+  defp do_get_fields(fields) when is_function(fields), do: fields.()
+  defp do_get_fields(fields) when is_map(fields), do: fields
 end
