@@ -352,7 +352,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   test "Handles non-nullable scalars passes along null for non-nullable inputs if explcitly set in the query" do
     query = ~s[ { field_with_nonnullable_string_input } ]
 
-    assert_execute {query, schema, nil},
+    assert_execute_without_validation {query, schema, nil},
       %{"field_with_nonnullable_string_input" => nil}
   end
 
