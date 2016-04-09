@@ -28,6 +28,7 @@ defmodule GraphQL.Validation.Validator do
     ])
     result = Reducer.reduce(document, validation_pipeline, %{
       type_info: %TypeInfo{schema: schema},
+      document: document,
       validation_errors: []
     })
     errors = result[:validation_errors]
