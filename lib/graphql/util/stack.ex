@@ -25,4 +25,6 @@ defmodule GraphQL.Util.Stack do
       [] -> nil
     end
   end
+  
+  def length(stack), do: Kernel.length(stack.elements)
 end
