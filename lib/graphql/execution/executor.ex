@@ -42,7 +42,7 @@ defmodule GraphQL.Execution.Executor do
   @spec execute_operation(ExecutionContext.t, operation, map) :: result_data | {:error, String.t}
   defp execute_operation(context, operation, root_value) do
     type = operation_root_type(context.schema, operation)
-    {context, %{fields: fields}} = collect_fields(context, type, operation.selectionSet)
+    {context, %{fields: fields}} = collect_selections(context, type, operation.selectionSet)
     case operation.operation do
       :query        ->
         {_, result} = execute_fields(context, type, root_value, fields)
@@ -60,27 +60,33 @@ defmodule GraphQL.Execution.Executor do
     Map.get(schema, operation.operation)
   end
 
-  defp collect_fields(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
+  defp collect_selections(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
     Enum.reduce selection_set[:selections], {context, field_fragment_map}, fn(selection, {context, field_fragment_map}) ->
-      case selection do
-        %{kind: :Field} ->
-          field_name = field_entry_key(selection)
-          fields = field_fragment_map.fields[field_name] || []
-          {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
-        %{kind: :InlineFragment} ->
-          collect_fragment(context, runtime_type, selection, field_fragment_map)
-        %{kind: :FragmentSpread} ->
-          fragment_name = selection.name.value
-          if !field_fragment_map.fragments[fragment_name] do
-            field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
-            collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
-          else
-            {context, field_fragment_map}
-          end
-        _ -> {context, field_fragment_map}
-      end
+      collect_selection(context, runtime_type, selection, field_fragment_map)
     end
   end
+
+  defp collect_selection(context, _, %{kind: :Field} = selection, field_fragment_map) do
+    field_name = field_entry_key(selection)
+    fields = field_fragment_map.fields[field_name] || []
+    {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
+  end
+
+  defp collect_selection(context, runtime_type, %{kind: :InlineFragment} = selection, field_fragment_map) do
+    collect_fragment(context, runtime_type, selection, field_fragment_map)
+  end
+
+  defp collect_selection(context, runtime_type, %{kind: :FragmentSpread} = selection, field_fragment_map) do
+    fragment_name = selection.name.value
+    if !field_fragment_map.fragments[fragment_name] do
+      field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
+      collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
+    else
+      {context, field_fragment_map}
+    end
+  end
+
+  defp collect_selection(context, _, _, field_fragment_map), do: {context, field_fragment_map}
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
@@ -210,7 +216,7 @@ defmodule GraphQL.Execution.Executor do
   defp collect_sub_fields(context, return_type, field_asts) do
     Enum.reduce field_asts, {context, %{fields: %{}, fragments: %{}}}, fn(field_ast, {context, field_fragment_map}) ->
       if selection_set = Map.get(field_ast, :selectionSet) do
-        collect_fields(context, return_type, selection_set, field_fragment_map)
+        collect_selections(context, return_type, selection_set, field_fragment_map)
       else
         {context, field_fragment_map}
       end
@@ -300,7 +306,7 @@ defmodule GraphQL.Execution.Executor do
   defp collect_fragment(context, runtime_type, selection, field_fragment_map) do
     condition_matches = typecondition_matches?(context, selection, runtime_type)
     if condition_matches do
-      collect_fields(context, runtime_type, selection.selectionSet, field_fragment_map)
+      collect_selections(context, runtime_type, selection.selectionSet, field_fragment_map)
     else
       {context, field_fragment_map}
     end
