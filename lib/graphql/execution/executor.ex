@@ -42,10 +42,14 @@ defmodule GraphQL.Execution.Executor do
   @spec execute_operation(ExecutionContext.t, operation, map) :: result_data | {:error, String.t}
   defp execute_operation(context, operation, root_value) do
     type = operation_root_type(context.schema, operation)
-    %{fields: fields} = collect_fields(context, type, operation.selectionSet)
+    {context, %{fields: fields}} = collect_fields(context, type, operation.selectionSet)
     case operation.operation do
-      :query        -> {:ok, execute_fields(context, type, root_value, fields)}
-      :mutation     -> {:ok, execute_fields_serially(context, type, root_value, fields)}
+      :query        ->
+        {_, result} = execute_fields(context, type, root_value, fields)
+        {:ok, result}
+      :mutation     ->
+        {_, result} = execute_fields_serially(context, type, root_value, fields)
+        {:ok, result}
       :subscription -> {:error, "Subscriptions not currently supported"}
       _             -> {:error, "Can only execute queries, mutations and subscriptions"}
     end
@@ -57,12 +61,12 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_fields(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
-    Enum.reduce selection_set[:selections], field_fragment_map, fn(selection, field_fragment_map) ->
+    Enum.reduce selection_set[:selections], {context, field_fragment_map}, fn(selection, {context, field_fragment_map}) ->
       case selection do
         %{kind: :Field} ->
           field_name = field_entry_key(selection)
           fields = field_fragment_map.fields[field_name] || []
-          put_in(field_fragment_map.fields[field_name], [selection | fields])
+          {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
         %{kind: :InlineFragment} ->
           collect_fragment(context, runtime_type, selection, field_fragment_map)
         %{kind: :FragmentSpread} ->
@@ -71,29 +75,29 @@ defmodule GraphQL.Execution.Executor do
             field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
             collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
           else
-            field_fragment_map
+            {context, field_fragment_map}
           end
-        _ -> field_fragment_map
+        _ -> {context, field_fragment_map}
       end
     end
   end
 
-  @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: any
+  @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
     execute_fields(context, apply(parent_type, :type, []), source_value, fields)
   end
 
-  @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: any
+  @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) do
-    Enum.reduce fields, %{}, fn({field_name_ast, field_asts}, results) ->
+    Enum.reduce fields, {context, %{}}, fn({field_name_ast, field_asts}, {context, results}) ->
       case resolve_field(context, parent_type, source_value, field_asts) do
-        :undefined -> results
-        value -> Map.put(results, field_name_ast.value, value)
+        {context, :undefined} -> {context, results}
+        {context, value} -> {context, Map.put(results, field_name_ast.value, value)}
       end
     end
   end
 
-  @spec execute_fields_serially(ExecutionContext.t, atom, map, any) :: any
+  @spec execute_fields_serially(ExecutionContext.t, atom, map, any) :: {ExecutionContext.t, map}
   defp execute_fields_serially(context, parent_type, source_value, fields) do
     # call execute_fields because no async operations yet
     execute_fields(context, parent_type, source_value, fields)
@@ -101,6 +105,7 @@ defmodule GraphQL.Execution.Executor do
 
   defp resolve_field(context, parent_type, source, field_asts) do
     field_ast = hd(field_asts)
+    # FIXME: possible memory leak
     field_name = String.to_atom(field_ast.name.value)
 
     if field_def = field_definition(parent_type, field_name) do
@@ -137,20 +142,22 @@ defmodule GraphQL.Execution.Executor do
       end
       complete_value_catching_error(context, return_type, field_asts, info, result)
     else
-      :undefined
+      {context, :undefined}
     end
   end
 
+  @spec complete_value_catching_error(ExecutionContext.t, any, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map | nil}
   defp complete_value_catching_error(context, return_type, field_asts, info, result) do
     # TODO lots of error checking
     complete_value(context, return_type, field_asts, info, result)
   end
 
-  defp complete_value(_, _, _, _, nil), do: nil
+  @spec complete_value(ExecutionContext.t, any, any, any, nil) :: {ExecutionContext.t, nil}
+  defp complete_value(context, _, _, _, nil), do: {context, nil}
 
-  @spec complete_value(ExecutionContext.t, %ObjectType{}, GraphQL.Document.t, any, map) :: map
+  @spec complete_value(ExecutionContext.t, %ObjectType{}, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map}
   defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
-    sub_field_asts = collect_sub_fields(context, return_type, field_asts)
+    {context, sub_field_asts} = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
@@ -158,23 +165,23 @@ defmodule GraphQL.Execution.Executor do
     complete_value(context, %NonNull{ofType: apply(inner_type, :type, [])}, field_asts, info, result)
   end
 
-  @spec complete_value(ExecutionContext.t, %NonNull{}, GraphQL.Document.t, any, any) :: map
+  @spec complete_value(ExecutionContext.t, %NonNull{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
   defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
     complete_value(context, inner_type, field_asts, info, result)
   end
 
-  @spec complete_value(ExecutionContext.t, %Interface{}, GraphQL.Document.t, any, any) :: map
+  @spec complete_value(ExecutionContext.t, %Interface{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
   defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
     runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
-    sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
+    {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  @spec complete_value(ExecutionContext.t, %Union{}, GraphQL.Document.t, any, any) :: map
+  @spec complete_value(ExecutionContext.t, %Union{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
   defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
     runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
-    sub_field_asts = collect_sub_fields(context, runtime_type, field_asts)
+    {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
@@ -184,9 +191,11 @@ defmodule GraphQL.Execution.Executor do
 
   @spec complete_value(ExecutionContext.t, %List{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
-    Enum.map result, fn(item) ->
-      complete_value_catching_error(context, list_type, field_asts, info, item)
+    {context, result} = Enum.reduce result, {context, []}, fn(item, {context, acc}) ->
+      {context, value} = complete_value_catching_error(context, list_type, field_asts, info, item)
+      {context, [value] ++ acc}
     end
+    {context, Enum.reverse(result)}
   end
 
   defp complete_value(context, return_type, field_asts, info, result) when is_atom(return_type) do
@@ -194,16 +203,16 @@ defmodule GraphQL.Execution.Executor do
     complete_value(context, type, field_asts, info, result)
   end
 
-  defp complete_value(_context, return_type, _field_asts, _info, result) do
-    GraphQL.Types.serialize(return_type, result)
+  defp complete_value(context, return_type, _field_asts, _info, result) do
+    {context, GraphQL.Types.serialize(return_type, result)}
   end
 
   defp collect_sub_fields(context, return_type, field_asts) do
-    Enum.reduce field_asts, %{fields: %{}, fragments: %{}}, fn(field_ast, field_fragment_map) ->
+    Enum.reduce field_asts, {context, %{fields: %{}, fragments: %{}}}, fn(field_ast, {context, field_fragment_map}) ->
       if selection_set = Map.get(field_ast, :selectionSet) do
         collect_fields(context, return_type, selection_set, field_fragment_map)
       else
-        field_fragment_map
+        {context, field_fragment_map}
       end
     end
   end
@@ -293,7 +302,7 @@ defmodule GraphQL.Execution.Executor do
     if condition_matches do
       collect_fields(context, runtime_type, selection.selectionSet, field_fragment_map)
     else
-      field_fragment_map
+      {context, field_fragment_map}
     end
   end
 
