@@ -11,15 +11,15 @@ defmodule GraphQL.Mixfile do
      version: @version,
      elixir: "~> 1.2",
      description: @description,
+     deps: deps,
      package: package,
      source_url: @repo_url,
      homepage_url: @repo_url,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      consolidate_protocols: Mix.env == :prod,
-     deps: deps,
      name: "GraphQL",
-     docs: [main: "README", extras: ["README.md"]]]
+     docs: [main: "GraphQL", logo: "logo.png", extras: ["README.md"]]]
   end
 
   def application do

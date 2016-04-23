@@ -1,16 +1,54 @@
 defmodule GraphQL do
   @moduledoc ~S"""
-  The main GraphQL module.
+  An Elixir implementation of Facebook's GraphQL.
 
-  The `GraphQL` module provides a
-  [GraphQL](http://facebook.github.io/graphql/) implementation for Elixir.
+  This is the core GraphQL query parsing and execution engine whose goal is to be
+  transport, server and datastore agnostic.
 
-  ## Execute a query
+  In order to setup an HTTP server (ie Phoenix) to handle GraphQL queries you will
+  need:
 
-  Execute a GraphQL query against a given schema / datastore.
+    * [GraphQL Plug](https://github.com/graphql-elixir/plug_graphql)
 
-      # iex> GraphQL.execute schema, "{ hello }"
-      # {:ok, %{hello: "world"}}
+  Examples for Phoenix can be found:
+
+    * [Phoenix Examples](https://github.com/graphql-elixir/hello_graphql_phoenix)
+
+  Here you'll find some examples which can be used as a starting point for writing your own schemas.
+
+  Other ways of handling queries will be added in due course.
+
+  ## Execute a Query on the Schema
+
+  First setup your schema
+
+      iex> defmodule TestSchema do
+      ...>   def schema do
+      ...>     %GraphQL.Schema{
+      ...>       query: %GraphQL.Type.ObjectType{
+      ...>         name: "RootQueryType",
+      ...>         fields: %{
+      ...>           greeting: %{
+      ...>             type: %GraphQL.Type.String{},
+      ...>             resolve: &TestSchema.greeting/3,
+      ...>             description: "Greeting",
+      ...>             args: %{
+      ...>               name: %{type: %GraphQL.Type.String{}, description: "The name of who you'd like to greet."},
+      ...>             }
+      ...>           }
+      ...>         }
+      ...>       }
+      ...>     }
+      ...>   end
+      ...>   def greeting(_, %{name: name}, _), do: "Hello, #{name}!"
+      ...>   def greeting(_, _, _), do: "Hello, world!"
+      ...> end
+      ...>
+      ...> GraphQL.execute(TestSchema.schema, "{ greeting }")
+      {:ok, %{data: %{"greeting" => "Hello, world!"}}}
+      ...>
+      ...> GraphQL.execute(TestSchema.schema, ~S[{ greeting(name: "Josh") }])
+      {:ok, %{data: %{"greeting" => "Hello, Josh!"}}}
   """
 
   alias GraphQL.Validation.Validator
