@@ -6,6 +6,7 @@ defmodule GraphQL.Execution.Executor do
       # {:ok, %{hello: "world"}}
   """
 
+  alias GraphQL.Schema
   alias GraphQL.Execution.ExecutionContext
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
@@ -16,6 +17,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.NonNull
   alias GraphQL.Type.CompositeType
   alias GraphQL.Type.AbstractType
+  alias GraphQL.Lang.AST.Nodes
 
   @type result_data :: {:ok, Map}
 
@@ -34,14 +36,9 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  @type operation :: %{
-    kind: :OperationDefintion,
-    operation: atom
-  }
-
-  @spec execute_operation(ExecutionContext.t, operation, map) :: result_data | {:error, String.t}
+  @spec execute_operation(ExecutionContext.t, Nodes.operation_node, map) :: result_data | {:error, String.t}
   defp execute_operation(context, operation, root_value) do
-    type = operation_root_type(context.schema, operation)
+    type = Schema.operation_root_type(context.schema, operation)
     {context, %{fields: fields}} = collect_selections(context, type, operation.selectionSet)
     case operation.operation do
       :query        ->
@@ -55,10 +52,6 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  @spec operation_root_type(GraphQL.Schema.t, operation) :: atom
-  defp operation_root_type(schema, operation) do
-    Map.get(schema, operation.operation)
-  end
 
   defp collect_selections(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
     Enum.reduce selection_set[:selections], {context, field_fragment_map}, fn(selection, {context, field_fragment_map}) ->

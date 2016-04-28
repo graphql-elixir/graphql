@@ -1,11 +1,6 @@
 
 defmodule GraphQL.Execution.ExecutionContext do
 
-  @type operation :: %{
-    kind: :OperationDefintion,
-    operation: atom
-  }
-
   defstruct [:schema, :fragments, :root_value, :operation, :variable_values, :errors]
   @type t :: %__MODULE__{
     schema: GraphQL.Schema.t,
