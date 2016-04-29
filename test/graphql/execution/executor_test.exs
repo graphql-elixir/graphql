@@ -276,4 +276,303 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
     assert_execute {~S[{ person { id name } person { id } }], schema}, %{person: %{id: "1", name: "Dave"}}
   end
+
+  test "mutations accept variables " do
+    schema = %Schema{
+      mutation: %ObjectType{
+        name: "PersonMutation",
+        fields: %{
+          person: %{
+            args: %{
+              id:   %{name: "id",   type: %ID{}},
+              name: %{name: "name", type: %String{}}
+            },
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}}
+              }
+            },
+            resolve: fn(_, args, _) ->
+              %{id: args[:id], name: args[:name]}
+            end
+          }
+        }
+      }
+    }
+    query = ~S[
+      mutation hello($id: ID, $name: String){
+        person(id: $id, name: $name) {
+          id
+          name
+        }
+      }]
+
+    assert_execute(
+      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
+      %{person: %{id: "1", name: "Dave"}})
+  end
+
+  test "mutations variables are not required " do
+    schema = %Schema{
+      mutation: %ObjectType{
+        name: "PersonMutation",
+        fields: %{
+          person: %{
+            args: %{
+              id:   %{name: "id",   type: %ID{}},
+              name: %{name: "name", type: %String{}}
+            },
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}}
+              }
+            },
+            resolve: fn(_, args, _) ->
+              %{id: args[:id], name: args[:name]}
+            end
+          }
+        }
+      }
+    }
+    query = ~S[
+      mutation hello($id: ID, $name: String){
+        person(id: $id, name: $name) {
+          id
+          name
+        }
+      }]
+
+    assert_execute(
+      {query, schema, %{}, %{"name" => "Dave"}, "hello"},
+      %{person: %{id: nil, name: "Dave"}})
+  end
+
+  test "mutations accept enums " do
+    roleEnum = GraphQL.Type.Enum.new %{
+      name: "Role",
+      values: %{
+        USER: %{value: 2, description: "User"},
+        ADMIN: %{value: 3, description: "Admin"}
+      }
+    }
+    schema = %Schema{
+      mutation: %ObjectType{
+        name: "PersonMutation",
+        fields: %{
+          person: %{
+            args: %{
+              id:   %{name: "id",   type: %ID{}},
+              name: %{name: "name", type: %String{}},
+              role: %{name: "role", type: roleEnum}
+            },
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}},
+                role: %{name: "role", type: roleEnum}
+              }
+            },
+            resolve: fn(_, args, _) ->
+              %{id: args[:id], name: args[:name], role: args[:role]}
+            end
+          }
+        }
+      }
+    }
+    query = ~S[
+      mutation hello($id: ID, $name: String, $role: Role){
+        person(id: $id, name: $name, role: $role) {
+          id
+          name
+          role
+        }
+      }]
+
+    assert_execute(
+      {query, schema, %{}, %{"id" => "1", "name" => "Dave", "role" => "ADMIN"}, "hello"},
+      %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
+  end
+
+  test "mutations enums are not required" do
+    roleEnum = GraphQL.Type.Enum.new %{
+      name: "Role",
+      values: %{
+        USER: %{value: 2, description: "User"},
+        ADMIN: %{value: 3, description: "Admin"}
+      }
+    }
+    schema = %Schema{
+      mutation: %ObjectType{
+        name: "PersonMutation",
+        fields: %{
+          person: %{
+            args: %{
+              id:   %{name: "id",   type: %ID{}},
+              name: %{name: "name", type: %String{}},
+              role: %{name: "role", type: roleEnum}
+            },
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}},
+                role: %{name: "role", type: roleEnum}
+              }
+            },
+            resolve: fn(_root, args, _schema) ->
+              %{id: args[:id], name: args[:name], role: 3}
+            end
+          }
+        }
+      }
+    }
+    query = ~S[
+      mutation hello($id: ID, $name: String){
+        person(id: $id, name: $name) {
+          id
+          name
+          role
+        }
+      }]
+
+    assert_execute(
+      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
+      %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
+  end
+
+  test "mutations enums are not required in variables" do
+    roleEnum = GraphQL.Type.Enum.new %{
+      name: "Role",
+      values: %{
+        USER: %{value: 2, description: "User"},
+        ADMIN: %{value: 3, description: "Admin"}
+      }
+    }
+    schema = %Schema{
+      mutation: %ObjectType{
+        name: "PersonMutation",
+        fields: %{
+          person: %{
+            args: %{
+              id:   %{name: "id",   type: %ID{}},
+              name: %{name: "name", type: %String{}},
+              role: %{name: "role", type: roleEnum}
+            },
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}},
+                role: %{name: "role", type: roleEnum}
+              }
+            },
+            resolve: fn(_, args, _) ->
+              %{id: args[:id], name: args[:name], role: 3}
+            end
+          }
+        }
+      }
+    }
+    query = ~S[
+      mutation hello($id: ID, $name: String, $role: Role){
+        person(id: $id, name: $name, role: $role) {
+          id
+          name
+          role
+        }
+      }]
+
+    assert_execute(
+      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
+      %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
+  end
+
+  test "mutations enums will use default value when not passed in" do
+    roleEnum = GraphQL.Type.Enum.new %{
+      name: "Role",
+      values: %{
+        USER: %{value: 2, description: "User"},
+        ADMIN: %{value: 3, description: "Admin"}
+      }
+    }
+    schema = %Schema{
+      mutation: %ObjectType{
+        name: "PersonMutation",
+        fields: %{
+          person: %{
+            args: %{
+              id:   %{name: "id",   type: %ID{}},
+              name: %{name: "name", type: %String{}},
+              role: %{name: "role", type: roleEnum}
+            },
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}},
+                role: %{name: "role", type: roleEnum}
+              }
+            },
+            resolve: fn(_, args, _) ->
+              %{id: args[:id], name: args[:name], role: args[:role]}
+            end
+          }
+        }
+      }
+    }
+    query = ~S[
+      mutation hello($id: ID, $name: String = "Bob", $role: Role = USER){
+        person(id: $id, name: $name, role: $role) {
+          id
+          name
+          role
+        }
+      }]
+
+    assert_execute(
+      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
+      %{person: %{id: "1", name: "Dave", role: "USER"}})
+  end
+
+  test "mutations will use default value when not passed in" do
+    schema = %Schema{
+      mutation: %ObjectType{
+        name: "PersonMutation",
+        fields: %{
+          person: %{
+            args: %{
+              id:   %{name: "id",   type: %ID{}},
+              name: %{name: "name", type: %String{}}
+            },
+            type: %ObjectType{
+              name: "Person",
+              fields: %{
+                id:   %{name: "id",   type: %ID{}},
+                name: %{name: "name", type: %String{}}
+              }
+            },
+            resolve: fn(_, args, _) ->
+              %{id: args[:id], name: args[:name]}
+            end
+          }
+        }
+      }
+    }
+    query = ~S[
+      mutation hello($id: ID, $name: String = "Dave"){
+        person(id: $id, name: $name, role: $role) {
+          id
+          name
+        }
+      }]
+
+    assert_execute(
+      {query, schema, %{}, %{"id" => "1"}, "hello"},
+      %{person: %{id: "1", name: "Dave"}})
+  end
 end

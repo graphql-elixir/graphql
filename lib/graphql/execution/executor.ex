@@ -296,8 +296,10 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(%{value: %{kind: :Variable, name: %{value: value}}}, type, variable_values) do
-    variable_value = Map.get(variable_values, value)
-    GraphQL.Types.parse_value(type, variable_value)
+    case Map.get(variable_values, value) do
+      nil -> nil
+      variable_value -> GraphQL.Types.parse_value(type, variable_value)
+    end
   end
 
   # if it isn't a variable or object input type, that means it's invalid
