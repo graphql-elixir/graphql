@@ -31,12 +31,20 @@ defmodule GraphQL.Type.Enum do
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.Enum do
+  def parse_value(struct, value) when is_integer(value) do
+    value
+  end
   def parse_value(struct, value) do
     GraphQL.Type.Enum.values(struct) |> Map.get(String.to_atom(value))
   end
 
   def parse_literal(struct, value) do
-    GraphQL.Type.Enum.values(struct) |> Map.get(String.to_atom(value.value))
+    values = GraphQL.Type.Enum.values(struct)
+    key = String.to_atom(value.value)
+    case Map.has_key?(values, key) do
+      true -> Map.get(values, key)
+      false -> nil
+    end
   end
 
   def serialize(struct, wanted) do
