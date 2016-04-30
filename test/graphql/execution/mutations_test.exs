@@ -98,6 +98,10 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
         theNumber: 3
       }
     }
+
+    assert_execute_error {doc, TestSchema.schema}, [
+      %{"message" => "Cannot change the number"}
+    ]
   end
 end
 
