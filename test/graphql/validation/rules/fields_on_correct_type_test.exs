@@ -10,7 +10,7 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
 
   test "Object field selection" do
     assert_passes_rule(
-      """ 
+      """
         fragment objectFieldSelection on Dog {
           __typename
           name
@@ -22,10 +22,10 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
 
   test "Aliased object field selection" do
     assert_passes_rule(
-      """ 
+      """
         fragment aliasedObjectFieldSelection on Dog {
-          tn : __typename
-          otherName : name
+          tn: __typename
+          otherName: name
         }
       """,
       %Rule{}
@@ -34,7 +34,7 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
 
   test "Interface field selection" do
     assert_passes_rule(
-      """ 
+      """
         fragment interfaceFieldSelection on Pet {
           __typename
           name
@@ -46,7 +46,7 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
 
   test "Aliased interface field selection" do
     assert_passes_rule(
-      """ 
+      """
         fragment interfaceFieldSelection on Pet {
           otherName : name
         }
@@ -57,7 +57,7 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
 
   test "Lying alias selection" do
     assert_passes_rule(
-      """ 
+      """
         fragment lyingAliasSelection on Dog {
           name : nickname
         }
@@ -68,7 +68,7 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
 
   test "Ignores fields on unknown type" do
     assert_passes_rule(
-      """ 
+      """
         fragment unknownSelection on UnknownType {
           unknownField
         }
@@ -79,7 +79,7 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
 
   test "reports errors when type is known again" do
     assert_fails_rule(
-      """ 
+      """
         fragment typeKnownAgain on Pet {
           unknown_pet_field {
             ... on Cat {
@@ -100,7 +100,7 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
         }
       """,
       %Rule{},
-      ["Cannot query field \"meowVolume\" on type \"Dog\"."]
+      [~S(Cannot query field "meowVolume" on type "Dog".)]
     )
   end
 
@@ -113,36 +113,36 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
           }
         }
       """,
-      %Rule{}, 
-      ["Cannot query field \"unknown_field\" on type \"Dog\"."]
+      %Rule{},
+      [~S(Cannot query field "unknown_field" on type "Dog".)]
     )
   end
 
   test "Sub-field not defined" do
     assert_fails_rule(
       """
-       fragment subFieldNotDefined on Human {
+        fragment subFieldNotDefined on Human {
          pets {
            unknown_field
          }
-       }
+        }
       """,
       %Rule{},
-      ["Cannot query field \"unknown_field\" on type \"Pet\"."]
+      [~S(Cannot query field "unknown_field" on type "Pet".)]
     )
   end
 
   test "Field not defined on inline fragment" do
     assert_fails_rule(
       """
-       fragment fieldNotDefined on Pet {
+        fragment fieldNotDefined on Pet {
          ... on Dog {
            meowVolume
          }
-       },
+        }
       """,
       %Rule{},
-      ["Cannot query field \"meowVolume\" on type \"Dog\"."]
+      [~S(Cannot query field "meowVolume" on type "Dog".)]
     )
   end
 
@@ -151,10 +151,10 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
       """
         fragment aliasedFieldTargetNotDefined on Dog {
           volume : mooVolume
-        },
+        }
       """,
       %Rule{},
-      ["Cannot query field \"mooVolume\" on type \"Dog\"."]
+      [~S(Cannot query field "mooVolume" on type "Dog".)]
     )
   end
 
@@ -163,10 +163,10 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
       """
         fragment aliasedLyingFieldTargetNotDefined on Dog {
           barkVolume : kawVolume
-        },
+        }
       """,
       %Rule{},
-      ["Cannot query field \"kawVolume\" on type \"Dog\"."]
+      [~S(Cannot query field "kawVolume" on type "Dog".)]
     )
   end
 
@@ -175,10 +175,10 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
       """
         fragment notDefinedOnInterface on Pet {
           tailLength
-        },
+        }
       """,
       %Rule{},
-      ["Cannot query field \"tailLength\" on type \"Pet\"."]
+      [~S(Cannot query field "tailLength" on type "Pet".)]
     )
   end
 
@@ -187,13 +187,13 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
       """
         fragment definedOnImplementorsButNotInterface on Pet {
           nickname
-        },
+        }
       """,
       %Rule{},
       [
-        "Cannot query field \"nickname\" on type \"Pet\". " <>
-        "However, this field exists on \"Cat\", \"Dog\". " <> 
-        "Perhaps you meant to use an inline fragment?"
+        ~S(Cannot query field "nickname" on type "Pet". ) <>
+        ~S(However, this field exists on "Cat", "Dog". ) <>
+        ~S(Perhaps you meant to use an inline fragment?)
       ]
     )
   end
@@ -214,26 +214,25 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
       """
         fragment directFieldSelectionOnUnion on CatOrDog {
           directField
-        },
+        }
       """,
       %Rule{},
-      ["Cannot query field \"directField\" on type \"CatOrDog\"."]
+      [~S(Cannot query field "directField" on type "CatOrDog".)]
     )
   end
 
   test "Defined on implementors queried on union" do
     assert_fails_rule(
       """
-       fragment definedOnImplementorsQueriedOnUnion on CatOrDog {
+        fragment definedOnImplementorsQueriedOnUnion on CatOrDog {
          name
-       },
+        }
       """,
       %Rule{},
       [
-        "Cannot query field \"name\" on type \"CatOrDog\". " <>
-        "However, this field exists on \"Canine\", \"Cat\", " <>
-        "\"Dog\", \"Being\", \"Pet\". Perhaps you meant to use " <>
-        "an inline fragment?"
+        ~S(Cannot query field "name" on type "CatOrDog". ) <>
+        ~S(However, this field exists on "Canine", "Cat", "Dog", "Being", "Pet". ) <>
+        ~S(Perhaps you meant to use an inline fragment?)
       ]
     )
   end
@@ -253,5 +252,5 @@ defmodule GraphQL.Validation.Rules.FieldOnCorrectTypeTest do
       %Rule{}
     )
   end
-
+  
 end
