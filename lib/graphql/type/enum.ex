@@ -31,7 +31,7 @@ defmodule GraphQL.Type.Enum do
 end
 
 defimpl GraphQL.Types, for: GraphQL.Type.Enum do
-  def parse_value(struct, value) when is_integer(value) do
+  def parse_value(_struct, value) when is_integer(value) do
     value
   end
   def parse_value(struct, value) do
