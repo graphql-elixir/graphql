@@ -28,8 +28,11 @@ defmodule GraphQL.Execution.Executor do
       # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
   """
-  @spec execute(GraphQL.Schema.t, GraphQL.Document.t, map, map, String.t) :: result_data | {:error, %{errors: list}}
-  def execute(schema, document, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
+  @spec execute(GraphQL.Schema.t, GraphQL.Document.t, list) :: result_data | {:error, %{errors: list}}
+  def execute(schema, document, opts \\ []) do
+    root_value      = Keyword.get(opts, :root_value, %{})
+    variable_values = Keyword.get(opts, :variable_values, %{})
+    operation_name  = Keyword.get(opts, :operation_name, nil)
     context = ExecutionContext.new(schema, document, root_value, variable_values, operation_name)
     case context.errors do
       [] -> execute_operation(context, context.operation, root_value)
@@ -43,11 +46,11 @@ defmodule GraphQL.Execution.Executor do
     {context, %{fields: fields}} = collect_selections(context, type, operation.selectionSet)
     case operation.operation do
       :query        ->
-        {_, result} = execute_fields(context, type, root_value, fields)
-        {:ok, result}
+        {context, result} = execute_fields(context, type, root_value, fields)
+        {:ok, result, context.errors}
       :mutation     ->
-        {_, result} = execute_fields_serially(context, type, root_value, fields)
-        {:ok, result}
+        {context, result} = execute_fields_serially(context, type, root_value, fields)
+        {:ok, result, context.errors}
       :subscription -> {:error, "Subscriptions not currently supported"}
       _             -> {:error, "Can only execute queries, mutations and subscriptions"}
     end

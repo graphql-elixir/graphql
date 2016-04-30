@@ -98,14 +98,6 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
         theNumber: 3
       }
     }
-
-    #expect(result.errors).to.have.length(2);
-    #expect(result.errors).to.containSubset([
-    #  { message: 'Cannot change the number',
-    #    locations: [ { line: 8, column: 7 } ] },
-    #  { message: 'Cannot change the number',
-    #    locations: [ { line: 17, column: 7 } ] }
-    #]);
   end
 end
 
