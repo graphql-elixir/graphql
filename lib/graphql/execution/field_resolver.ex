@@ -3,14 +3,14 @@ defmodule GraphQL.Execution.FieldResolver do
   alias GraphQL.Execution.Resolvable
 
   def resolve(field_def, source, args, info) do
-    # TODO: move this if statement to inside the resolvers?
-    source = if !is_nil(source) && is_atom(source) do
-      apply(source, :type, [])
-    else
-      source
-    end
-    Resolvable.resolve(Map.get(field_def, :resolve), source, args, info)
+    Resolvable.resolve(Map.get(field_def, :resolve), deref_source(source), args, info)
   end
+
+  defp deref_source(nil), do: nil
+  defp deref_source(source) when is_atom(source) do
+    apply(source, :type, [])
+  end
+  defp deref_source(source), do: source
 end
 
 
