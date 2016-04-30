@@ -8,6 +8,7 @@ defmodule GraphQL.Execution.Executor do
 
   alias GraphQL.Schema
   alias GraphQL.Execution.ExecutionContext
+  alias GraphQL.Execution.FieldResolver
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
@@ -110,7 +111,12 @@ defmodule GraphQL.Execution.Executor do
     if field_def = field_definition(parent_type, field_name) do
       return_type = field_def.type
 
-      args = argument_values(Map.get(field_def, :args, %{}), Map.get(field_ast, :arguments, %{}), context.variable_values)
+      args = argument_values(
+        Map.get(field_def, :args, %{}),
+        Map.get(field_ast, :arguments, %{}),
+        context.variable_values
+      )
+
       info = %{
         field_name: field_name,
         field_asts: field_asts,
@@ -123,23 +129,12 @@ defmodule GraphQL.Execution.Executor do
         variable_values: context.variable_values
       }
 
-      resolution = Map.get(field_def, :resolve)
-      if !is_nil(source) && is_atom(source) do
-        source = apply(source, :type, [])
+      case FieldResolver.resolve(field_def, source, args, info) do
+        {:ok, result} ->
+          complete_value_catching_error(context, return_type, field_asts, info, result)
+        {:error, message} ->
+          {ExecutionContext.report_error(context, message), nil}
       end
-      result = case resolution do
-        {mod, fun} ->    apply(mod, fun, [source, args, info])
-        {mod, fun, _} -> apply(mod, fun, [source, args, info])
-        resolve when is_function(resolve) ->
-                         apply(resolve, [source, args, info])
-        _ ->
-          cond do
-            resolution -> resolution
-            Map.has_key?(source, field_name) -> Map.get(source, field_name)
-            true -> Map.get(source, Atom.to_string(field_name))
-          end
-      end
-      complete_value_catching_error(context, return_type, field_asts, info, result)
     else
       {context, :undefined}
     end
