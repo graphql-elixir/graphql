@@ -33,8 +33,17 @@ defmodule ExUnit.TestHelpers do
   end
 
   def assert_execute({query, schema, data, variables, operation}, expected_output) do
-    assert(GraphQL.execute(schema, query, data, variables, operation) ==
-      {:ok, %{data: stringify_keys(expected_output)}})
+    {:ok, result} = GraphQL.execute_with_opts(
+      schema,
+      query,
+      [
+        root_value: data,
+        variable_values: variables,
+        operation_name: operation
+      ]
+    )
+
+    assert result[:data] == stringify_keys(expected_output) 
   end
 
   def assert_execute_without_validation({query, schema}, expected_output) do
@@ -50,15 +59,30 @@ defmodule ExUnit.TestHelpers do
   end
 
   def assert_execute_without_validation({query, schema, data, variables, operation}, expected_output) do
-    assert(GraphQL.execute_without_validation(schema, query, data, variables, operation) ==
-      {:ok, %{data: stringify_keys(expected_output)}})
+    {:ok, result} = GraphQL.execute_without_validation(
+      schema,
+      query,
+      [
+        root_value: data,
+        variable_values: variables,
+        operation_name: operation
+      ]
+    )
+
+    assert result[:data] == stringify_keys(expected_output) 
   end
 
   def assert_execute_error({query, schema}, expected_output) do
     assert_execute_error({query, schema, %{}}, expected_output)
   end
 
-  def assert_execute_error({query, schema, data}, expected_output) do
-    assert GraphQL.execute(schema, query, data) == {:error, %{errors: stringify_keys(expected_output)}}
+  def assert_execute_error({query, schema, data}, errors) do
+    {_, result} = GraphQL.execute_with_opts(
+      schema,
+      query,
+      [root_value: data]
+    )
+
+    assert result[:errors] == stringify_keys(errors) 
   end
 end

@@ -11,6 +11,7 @@ defmodule GraphQL.Schema do
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.Introspection
   alias GraphQL.Type.CompositeType
+  alias GraphQL.Lang.AST.Nodes
 
   defstruct query: nil, mutation: nil, types: []
 
@@ -69,6 +70,11 @@ defmodule GraphQL.Schema do
 
   def reduce_types(typemap, type_module) when is_atom(type_module) do
     reduce_types(typemap, apply(type_module, :type, []))
+  end
+
+  @spec operation_root_type(GraphQL.Schema.t, Nodes.operation_node) :: atom
+  def operation_root_type(schema, operation) do
+    Map.get(schema, operation.operation)
   end
 
   defp _reduce_arguments(typemap, %{args: args}) do

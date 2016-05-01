@@ -37,5 +37,10 @@ defmodule GraphQL.Lang.AST.Nodes do
   }
 
   def kinds, do: @kinds
+
+  @type operation_node :: %{
+    kind: :OperationDefinition,
+    operation: atom
+  }
 end
 
