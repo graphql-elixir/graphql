@@ -33,7 +33,7 @@ defmodule ExUnit.TestHelpers do
   end
 
   def assert_execute({query, schema, data, variables, operation}, expected_output) do
-    {:ok, result} = GraphQL.execute(
+    {:ok, result} = GraphQL.execute_with_opts(
       schema,
       query,
       [
@@ -77,7 +77,7 @@ defmodule ExUnit.TestHelpers do
   end
 
   def assert_execute_error({query, schema, data}, errors) do
-    {_, result} = GraphQL.execute(
+    {_, result} = GraphQL.execute_with_opts(
       schema,
       query,
       [root_value: data]

@@ -19,11 +19,31 @@ defmodule GraphQL do
   @doc """
   Execute a query against a schema (with validation)
 
+      # iex> GraphQL.execute_with_opts(schema, "{ hello }")
+      # {:ok, %{hello: world}}
+  """
+  # FIXME: when the execute/5 form is removed (after updating the plug)
+  # then rename this to `execute`.
+  def execute_with_opts(schema, query, opts) do
+    execute_with_optional_validation(true, schema, query, opts)
+  end
+
+  @doc """
+  Execute a query against a schema (with validation)
+
       # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
   """
-  def execute(schema, query, opts) do
-    execute_with_optional_validation(true, schema, query, opts)
+  # TODO: delete this when a new plug is released.
+  def execute(schema, query, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
+    execute_with_optional_validation(
+      true,
+      schema,
+      query,
+      root_value: root_value,
+      variable_values: variable_values,
+      operation_name: operation_name
+    )
   end
 
   @doc """

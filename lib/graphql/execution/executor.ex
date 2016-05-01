@@ -1,10 +1,4 @@
 defmodule GraphQL.Execution.Executor do
-  @moduledoc """
-  Execute a GraphQL query against a given schema / datastore.
-
-      # iex> GraphQL.execute(schema, "{ hello }")
-      # {:ok, %{hello: "world"}}
-  """
 
   alias GraphQL.Schema
   alias GraphQL.Execution.ExecutionContext
@@ -25,7 +19,7 @@ defmodule GraphQL.Execution.Executor do
   @doc """
   Execute a query against a schema.
 
-      # iex> GraphQL.execute(schema, "{ hello }")
+      # iex> Executor.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
   """
   @spec execute(GraphQL.Schema.t, GraphQL.Document.t, list) :: result_data | {:error, %{errors: list}}
