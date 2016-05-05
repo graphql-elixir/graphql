@@ -108,7 +108,8 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         }
       }
     """
-    assert_execute {query, schema},
+    {:ok, result} = execute(schema, query)
+    assert_data(result,
       %{"Named" => %{"enumValues" => nil,
                   "fields" => [%{"name" => "name"}],
                   "inputFields" => nil, "interfaces" => nil,
@@ -120,6 +121,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
                   "kind" => "UNION", "name" => "Pet",
                   "possibleTypes" => [%{"name" => "Dog"},
                    %{"name" => "Cat"}]}}
+    )
   end
 
   test "executes using union types" do
@@ -136,7 +138,9 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         }
       }
     """
-    assert_execute_without_validation {query, schema, john},
+
+    {:ok, result} = execute(schema, query, root_value: john, validate: false)
+    assert_data(result,
       %{"__typename" => "Person",
         "name" => "John",
         "pets" => [
@@ -144,6 +148,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
           %{"__typename" => "Cat", "meows" => false, "name" => "Garfield"}
         ]
       }
+    )
   end
 
   test "executes union types with inline fragments" do
@@ -164,7 +169,9 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         }
       }
     """
-    assert_execute {query, schema, john},
+
+    {:ok, result} = execute(schema, query, root_value: john, validate: false)
+    assert_data(result,
       %{"__typename" => "Person",
         "name" => "John",
         "pets" => [
@@ -172,6 +179,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
           %{"__typename" => "Cat", "meows" => false, "name" => "Garfield"}
         ]
       }
+    )
   end
 
   test "executes using interface types" do
@@ -189,7 +197,8 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
       }
     """
 
-    assert_execute_without_validation {query, schema, john},
+    {:ok, result} = execute(schema, query, root_value: john, validate: false)
+    assert_data(result,
       %{"__typename" => "Person",
         "friends" => [
           %{"__typename" => "Person", "name" => "Liz"},
@@ -197,6 +206,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         ],
         "name" => "John"
       }
+    )
   end
 
   test "executes types with inline fragments" do
@@ -217,7 +227,9 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         }
       }
     """
-    assert_execute {query, schema, john},
+
+    {:ok, result} = execute(schema, query, root_value: john, validate: false)
+    assert_data(result,
       %{"__typename" => "Person",
         "friends" => [
           %{"__typename" => "Person", "name" => "Liz"},
@@ -225,6 +237,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         ],
         "name" => "John"
       }
+    )
   end
 
   test "allows fragment conditions to be abstract types" do
@@ -259,18 +272,21 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
         }
       }
       """
-      assert_execute {query, schema, john},
-        %{"__typename" => "Person",
-          "name" => "John",
-          "friends" => [
-            %{"__typename" => "Person", "name" => "Liz"},
-            %{"__typename" => "Dog", "barks" => true, "name" => "Odie"}
-          ],
-          "pets" => [
-            %{"__typename" => "Dog", "barks" => true, "name" => "Odie"},
-            %{"__typename" => "Cat", "meows" => false, "name" => "Garfield"}
-          ]
-        }
+
+    {:ok, result} = execute(schema, query, root_value: john, validate: false)
+    assert_data(result,
+      %{"__typename" => "Person",
+        "name" => "John",
+        "friends" => [
+          %{"__typename" => "Person", "name" => "Liz"},
+          %{"__typename" => "Dog", "barks" => true, "name" => "Odie"}
+        ],
+        "pets" => [
+          %{"__typename" => "Dog", "barks" => true, "name" => "Odie"},
+          %{"__typename" => "Cat", "meows" => false, "name" => "Garfield"}
+        ]
+      }
+    )
   end
 
   test "gets execution info in resolver" do

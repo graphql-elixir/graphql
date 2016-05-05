@@ -18,13 +18,15 @@ defmodule GraphQLTest do
   end
 
   test "Execute simple query" do
-    assert_execute {"{ a }", schema, %{a: "A"}}, %{a: "A"}
+    {:ok, result} = execute(schema, "{ a }", root_value: %{a: "A"})
+    assert_data(result, %{a: "A"})
   end
 
   test "Report parse error with message" do
-    assert_execute_error {"{", schema},
-      [%{message: "GraphQL: syntax error before:  on line 1", line_number: 1}]
-    assert_execute_error {"a", schema},
-      [%{message: "GraphQL: syntax error before: \"a\" on line 1", line_number: 1}]
+    {_, result} = execute(schema, "{")
+    assert_has_error(result, %{message: "GraphQL: syntax error before:  on line 1", line_number: 1})
+
+    {_, result} = execute(schema, "a")
+    assert_has_error(result, %{message: "GraphQL: syntax error before: \"a\" on line 1", line_number: 1})
   end
 end

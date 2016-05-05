@@ -4,7 +4,7 @@ defmodule GraphQL.Type.Float do
     """
     The `Float` scalar type represents signed double-precision fractional
     values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).
-    """
+    """ |> GraphQL.Util.Text.normalize
 
   def coerce(false), do: 0
   def coerce(true), do: 1

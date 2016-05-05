@@ -20,12 +20,6 @@ defmodule GraphQL.Type.IntrospectionTest do
     end
   end
 
-  test "basic query introspection" do
-    # assert_execute
-    #   {GraphQL.Type.Introspection.query, EmptySchema.schema},
-  end
-
-  @tag :skip # order matters for this... ... hm.
   test "exposes descriptions on types and fields" do
     schema = %Schema{
       query: %ObjectType{
@@ -47,7 +41,8 @@ defmodule GraphQL.Type.IntrospectionTest do
     }
     """
 
-    assert_execute {query, schema}, %{
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{
       schemaType: %{
         name: "__Schema",
         description:
@@ -57,30 +52,30 @@ defmodule GraphQL.Type.IntrospectionTest do
           directives on the server, as well as the entry
           points for query, mutation,
           and subscription operations.
-          """,
+          """ |> GraphQL.Util.Text.normalize,
         fields: [
           %{
-            name: "types",
-            description: "A list of all types supported by this server."
-          },
-          %{
-            name: "queryType",
-            description: "The type that query operations will be rooted at."
+            name: "directives",
+            description: "A list of all directives supported by this server."
           },
           %{
             name: "mutationType",
             description: "If this server supports mutation, the type that mutation operations will be rooted at."
           },
           %{
+            name: "queryType",
+            description: "The type that query operations will be rooted at."
+          },
+          %{
             name: "subscriptionType",
             description: "If this server support subscription, the type that subscription operations will be rooted at.",
           },
           %{
-            name: "directives",
-            description: "A list of all directives supported by this server."
+            name: "types",
+            description: "A list of all types supported by this server."
           }
         ]
       }
-    }
+    })
   end
 end

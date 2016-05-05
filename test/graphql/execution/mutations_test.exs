@@ -67,11 +67,13 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
       }
     """
 
-    assert_execute {doc, TestSchema.schema}, %{
+    {:ok, result} = execute(TestSchema.schema, doc)
+
+    assert_data(result, %{
       first: %{theNumber: 1},
       second: %{theNumber: 2},
       third: %{theNumber: 3},
-    }
+    })
   end
 
   test "evaluates mutations correctly in the presense of a failed mutation" do
@@ -89,7 +91,9 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
       }
     """
 
-    assert_execute {doc, TestSchema.schema}, %{
+    {:ok, result} = execute(TestSchema.schema, doc)
+
+    assert_data(result, %{
       first: %{
         theNumber: 1
       },
@@ -97,11 +101,9 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
       third: %{
         theNumber: 3
       }
-    }
+    })
 
-    assert_execute_error {doc, TestSchema.schema}, [
-      %{"message" => "Cannot change the number"}
-    ]
+    assert_has_error(result, %{"message" => "Cannot change the number"})
   end
 end
 

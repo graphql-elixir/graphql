@@ -129,34 +129,35 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
     }
     """
 
-    assert_execute {query, blog_schema},
-      %{
-        feed: [
-          %{id: "1",  title: "My Article 1"},
-          %{id: "2",  title: "My Article 2"}
-        ],
-        article: %{
-          id: "1",
-          isPublished: true,
-          title: "My Article 1",
-          body: "This is a post",
-          author: %{
-            id: "123",
-            name: "John Smith",
-            pic: %{
-              url: "cdn://123",
-              width: 640,
-              height: 480
-            },
-            recentArticle: %{
-              id: "1000",
-              isPublished: true,
-              title: "GraphQL and Elixir: A powerful pair",
-              body: "Elixir is fast, GraphQL is awesome!",
-              keywords: ["elixir", "graphql"]
-            }
+    {:ok, result} = execute(blog_schema, query)
+
+    assert_data(result, %{
+      feed: [
+        %{id: "1",  title: "My Article 1"},
+        %{id: "2",  title: "My Article 2"}
+      ],
+      article: %{
+        id: "1",
+        isPublished: true,
+        title: "My Article 1",
+        body: "This is a post",
+        author: %{
+          id: "123",
+          name: "John Smith",
+          pic: %{
+            url: "cdn://123",
+            width: 640,
+            height: 480
+          },
+          recentArticle: %{
+            id: "1000",
+            isPublished: true,
+            title: "GraphQL and Elixir: A powerful pair",
+            body: "Elixir is fast, GraphQL is awesome!",
+            keywords: ["elixir", "graphql"]
           }
         }
       }
+    })
   end
 end

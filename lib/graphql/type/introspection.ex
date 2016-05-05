@@ -19,6 +19,8 @@ defmodule GraphQL.Type.Introspection do
   alias GraphQL.Type.Introspection.InputValue
   alias GraphQL.Type.Introspection.EnumValue
 
+  alias GraphQL.Util.Text
+
   defmodule Schema do
     def type do
       %ObjectType{
@@ -28,7 +30,7 @@ defmodule GraphQL.Type.Introspection do
           A GraphQL Schema defines the capabilities of a GraphQL server. It
           exposes all available types and directives on the server, as well as
           the entry points for query, mutation, and subscription operations.
-          """,
+          """ |> Text.normalize,
         fields: %{
           types: %{
             description: "A list of all types supported by this server.",
@@ -75,7 +77,7 @@ defmodule GraphQL.Type.Introspection do
           execution behavior in ways field arguments will not suffice, such as
           conditionally including or skipping a field. Directives provide this by
           describing additional information to the executor
-          """,
+          """ |> Text.normalize,
         fields: %{
           name: %{type: %NonNull{ofType: %String{}}},
           description: %{type: %String{}},
@@ -106,7 +108,7 @@ defmodule GraphQL.Type.Introspection do
           Object and Interface types provide the fields they describe. Abstract
           types, Union and Interface, provide the Object types possible
           at runtime. List and NonNull types compose other types.
-          """,
+          """ |> Text.normalize,
         fields: %{
           kind: %{
             type: %NonNull{ofType: TypeKind},
@@ -242,7 +244,7 @@ defmodule GraphQL.Type.Introspection do
           """
           Object and Interface types are described by a list of Fields, each of
           which has a name, potentially a list of arguments, and a return type.
-          """,
+          """ |> Text.normalize,
         fields: %{
           name: %{type: %NonNull{ofType: %String{}}},
           description: %{type: %String{}},
@@ -274,7 +276,7 @@ defmodule GraphQL.Type.Introspection do
           Arguments provided to Fields or Directives and the input fields of an
           InputObject are represented as Input Values which describe their type
           and optionally a default value.
-          """,
+          """ |> Text.normalize,
         fields: %{
           name: %{type: %NonNull{ofType: %String{}}},
           description: %{type: %String{}},
@@ -300,7 +302,7 @@ defmodule GraphQL.Type.Introspection do
           One possible value for a given Enum. Enum values are unique values, not
           a placeholder for a string or numeric value. However an Enum value is
           returned in a JSON response as a string.
-          """,
+          """ |> Text.normalize,
         fields: %{
           name: %{type: %NonNull{ofType: %String{}}},
           description: %{type: %String{}},
