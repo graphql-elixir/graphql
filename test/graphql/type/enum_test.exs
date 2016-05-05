@@ -62,39 +62,47 @@ defmodule GraphQL.Lang.Type.EnumTest do
   end
 
   test "accepts enum literals as input" do
-    assert_execute {"{ color_int(from_enum: GREEN) }", TestSchema.schema}, %{color_int: 1}
+    {:ok, result} = execute(TestSchema.schema, "{ color_int(from_enum: GREEN) }")
+    assert_data(result, %{color_int: 1})
   end
 
   test "enum may be output type" do
-    assert_execute {"{ color_enum(from_int: 1) }", TestSchema.schema}, %{color_enum: "GREEN"}
+    {:ok, result} = execute(TestSchema.schema, "{ color_enum(from_int: 1) }")
+    assert_data(result, %{color_enum: "GREEN"})
   end
 
   test "enum may be both input and output type" do
-    assert_execute {"{ color_enum(from_enum: GREEN) }", TestSchema.schema}, %{color_enum: "GREEN"}
+    {:ok, result} = execute(TestSchema.schema, "{ color_enum(from_enum: GREEN) }")
+    assert_data(result, %{color_enum: "GREEN"})
   end
 
   @tag :skip # needs type validation
   test "does not accept string literals" do
-    assert_execute {~S[{ color_enum(from_enum: "GREEN") }], TestSchema.schema}, "should return an argument error"
+    {:ok, result} = execute(TestSchema.schema, ~S[{ color_enum(from_enum: "GREEN") }])
+    assert_has_error(result, %{message: "replace with actual message"})
   end
 
   test "does not accept incorrect internal value" do
-    assert_execute {~S[{ color_enum(from_string: "GREEN") }], TestSchema.schema}, %{color_enum: nil}
+    {:ok, result} = execute(TestSchema.schema, ~S[{ color_enum(from_string: "GREEN") }])
+    assert_data(result, %{color_enum: nil})
   end
 
   @tag :skip # needs type validation
   test "does not accept internal value in place of enum literal" do
-    assert_execute {"{ color_enum(from_enum: 1) }", TestSchema.schema}, "should return an argument error"
+    {:ok, result} = execute(TestSchema.schema, ~S[{ color_enum(from_enum: 1) }])
+    assert_has_error(result, %{message: "replace with actual message"})
   end
 
   @tag :skip # needs type validation
   test "does not accept enum literal in place of int" do
-    assert_execute {"{ color_enum(from_int: GREEN) }", TestSchema.schema}, "should return an argument error"
+    {:ok, result} = execute(TestSchema.schema, ~S[{ color_enum(from_int: GREEN) }])
+    assert_has_error(result, %{message: "replace with actual message"})
   end
 
   test "accepts JSON string as enum variable" do
     query = "query test($color: Color!) { color_enum(from_enum: $color) }"
-    assert_execute {query, TestSchema.schema, %{}, %{"color" => "BLUE"}}, %{"color_enum" => "BLUE"}
+    {:ok, result} = execute(TestSchema.schema, query, variable_values: %{"color" => "BLUE"})
+    assert_data(result, %{"color_enum" => "BLUE"})
   end
 
   @tag :skip
@@ -109,10 +117,12 @@ defmodule GraphQL.Lang.Type.EnumTest do
   test "does not accept internal value variable as enum input", do: :skipped
 
   test "enum value may have an internal value of 0" do
-    assert_execute {"{ color_enum(from_enum: RED), color_int(from_enum: RED) }", TestSchema.schema}, %{color_enum: "RED", color_int: 0}
+    {:ok, result} = execute(TestSchema.schema, "{ color_enum(from_enum: RED), color_int(from_enum: RED) }")
+    assert_data(result, %{color_enum: "RED", color_int: 0})
   end
 
   test "enum inputs may be nullable" do
-    assert_execute {"{color_enum, color_int}", TestSchema.schema}, %{color_enum: nil, color_int: nil}
+    {:ok, result} = execute(TestSchema.schema, "{color_enum, color_int}")
+    assert_data(result, %{color_enum: nil, color_int: nil})
   end
 end

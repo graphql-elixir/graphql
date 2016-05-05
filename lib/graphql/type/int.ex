@@ -9,7 +9,7 @@ defmodule GraphQL.Type.Int do
     values. Int can represent values between -(2^53 - 1) and 2^53 - 1 since
     represented in JSON as double-precision floating point numbers specified
     by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).
-    """
+    """ |> GraphQL.Util.Text.normalize
 
   def coerce(false), do: 0
   def coerce(true), do: 1

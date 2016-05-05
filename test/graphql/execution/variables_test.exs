@@ -143,10 +143,11 @@ defmodule GraphQL.Execution.Executor.VariableTest do
     }
     """
 
-    assert_execute {query, schema},
-      # the inner value should be a string as part of String.coerce.
-      # for now just get the right data..
-      %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
+    {:ok, result} = execute(schema, query)
+
+    # the inner value should be a string as part of String.coerce.
+    # for now just get the right data..
+    assert_data(result, %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}})
   end
 
   test "Handles objects and nullability using inline structs properly parses single value to list" do
@@ -155,8 +156,10 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       field_with_object_input(input: {a: "foo", b: "bar", c: "baz"})
     }
     """
-    assert_execute {query, schema},
-      %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}}
+
+    {:ok, result} = execute(schema, query)
+
+    assert_data(result, %{"field_with_object_input" => %{"a": "foo", "b": ["bar"], "c": "baz"}})
   end
 
   test "Handles objects and nullability using inline structs does not use incorrect value" do
@@ -165,8 +168,10 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       field_with_object_input(input: ["foo", "bar", "baz"])
     }
     """
-    assert_execute {query, schema},
-      %{"field_with_object_input" => nil}
+
+    {:ok, result} = execute(schema, query)
+
+    assert_data(result, %{"field_with_object_input" => nil})
   end
 
   def using_variables_query do
@@ -179,8 +184,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
 
   test "Handles objects and nullability using variables executes with complex input" do
     params = %{ "input" => %{ a: 'foo', b: [ 'bar' ], c: 'baz' } }
-    assert_execute {using_variables_query, schema, nil, params},
-      %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
+    {:ok, result} = execute(schema, using_variables_query, variable_values: params)
+    assert_data(result, %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}})
   end
 
   test "Does not clobber variable_values when there's multiple document.definitions" do
@@ -195,8 +200,9 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
     params = %{ "input" => %{ a: 'foo', b: [ 'bar' ], c: 'baz' } }
-    assert_execute {query, schema, nil, params},
-      %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}}
+
+    {:ok, result} = execute(schema, query, variable_values: params)
+    assert_data(result, %{"field_with_object_input" => %{"a" => 'foo', "b" => ['bar'], "c" => 'baz'}})
   end
 
   test "Handles objects and nullability using variables uses default value when not provided" do
@@ -205,8 +211,9 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_object_input(input: $input)
       }
     """
-    assert_execute {query, schema},
-      %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}})
   end
 
   # TODO looks the same as test above?
@@ -216,35 +223,41 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_object_input(input: $input)
       }
     """
-    assert_execute {query, schema},
-      %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_object_input" => %{"a" => "foo", "b" => ["bar"], "c" => "baz"}})
   end
 
   @tag :skip # finish ComplexType
   test "Handles objects and nullability using variables executes with complex scalar input" do
     params = %{ "input" => %{ c: 'foo', d: 'SerializedValue' } };
 
-    assert_execute {using_variables_query, schema, nil, params},
-      %{"field_with_object_input" => %{"c" => 'foo', "d" => 'DeserializedValue'}}
+    {:ok, result} = execute(schema, using_variables_query, variable_values: params)
+    assert_data(result, %{"field_with_object_input" => %{"c" => 'foo', "d" => 'DeserializedValue'}})
   end
 
   @tag :skip
   test "Handles objects and nullability using variables errors on null for nested non-null" do
     params = %{ "input" => %{ a: 'foo', b: 'bar', c: nil } }
 
-    assert_execute {using_variables_query, schema, nil, params}, "should have errored"
+    {:ok, result} = execute(schema, using_variables_query, variable_values: params)
+    assert_has_error(result, %{message: "replace with correct error message"})
   end
 
   @tag :skip
   test "Handles objects and nullability using variables errors on incorrect type" do
     params = %{ "input" => "foo bar" }
-    assert_execute {using_variables_query, schema, nil, params}, "should have errored"
+
+    {:ok, result} = execute(schema, using_variables_query, variable_values: params)
+    assert_has_error(result, %{message: "replace with correct error message"})
   end
 
   @tag :skip
   test "Handles objects and nullability using variables errors on omission of nested non-null" do
     params = %{ "input" => %{ a: 'foo', b: 'bar' } }
-    assert_execute {using_variables_query, schema, nil, params}, "should have errored"
+
+    {:ok, result} = execute(schema, using_variables_query, variable_values: params)
+    assert_has_error(result, %{message: "replace with correct error message"})
   end
 
   @tag :skip
@@ -255,14 +268,17 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         fieldWithNestedObjectInput(input: $input)
       }
     """
-    assert_execute {query, schema, nil, params}, "should have errored"
+
+    {:ok, result} = execute(schema, query, variable_values: params)
+    assert_has_error(result, %{message: "replace with correct error message"})
   end
 
   # Handles nullable scalars
   test "Handles nullable scalars allows nullable inputs to be omitted" do
     query = "{ field_with_nullable_string_input }"
-    assert_execute {query, schema},
-      %{"field_with_nullable_string_input" => nil}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_nullable_string_input" => nil})
   end
 
   test "Handles nullable scalars allows nullable inputs to be omitted in a variable" do
@@ -271,8 +287,9 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_nullable_string_input(input: $value)
       }
     """
-    assert_execute {query, schema},
-      %{"field_with_nullable_string_input" => nil}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_nullable_string_input" => nil})
   end
 
   test "Handles nullable scalars allows nullable inputs to be omitted in an unlisted variable" do
@@ -281,8 +298,9 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_nullable_string_input(input: $value)
       }
     """
-    assert_execute {query, schema},
-      %{"field_with_nullable_string_input" => nil}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_nullable_string_input" => nil})
   end
 
   test "Handles nullable scalars allows nullable inputs to be set to null in a variable" do
@@ -291,8 +309,9 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_nullable_string_input(input: $value)
       }
     """
-    assert_execute {query, schema, nil, %{"value" => nil}},
-      %{"field_with_nullable_string_input" => nil}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_nullable_string_input" => nil})
   end
 
   test "Handles nullable scalars allows nullable inputs to be set to a value in a variable" do
@@ -301,14 +320,16 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_nullable_string_input(input: $value)
       }
     """
-    assert_execute {query, schema, nil, %{"value" => "a"}},
-      %{"field_with_nullable_string_input" => ~s("a")}
+
+    {:ok, result} = execute(schema, query, variable_values: %{"value" => "a"})
+    assert_data(result, %{"field_with_nullable_string_input" => ~s("a")})
   end
 
   test "Handles nullable scalars allows non-nullable inputs to be set to a value directly" do
     query = ~s[ { field_with_nullable_string_input(input: "a") } ]
-    assert_execute {query, schema},
-      %{"field_with_nullable_string_input" => ~s("a")}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_nullable_string_input" => ~s("a")})
   end
 
   # Handles non-nullable scalars
@@ -319,7 +340,9 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_nonnullable_string_input(input: $value)
       }
     """
-    assert_execute {query, schema}, "should have errored"
+
+    {:ok, result} = execute(schema, query)
+    assert_has_error(result, %{message: "replace with actual error message"})
   end
 
   @tag :skip
@@ -329,7 +352,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_nonnullable_string_input(input: $value)
       }
     """
-    assert_execute {query, schema, nil, %{"value" => nil}}, "should have errored"
+    {:ok, result} = execute(schema, query, variable_values: %{"value" => nil})
+    assert_has_error(result, %{message: "replace with actual error message"})
   end
 
   test "Handles non-nullable scalars allows non-nullable inputs to be set to a value in a variable" do
@@ -338,22 +362,23 @@ defmodule GraphQL.Execution.Executor.VariableTest do
         field_with_nonnullable_string_input(input: $value)
       }
     """
-    assert_execute {query, schema, nil, %{"value" => "a"}},
-      %{"field_with_nonnullable_string_input" => ~s("a")}
+
+    {:ok, result} = execute(schema, query, variable_values: %{"value" => "a"})
+    assert_data(result, %{"field_with_nonnullable_string_input" => ~s("a")})
   end
 
   test "Handles non-nullable scalars allows non-nullable inputs to be set to a value directly" do
     query = ~s[ { field_with_nonnullable_string_input(input: "a") } ]
 
-    assert_execute {query, schema, nil},
-      %{"field_with_nonnullable_string_input" => ~s("a")}
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_nonnullable_string_input" => ~s("a")})
   end
 
   test "Handles non-nullable scalars passes along null for non-nullable inputs if explcitly set in the query" do
     query = ~s[ { field_with_nonnullable_string_input } ]
 
-    assert_execute_without_validation {query, schema, nil},
-      %{"field_with_nonnullable_string_input" => nil}
+    {:ok, result} = execute(schema, query, validate: false)
+    assert_data(result, %{"field_with_nonnullable_string_input" => nil})
   end
 
   # Handles lists and nullability
@@ -364,8 +389,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => nil }},
-      %{"list" => nil}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => nil })
+    assert_data(result, %{"list" => nil})
   end
 
   test "Handles lists and nullability allows lists to contain values" do
@@ -375,8 +400,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A"] }},
-      %{"list" => ~s(["A"])}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A"] })
+    assert_data(result, %{"list" => ~s(["A"])})
   end
 
   test "Handles lists and nullability allows lists to contain null" do
@@ -386,8 +411,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A", nil, "B"] }},
-      %{"list" => ~s(["A",null,"B"])}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A", nil, "B"] })
+    assert_data(result, %{"list" => ~s(["A",null,"B"])})
   end
 
   @tag :skip
@@ -398,7 +423,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema}, "should have errored"
+    {:ok, result} = execute(schema, query)
+    assert_has_error(result, %{message: "replace with correct error message"})
   end
 
   test "Handles lists and nullability allows non-null lists to contain values" do
@@ -408,8 +434,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A"] }},
-      %{"nn_list" => ~s(["A"])}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A"] })
+    assert_data(result, %{"nn_list" => ~s(["A"])})
   end
 
   test "Handles lists and nullability allows non-null lists to contain null" do
@@ -419,8 +445,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A", nil, "B"] }},
-      %{"nn_list" => ~s(["A",null,"B"])}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A", nil, "B"] })
+    assert_data(result, %{"nn_list" => ~s(["A",null,"B"])})
   end
 
   test "Handles lists and nullability allows lists of non-nulls to be null" do
@@ -430,8 +456,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => nil }},
-      %{"list_nn" => nil}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => nil })
+    assert_data(result, %{"list_nn" => nil})
   end
 
   test "Handles lists and nullability allows lists of non-nulls to contain values" do
@@ -441,8 +467,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A"] }},
-      %{"list_nn" => ~s(["A"])}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A"] })
+    assert_data(result, %{"list_nn" => ~s(["A"])})
   end
 
   @tag :skip
@@ -453,8 +479,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A", nil, "B"] }},
-      "should have errored"
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A", nil, "B"] })
+    assert_has_error(result, %{message: "replace with actual error message"})
   end
 
   @tag :skip
@@ -465,8 +491,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => nil }},
-      "should have errored"
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => nil })
+    assert_has_error(result, %{message: "replace with actual error message"})
   end
 
   test "Handles lists and nullability allows non-null lists of non-nulls to contain values" do
@@ -476,8 +502,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A"] }},
-      %{"nn_list_nn" => ~s(["A"])}
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A"] })
+    assert_data(result, %{"nn_list_nn" => ~s(["A"])})
   end
 
   @tag :skip
@@ -488,8 +514,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => ["A", nil, "B"] }},
-      "should have errored"
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => ["A", nil, "B"] })
+    assert_has_error(result, %{message: "replace with actual error message"})
   end
 
   @tag :skip # input cannot be TestType is an Object, which can't be input?
@@ -500,8 +526,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => %{ "list" => ["A", "B"] }}},
-      "should have errored"
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => %{ "list" => ["A", "B"] }})
+    assert_has_error(result, %{message: "replace with actual error message"})
   end
 
   @tag :skip
@@ -512,27 +538,30 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     """
 
-    assert_execute {query, schema, nil, %{ "input" => "whoknows"}},
-      "should have errored"
+    {:ok, result} = execute(schema, query, variable_values: %{ "input" => "whoknows"})
+    assert_has_error(result, %{message: "replace with actual error message"})
   end
 
   # Execute: Uses argument default values
   test "Execute: Uses argument default values when no argument provided" do
     query = "{ field_with_default_parameter }"
-    assert_execute {query, schema},
-      %{"field_with_default_parameter" => ~s("Hello World")}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_default_parameter" => ~s("Hello World")})
   end
 
   test "Execute: Uses argument default values when nullable variable provided" do
     query = "{ field_with_default_parameter(input: $optional) }"
-    assert_execute {query, schema},
-      %{"field_with_default_parameter" => ~s("Hello World")}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_default_parameter" => ~s("Hello World")})
   end
 
   test "Execute: Uses argument default values when argument provided cannot be parsed" do
     query = "{ field_with_default_parameter(input: WRONG_TYPE) }"
-    assert_execute {query, schema},
-      %{"field_with_default_parameter" => ~s("Hello World")}
+
+    {:ok, result} = execute(schema, query)
+    assert_data(result, %{"field_with_default_parameter" => ~s("Hello World")})
   end
 
   test "default arguments" do
@@ -551,6 +580,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
       }
     }
 
-    assert_execute {~S[query g($name: String = "Joe") { greeting(name: $name) }], schema}, %{greeting: "Hello Joe"}
+    {:ok, result} = execute(schema, ~S[query g($name: String = "Joe") { greeting(name: $name) }])
+    assert_data(result, %{greeting: "Hello Joe"})
   end
 end

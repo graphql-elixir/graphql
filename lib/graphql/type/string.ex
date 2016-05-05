@@ -4,7 +4,7 @@ defmodule GraphQL.Type.String do
     The `String` scalar type represents textual data, represented as UTF-8
     character sequences. The String type is most often used by GraphQL to
     represent free-form human-readable text.
-    """
+    """ |> GraphQL.Util.Text.normalize
 
   def coerce(nil), do: nil
   def coerce(value) when is_map(value) do

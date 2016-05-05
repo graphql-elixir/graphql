@@ -24,8 +24,8 @@ defmodule GraphQL do
   """
   # FIXME: when the execute/5 form is removed (after updating the plug)
   # then rename this to `execute`.
-  def execute_with_opts(schema, query, opts) do
-    execute_with_optional_validation(true, schema, query, opts)
+  def execute_with_opts(schema, query, opts \\ []) do
+    execute_with_optional_validation(schema, query, opts)
   end
 
   @doc """
@@ -37,12 +37,12 @@ defmodule GraphQL do
   # TODO: delete this when a new plug is released.
   def execute(schema, query, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
     execute_with_optional_validation(
-      true,
       schema,
       query,
       root_value: root_value,
       variable_values: variable_values,
-      operation_name: operation_name
+      operation_name: operation_name,
+      validate: true
     )
   end
 
@@ -53,14 +53,14 @@ defmodule GraphQL do
       # {:ok, %{hello: world}}
   """
   def execute_without_validation(schema, query, opts) do
-    execute_with_optional_validation(false, schema, query, opts)
+    execute_with_optional_validation(schema, query, Keyword.put(opts, :validate, false))
   end
 
-  defp execute_with_optional_validation(should_validate, schema, query, opts) do
+  defp execute_with_optional_validation(schema, query, opts) do
     # TODO: use the `with` statement to compose write this in a nicer way
     case GraphQL.Lang.Parser.parse(query) do
       {:ok, document} ->
-        case optionally_validate(should_validate, schema, document) do
+        case optionally_validate(Keyword.get(opts, :validate, true), schema, document) do
           :ok ->
             case Executor.execute(schema, document, opts) do
               {:ok, data, []} -> {:ok, %{data: data}}

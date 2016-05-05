@@ -59,11 +59,13 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "basic query execution" do
-    assert_execute {"{ greeting }", TestSchema.schema}, %{greeting: "Hello, world!"}
+    {:ok, result} = execute(TestSchema.schema, "{greeting}")
+    assert_data(result, %{greeting: "Hello, world!"})
   end
 
   test "query arguments" do
-    assert_execute {~S[{ greeting(name: "Elixir") }], TestSchema.schema}, %{greeting: "Hello, Elixir!"}
+    {:ok, result} = execute(TestSchema.schema, ~S[{ greeting(name: "Elixir") }])
+    assert_data(result, %{greeting: "Hello, Elixir!"})
   end
 
   test "anonymous fragments are processed" do
@@ -76,7 +78,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }
     }
-    assert_execute {"{id, ...{ name }}", schema}, %{id: "1", name: "Mark"}
+
+    {:ok, result} = execute(schema, ~S[{id, ...{ name }}])
+    assert_data(result, %{id: "1", name: "Mark"})
   end
 
   test "TypeChecked inline fragments run the correct type" do
@@ -90,7 +94,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }
     }
-    assert_execute {"{id, ... on AType { a }, ... on BType { b }}", schema}, %{id: "1", b: "b"}
+
+    {:ok, result} = execute(schema, ~S[{id, ... on AType { a }, ... on BType { b }}])
+    assert_data(result, %{id: "1", b: "b"})
   end
 
   test "TypeChecked fragments run the correct type" do
@@ -104,7 +110,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }
     }
-    assert_execute {"{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }", schema}, %{id: "1", b: "b"}
+
+    {:ok, result} = execute(schema, ~S[{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }])
+    assert_data(result, %{id: "1", b: "b"})
   end
 
   test "allow {module, function, args} style of resolve" do
@@ -117,21 +125,24 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }
     }
-    assert_execute {~S[query Q {g, h(name:"Joe")}], schema}, %{g: "Hello, world!", h: "Hello, Joe!"}
+
+    {:ok, result} = execute(schema, ~S[query Q {g, h(name:"Joe")}])
+    assert_data(result, %{g: "Hello, world!", h: "Hello, Joe!"})
   end
 
   test "must specify operation name when multiple operations exist" do
-    assert_execute_error {"query a {greeting} query b {greeting} query c {greeting}", TestSchema.schema},
-      [%{message: "Must provide operation name if query contains multiple operations."}]
+    {_, result} = execute(TestSchema.schema, "query a {greeting} query b {greeting} query c {greeting}")
+    assert_has_error(result, %{message: "Must provide operation name if query contains multiple operations."})
   end
 
   test "do not include illegal fields in output" do
-    assert_execute_without_validation {"{ a }", TestSchema.schema}, %{}
+    {:ok, result} = execute(TestSchema.schema, ~S[query Q {g, h(name:"Joe")}], validate: false)
+    assert_data(result, %{})
   end
 
   test "Quoted fields are available" do
-    assert_execute({"{id, b { name, c{ id, name, b { name }}}}", TestSchema.recursive_schema},
-        %{id: "1", b: %{name: "Mark", c: %{id: "2", name: "Kate", b: %{name: "Mark"}}}})
+    {:ok, result} = execute(TestSchema.recursive_schema, "{id, b { name, c{ id, name, b { name }}}}")
+    assert_data(result, %{id: "1", b: %{name: "Mark", c: %{id: "2", name: "Kate", b: %{name: "Mark"}}}})
   end
 
   test "simple selection set" do
@@ -165,8 +176,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       %{id: "2", name: "Jeni", age: 45}
     ]
 
-    assert_execute {~S[{ person(id: "1") { name } }], schema, data}, %{person: %{name: "Dave"}}
-    assert_execute {~S[{ person(id: "1") { id name age } }], schema, data}, %{person: %{id: "1", name: "Dave", age: 34}}
+    {:ok, result} = execute(schema,~S[{ person(id: "1") { name } }], root_value: data)
+    assert_data(result, %{person: %{name: "Dave"}})
+
+    {:ok, result} = execute(schema,~S[{ person(id: "1") { id name age } }], root_value: data)
+    assert_data(result, %{person: %{id: "1", name: "Dave", age: 34}})
   end
 
   test "use specified query operation" do
@@ -181,7 +195,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
     data = %{"a" => "A", b: "B"}
-    assert_execute {"query Q { a } mutation M { b }", schema, data, nil, "Q"}, %{a: "A"}
+
+    {:ok, result} = execute(schema,~S[query Q { a } mutation M { b }], root_value: data, operation_name: "Q")
+    assert_data(result, %{a: "A"})
   end
 
   test "use specified mutation operation" do
@@ -196,7 +212,9 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
     data = %{a: "A", b: "B"}
-    assert_execute {"query Q { a } mutation M { b }", schema, data, nil, "M"}, %{b: "B"}
+
+    {:ok, result} = execute(schema,~S[query Q { a } mutation M { b }], root_value: data, operation_name: "M")
+    assert_data(result, %{b: "B"})
   end
 
   test "lists of things" do
@@ -229,11 +247,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
 
-    assert_execute {"{numbers, books {title}}", schema},
-      %{numbers: [1, 2], books: [
-        %{title: "A"},
-        %{title: "B"}
-      ]}
+    {:ok, result} = execute(schema, ~S[{numbers, books {title}}])
+    assert_data(result, %{numbers: [1, 2], books: [
+      %{title: "A"},
+      %{title: "B"}
+    ]})
   end
 
   test "list arguments" do
@@ -252,7 +270,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
 
-    assert_execute {"{numbers(nums: [1, 2])}", schema}, %{numbers: [1, 2]}
+    {:ok, result} = execute(schema, "{numbers(nums: [1, 2])}")
+    assert_data(result, %{numbers: [1, 2]})
   end
 
   test "multiple definitions of the same field should be merged" do
@@ -274,7 +293,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
 
-    assert_execute {~S[{ person { id name } person { id } }], schema}, %{person: %{id: "1", name: "Dave"}}
+    {:ok, result} = execute(schema, "{ person { id name } person { id } }")
+    assert_data(result, %{person: %{id: "1", name: "Dave"}})
   end
 
   test "mutations accept variables " do
@@ -307,11 +327,18 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           id
           name
         }
-      }]
+      }
+    ]
 
-    assert_execute(
-      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
-      %{person: %{id: "1", name: "Dave"}})
+    {:ok, result} = execute(
+      schema,
+      query,
+      root_value: %{},
+      variable_values: %{"id" => "1", "name" => "Dave"},
+      operation_name: "hello"
+    )
+
+    assert_data(result, %{person: %{id: "1", name: "Dave"}})
   end
 
   test "mutations variables are not required " do
@@ -346,9 +373,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }]
 
-    assert_execute(
-      {query, schema, %{}, %{"name" => "Dave"}, "hello"},
-      %{person: %{id: nil, name: "Dave"}})
+    {:ok, result} = execute(
+      schema,
+      query,
+      root_value: %{},
+      variable_values: %{"name" => "Dave"},
+      operation_name: "hello"
+    )
+
+    assert_data(result, %{person: %{id: nil, name: "Dave"}})
   end
 
   test "mutations accept enums " do
@@ -393,9 +426,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }]
 
-    assert_execute(
-      {query, schema, %{}, %{"id" => "1", "name" => "Dave", "role" => "ADMIN"}, "hello"},
-      %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
+    {:ok, result} = execute(
+      schema,
+      query,
+      root_value: %{},
+      variable_values: %{"id" => "1", "name" => "Dave", "role" => "ADMIN"},
+      operation_name: "hello"
+    )
+
+    assert_data(result, %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
   end
 
   test "mutations enums are not required" do
@@ -440,9 +479,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }]
 
-    assert_execute(
-      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
-      %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
+    {:ok, result} = execute(
+      schema,
+      query,
+      root_value: %{},
+      variable_values: %{"id" => "1", "name" => "Dave"},
+      operation_name: "hello"
+    )
+
+    assert_data(result, %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
   end
 
   test "mutations enums are not required in variables" do
@@ -487,9 +532,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }]
 
-    assert_execute(
-      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
-      %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
+    {:ok, result} = execute(
+      schema,
+      query,
+      root_value: %{},
+      variable_values: %{"id" => "1", "name" => "Dave"},
+      operation_name: "hello"
+    )
+
+    assert_data(result, %{person: %{id: "1", name: "Dave", role: "ADMIN"}})
   end
 
   test "mutations enums will use default value when not passed in" do
@@ -534,9 +585,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }]
 
-    assert_execute(
-      {query, schema, %{}, %{"id" => "1", "name" => "Dave"}, "hello"},
-      %{person: %{id: "1", name: "Dave", role: "USER"}})
+    {:ok, result} = execute(
+      schema,
+      query,
+      root_value: %{},
+      variable_values: %{"id" => "1", "name" => "Dave"},
+      operation_name: "hello"
+    )
+
+    assert_data(result, %{person: %{id: "1", name: "Dave", role: "USER"}})
   end
 
   test "mutations will use default value when not passed in" do
@@ -571,8 +628,14 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         }
       }]
 
-    assert_execute(
-      {query, schema, %{}, %{"id" => "1"}, "hello"},
-      %{person: %{id: "1", name: "Dave"}})
+    {:ok, result} = execute(
+      schema,
+      query,
+      root_value: %{},
+      variable_values: %{"id" => "1"},
+      operation_name: "hello"
+    )
+
+    assert_data(result, %{person: %{id: "1", name: "Dave"}})
   end
 end
