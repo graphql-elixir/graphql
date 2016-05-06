@@ -94,7 +94,6 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           type = case node.operation do
             :query -> accumulator[:type_info].schema.query
             :mutation -> accumulator[:type_info].schema.mutation
-            # TODO 'subscription' -> schema.subscription
             _ -> raise "node operation #{node.operation} not handled"
           end
           stack_push(:type_stack, type)
