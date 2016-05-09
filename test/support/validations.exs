@@ -311,7 +311,7 @@ defmodule ValidationsSupport do
 
   defmodule TestSchema do
     def schema do
-      %Schema{
+      Schema.new(%{
         query: %ObjectType{
           name: "QueryRoot",
           fields: fn() -> %{
@@ -329,7 +329,7 @@ defmodule ValidationsSupport do
             complicatedArgs: %{ type: ComplicatedArgs.type },
           } end
         }
-      }
+      })
     end
   end
 

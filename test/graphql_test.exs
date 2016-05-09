@@ -8,13 +8,14 @@ defmodule GraphQLTest do
   alias GraphQL.Type.String
 
   def schema do
-    %GraphQL.Schema{
-      query: %ObjectType{
-        fields: %{
-          a: %{type: %String{}}
+    GraphQL.Schema.new(%{
+        query: %ObjectType{
+          fields: %{
+            a: %{type: %String{}}
+          }
         }
       }
-    }
+    )
   end
 
   test "Execute simple query" do

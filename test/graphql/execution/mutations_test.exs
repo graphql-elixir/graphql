@@ -22,7 +22,7 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
 
   defmodule TestSchema do
     def schema do
-      %Schema{
+      Schema.new(%{
         query: %ObjectType{
           name: "Query",
           fields: %{
@@ -48,7 +48,7 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
             }
           }
         }
-      }
+      })
     end
   end
 

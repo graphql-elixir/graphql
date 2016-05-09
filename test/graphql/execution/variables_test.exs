@@ -133,7 +133,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   end
 
   def schema do
-    %Schema{ query: test_type }
+    Schema.new(%{query: test_type})
   end
 
   test "Handles objects and nullability using inline structs executes with complex input" do
@@ -565,7 +565,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   end
 
   test "default arguments" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "DefaultArguments",
         fields: %{
@@ -578,7 +578,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
           }
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, ~S[query g($name: String = "Joe") { greeting(name: $name) }])
     assert_data(result, %{greeting: "Hello Joe"})

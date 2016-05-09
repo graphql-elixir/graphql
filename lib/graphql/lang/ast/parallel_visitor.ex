@@ -19,15 +19,15 @@ defmodule GraphQL.Lang.AST.ParallelVisitor do
   
   defimpl Visitor do
     def enter(visitor, node, accumulator) do
-      accumulator = Enum.reduce(visitor.visitors, accumulator, fn(child_visitor, acc) ->
-        if !skipping?(accumulator, child_visitor) do
-          acc = case child_visitor |> Visitor.enter(node, accumulator) do
-            {:continue, next_accumulator} -> next_accumulator
-            {:break, next_accumulator} ->
-              put_in(next_accumulator[:skipping][child_visitor], node)
-          end
+      visitors = Enum.filter(visitor.visitors, fn(child_visitor) ->
+        !skipping?(accumulator, child_visitor)
+      end)
+      accumulator = Enum.reduce(visitors, accumulator, fn(child_visitor, accumulator) ->
+        case child_visitor |> Visitor.enter(node, accumulator) do
+          {:continue, next_accumulator} -> next_accumulator
+          {:break, next_accumulator} ->
+            put_in(next_accumulator[:skipping][child_visitor], node)
         end
-        acc
       end)
       {:continue, accumulator}
     end

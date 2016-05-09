@@ -36,7 +36,7 @@ defmodule GraphQL.Type.Introspection do
             description: "A list of all types supported by this server.",
             type: %NonNull{ofType: %List{ofType: %NonNull{ofType: Type}}},
             resolve: fn(schema, _, _) ->
-              Map.values(GraphQL.Schema.reduce_types(schema))
+              Map.values(schema.type_lookups)
             end
           },
           queryType: %{
@@ -161,7 +161,7 @@ defmodule GraphQL.Type.Introspection do
               (%GraphQL.Type.Interface{name: _name} = interface, _args, info) ->
                 AbstractType.possible_types(interface, info.schema)
               (%GraphQL.Type.Union{name: name}, _args, info) ->
-                GraphQL.Schema.reduce_types(info.schema)[name].types
+                info.schema.type_lookups[name].types
               (_, _, _) -> nil
             end
           },
@@ -407,7 +407,7 @@ defmodule GraphQL.Type.Introspection do
         name: %{type: %NonNull{ofType: %String{}}}
       },
       resolve: fn(_, %{name: name}, %{schema: schema}) ->
-        GraphQL.Schema.reduce_types(schema)[name]
+        schema.type_lookups[name]
       end
     }
   end
