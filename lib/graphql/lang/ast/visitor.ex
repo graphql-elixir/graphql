@@ -31,18 +31,14 @@ defmodule GraphQL.Lang.AST do
 
     The return value should be:
 
-    {next_action, acc}
-
-    where next_action is either :break or :continue and acc is the new value of the accumulator.
-
-    :break will abort the visitor and AST traversal will cease returning the current value of the accumulator.
+    acc
     """
     def leave(visitor, node, accumulator)
   end
 
   defimpl Visitor, for: Any do
     def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
-    def leave(_visitor, _node, accumulator), do: {:continue, accumulator}
+    def leave(_visitor, _node, accumulator), do: accumulator
   end
 
   defprotocol InitialisingVisitor do

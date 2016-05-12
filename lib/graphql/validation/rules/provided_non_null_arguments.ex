@@ -18,7 +18,7 @@ defmodule GraphQL.Validation.Rules.ProvidedNonNullArguments do
         %{args: arguments} -> Map.to_list(arguments)
         _ -> []
       end
-      {:continue, report_errors(accumulator, field_arguments, node, make_name_to_arg_map(node))}
+      report_errors(accumulator, field_arguments, node, make_name_to_arg_map(node))
     end
 
     # TODO: arg check directives once we have implemented directive support
@@ -30,9 +30,7 @@ defmodule GraphQL.Validation.Rules.ProvidedNonNullArguments do
     #  {:continue, report_errors(accumulator, directive_arguments, node, make_name_to_arg_map(node))}
     #end
 
-    def leave(_visitor, _, accumulator) do
-      {:continue, accumulator}
-    end
+    def leave(_visitor, _, accumulator), do: accumulator
 
     defp arguments_from_ast_node(%{arguments: arguments}), do: arguments
     defp arguments_from_ast_node(_), do: []

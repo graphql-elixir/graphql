@@ -24,7 +24,7 @@ defmodule GraphQL.Validation.Rules.UniqueOperationNames do
 
     def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
 
-    def leave(_visitor, _node, accumulator), do: {:continue, accumulator}
+    def leave(_visitor, _node, accumulator), do: accumulator
 
     defp duplicate_operation_message(op_name) do
       "There can only be one operation named '#{op_name.value}'."

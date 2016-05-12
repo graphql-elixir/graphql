@@ -7,6 +7,6 @@ defmodule GraphQL.Validation.Rules.Noop do
 
   defimpl Visitor do
     def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
-    def leave(_visitor, _node, accumulator), do: {:continue, accumulator}
+    def leave(_visitor, _node, accumulator), do: accumulator
   end
 end

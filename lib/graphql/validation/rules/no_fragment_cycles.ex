@@ -29,9 +29,7 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
       {:continue, acc}
     end
 
-    def leave(_visitor, _node, acc) do
-      {:continue, acc}
-    end
+    def leave(_visitor, _node, acc), do: acc
 
     defp detect_cycles(acc, fragment_def) do
       acc
