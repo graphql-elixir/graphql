@@ -130,8 +130,7 @@ defmodule GraphQL.Execution.Executor do
 
   defp resolve_field(context, parent_type, source, field_asts) do
     field_ast = hd(field_asts)
-    # FIXME: possible memory leak with atoms
-    field_name = String.to_atom(field_ast.name.value)
+    field_name = String.to_existing_atom(field_ast.name.value)
 
     if field_def = field_definition(parent_type, field_name) do
       return_type = field_def.type
