@@ -108,14 +108,9 @@ defmodule GraphQL.Execution.Executor do
   end
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
-  defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
-    execute_fields(context, parent_type.type, source_value, fields)
-  end
-
-  @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, {context, %{}}, fn({field_name_ast, field_asts}, {context, results}) ->
-      case resolve_field(context, parent_type, source_value, field_asts) do
+      case resolve_field(context, unwrap_type(parent_type), source_value, field_asts) do
         {context, :undefined} -> {context, results}
         {context, value} -> {context, Map.put(results, field_name_ast.value, value)}
       end
@@ -173,14 +168,10 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) when is_atom(inner_type) do
-    complete_value(context, %NonNull{ofType: inner_type.type}, field_asts, info, result)
-  end
-
   @spec complete_value(ExecutionContext.t, %NonNull{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
   defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) do
     # TODO: Null Checking
-    complete_value(context, inner_type, field_asts, info, result)
+    complete_value(context, unwrap_type(inner_type), field_asts, info, result)
   end
 
   @spec complete_value(ExecutionContext.t, %Interface{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
@@ -197,25 +188,21 @@ defmodule GraphQL.Execution.Executor do
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) when is_atom(list_type) do
-    complete_value(context, %List{ofType: list_type.type}, field_asts, info, result)
-  end
-
   @spec complete_value(ExecutionContext.t, %List{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
     {context, result} = Enum.reduce result, {context, []}, fn(item, {context, acc}) ->
-      {context, value} = complete_value(context, list_type, field_asts, info, item)
+      {context, value} = complete_value(context, unwrap_type(list_type), field_asts, info, item)
       {context, [value] ++ acc}
     end
     {context, Enum.reverse(result)}
   end
 
   defp complete_value(context, return_type, field_asts, info, result) when is_atom(return_type) do
-    complete_value(context, return_type.type, field_asts, info, result)
+    complete_value(context, unwrap_type(return_type), field_asts, info, result)
   end
 
   defp complete_value(context, return_type, _field_asts, _info, result) do
-    {context, GraphQL.Types.serialize(return_type, result)}
+    {context, GraphQL.Types.serialize(unwrap_type(return_type), result)}
   end
 
   defp collect_sub_fields(context, return_type, field_asts) do
@@ -347,4 +334,7 @@ defmodule GraphQL.Execution.Executor do
       true -> runtime_type.name == typed_condition.name
     end
   end
+
+  defp unwrap_type(type) when is_atom(type), do: type.type
+  defp unwrap_type(type), do: type
 end
