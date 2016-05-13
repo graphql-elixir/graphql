@@ -150,7 +150,7 @@ defmodule GraphQL.Execution.Executor do
 
       case FieldResolver.resolve(field_def, source, args, info) do
         {:ok, result} ->
-          complete_value(context, return_type, field_asts, info, result)
+          complete_value(return_type, context, field_asts, info, result)
         {:error, message} ->
           {ExecutionContext.report_error(context, message), nil}
       end
@@ -159,49 +159,49 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  @spec complete_value(ExecutionContext.t, any, any, any, nil) :: {ExecutionContext.t, nil}
-  defp complete_value(context, _, _, _, nil), do: {context, nil}
+  @spec complete_value(any, ExecutionContext.t, any, any, nil) :: {ExecutionContext.t, nil}
+  defp complete_value(_, context, _, _, nil), do: {context, nil}
 
-  @spec complete_value(ExecutionContext.t, %ObjectType{}, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map}
-  defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
+  @spec complete_value(%ObjectType{}, ExecutionContext.t, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map}
+  defp complete_value(%ObjectType{} = return_type, context, field_asts, _info, result) do
     {context, sub_field_asts} = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
-  @spec complete_value(ExecutionContext.t, %NonNull{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
-  defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) do
+  @spec complete_value(%NonNull{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
+  defp complete_value(%NonNull{ofType: inner_type}, context, field_asts, info, result) do
     # TODO: Null Checking
-    complete_value(context, unwrap_type(inner_type), field_asts, info, result)
+    complete_value(unwrap_type(inner_type), context, field_asts, info, result)
   end
 
-  @spec complete_value(ExecutionContext.t, %Interface{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
-  defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
+  @spec complete_value(%Interface{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
+  defp complete_value(%Interface{} = return_type, context, field_asts, info, result) do
     runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  @spec complete_value(ExecutionContext.t, %Union{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
-  defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
+  @spec complete_value(%Union{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
+  defp complete_value(%Union{} = return_type, context, field_asts, info, result) do
     runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  @spec complete_value(ExecutionContext.t, %List{}, GraphQL.Document.t, any, any) :: map
-  defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
+  @spec complete_value(%List{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: map
+  defp complete_value(%List{ofType: list_type}, context, field_asts, info, result) do
     {context, result} = Enum.reduce result, {context, []}, fn(item, {context, acc}) ->
-      {context, value} = complete_value(context, unwrap_type(list_type), field_asts, info, item)
+      {context, value} = complete_value(unwrap_type(list_type), context, field_asts, info, item)
       {context, [value] ++ acc}
     end
     {context, Enum.reverse(result)}
   end
 
-  defp complete_value(context, return_type, field_asts, info, result) when is_atom(return_type) do
-    complete_value(context, unwrap_type(return_type), field_asts, info, result)
+  defp complete_value(return_type, context, field_asts, info, result) when is_atom(return_type) do
+    complete_value(unwrap_type(return_type), context, field_asts, info, result)
   end
 
-  defp complete_value(context, return_type, _field_asts, _info, result) do
+  defp complete_value(return_type, context, _field_asts, _info, result) do
     {context, GraphQL.Types.serialize(unwrap_type(return_type), result)}
   end
 
