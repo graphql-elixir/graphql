@@ -109,7 +109,7 @@ defmodule GraphQL.Execution.Executor do
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
-    execute_fields(context, apply(parent_type, :type, []), source_value, fields)
+    execute_fields(context, parent_type.type, source_value, fields)
   end
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
@@ -174,7 +174,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) when is_atom(inner_type) do
-    complete_value(context, %NonNull{ofType: apply(inner_type, :type, [])}, field_asts, info, result)
+    complete_value(context, %NonNull{ofType: inner_type.type}, field_asts, info, result)
   end
 
   @spec complete_value(ExecutionContext.t, %NonNull{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
@@ -198,7 +198,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) when is_atom(list_type) do
-    complete_value(context, %List{ofType: apply(list_type, :type, [])}, field_asts, info, result)
+    complete_value(context, %List{ofType: list_type.type}, field_asts, info, result)
   end
 
   @spec complete_value(ExecutionContext.t, %List{}, GraphQL.Document.t, any, any) :: map
@@ -211,8 +211,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp complete_value(context, return_type, field_asts, info, result) when is_atom(return_type) do
-    type = apply(return_type, :type, [])
-    complete_value(context, type, field_asts, info, result)
+    complete_value(context, return_type.type, field_asts, info, result)
   end
 
   defp complete_value(context, return_type, _field_asts, _info, result) do
@@ -304,7 +303,7 @@ defmodule GraphQL.Execution.Executor do
   def value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
 
   def value_from_ast(value_ast, type, variable_values) when is_atom(type) do
-    value_from_ast(value_ast, apply(type, :type, []), variable_values)
+    value_from_ast(value_ast, type.type, variable_values)
   end
 
   def value_from_ast(value_ast, type, _) do
