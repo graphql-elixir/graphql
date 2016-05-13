@@ -155,19 +155,13 @@ defmodule GraphQL.Execution.Executor do
 
       case FieldResolver.resolve(field_def, source, args, info) do
         {:ok, result} ->
-          complete_value_catching_error(context, return_type, field_asts, info, result)
+          complete_value(context, return_type, field_asts, info, result)
         {:error, message} ->
           {ExecutionContext.report_error(context, message), nil}
       end
     else
       {context, :undefined}
     end
-  end
-
-  @spec complete_value_catching_error(ExecutionContext.t, any, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map | nil}
-  defp complete_value_catching_error(context, return_type, field_asts, info, result) do
-    # TODO lots of error checking
-    complete_value(context, return_type, field_asts, info, result)
   end
 
   @spec complete_value(ExecutionContext.t, any, any, any, nil) :: {ExecutionContext.t, nil}
@@ -210,7 +204,7 @@ defmodule GraphQL.Execution.Executor do
   @spec complete_value(ExecutionContext.t, %List{}, GraphQL.Document.t, any, any) :: map
   defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
     {context, result} = Enum.reduce result, {context, []}, fn(item, {context, acc}) ->
-      {context, value} = complete_value_catching_error(context, list_type, field_asts, info, item)
+      {context, value} = complete_value(context, list_type, field_asts, info, item)
       {context, [value] ++ acc}
     end
     {context, Enum.reverse(result)}
