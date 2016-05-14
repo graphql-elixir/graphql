@@ -20,9 +20,17 @@ alias GraphQL.Execution.ResolveWrapper
 defimpl GraphQL.Execution.Resolvable, for: Function do
   def resolve(fun, source, args, context, info) do
     ResolveWrapper.wrap fn() ->
-      fun.(source, args, context, info)
+      case arity(fun) do
+        0 -> fun.()
+        1 -> fun.(source)
+        2 -> fun.(source, args)
+        3 -> fun.(source, args, context)
+        4 -> fun.(source, args, context, info)
+      end
     end
   end
+
+  defp arity(fun), do: :erlang.fun_info(fun)[:arity]
 end
 
 defimpl GraphQL.Execution.Resolvable, for: Tuple  do
