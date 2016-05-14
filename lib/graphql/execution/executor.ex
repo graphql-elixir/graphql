@@ -45,8 +45,10 @@ defmodule GraphQL.Execution.Executor do
       :mutation     ->
         {context, result} = execute_fields_serially(context, type, root_value, fields)
         {:ok, result, context.errors}
-      :subscription -> {:error, "Subscriptions not currently supported"}
-      _             -> {:error, "Can only execute queries, mutations and subscriptions"}
+      :subscription ->
+        {:error, "Subscriptions not currently supported"}
+      _             ->
+        {:error, "Can only execute queries, mutations and subscriptions"}
     end
   end
 
