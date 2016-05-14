@@ -35,24 +35,24 @@ defmodule GraphQL.Type.Introspection do
           types: %{
             description: "A list of all types supported by this server.",
             type: %NonNull{ofType: %List{ofType: %NonNull{ofType: Type}}},
-            resolve: fn(schema, _, _) ->
+            resolve: fn(schema, _, _, _) ->
               Map.values(schema.type_cache)
             end
           },
           queryType: %{
             description: "The type that query operations will be rooted at.",
             type: %NonNull{ofType: Type},
-            resolve: fn(%{query: query}, _, _) -> query end
+            resolve: fn(%{query: query}, _, _, _) -> query end
           },
           mutationType: %{
             description: "If this server supports mutation, the type that mutation operations will be rooted at.",
             type: Type,
-            resolve: fn(%{mutation: mutation}, _, _) -> mutation end
+            resolve: fn(%{mutation: mutation}, _, _, _) -> mutation end
           },
           subscriptionType: %{
             description: "If this server support subscription, the type that subscription operations will be rooted at.",
             type: Type,
-            resolve: nil #fn(%{subscription: subscription}, _, _) -> subscription end
+            resolve: nil #fn(%{subscription: subscription}, _, _,_) -> subscription end
           },
           directives: %{
             description: "A list of all directives supported by this server.",
@@ -112,7 +112,7 @@ defmodule GraphQL.Type.Introspection do
         fields: %{
           kind: %{
             type: %NonNull{ofType: TypeKind},
-            resolve: fn(schema, _, _) ->
+            resolve: fn(schema, _, _, _) ->
               case schema do
                 %ObjectType{} -> "OBJECT"
                 %Interface{} -> "INTERFACE"
@@ -137,46 +137,46 @@ defmodule GraphQL.Type.Introspection do
             type: %List{ofType: %NonNull{ofType: Field}},
             args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
             resolve: fn
-              (%ObjectType{} = schema, _, _) ->
+              (%ObjectType{} = schema, _, _, _) ->
                 thunk_fields = CompositeType.get_fields(schema)
                 Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
                 # |> filter_deprecated
-              (%Interface{} = schema, _, _) ->
+              (%Interface{} = schema, _, _, _) ->
                 thunk_fields = CompositeType.get_fields(schema)
                 Enum.map(thunk_fields, fn({n, v}) -> Map.put(v, :name, n) end)
-              (_, _, _) -> nil
+              (_, _, _, _) -> nil
             end
           },
           interfaces: %{
             type: %List{ofType: %NonNull{ofType: Type}},
             resolve: fn
-              (%ObjectType{} = schema, _, _) ->
+              (%ObjectType{} = schema, _, _, _) ->
                 schema.interfaces
-              (_, _, _) -> nil
+              (_, _, _, _) -> nil
             end
           },
           possibleTypes: %{
             type: %List{ofType: %NonNull{ofType: Type}},
             resolve: fn
-              (%GraphQL.Type.Interface{name: _name} = interface, _args, info) ->
+              (%GraphQL.Type.Interface{name: _name} = interface, _args, _, info) ->
                 AbstractType.possible_types(interface, info.schema)
-              (%GraphQL.Type.Union{name: name}, _args, info) ->
+              (%GraphQL.Type.Union{name: name}, _args, _, info) ->
                 info.schema.type_cache[name].types
-              (_, _, _) -> nil
+              (_, _, _, _) -> nil
             end
           },
           enumValues: %{
             type: %List{ofType: %NonNull{ofType: EnumValue}},
             args: %{includeDeprecated: %{type: %Boolean{}, defaultValue: false}},
             resolve: fn
-              (%GraphQL.Type.Enum{} = schema, _, _) -> schema.values
-              (_, _, _) -> nil
+              (%GraphQL.Type.Enum{} = schema, _, _, _) -> schema.values
+              (_, _, _, _) -> nil
             end
           },
           inputFields: %{
             type: %List{ofType: %NonNull{ofType: InputValue}},
             resolve: fn
-              (%GraphQL.Type.Input{} = type, _args, _info) ->
+              (%GraphQL.Type.Input{} = type, _args, _context, _info) ->
                 fields = type.fields
                 Enum.map(Map.keys(fields), fn(key) ->
                   %{
@@ -184,7 +184,7 @@ defmodule GraphQL.Type.Introspection do
                     type: fields[key].type
                   }
                 end)
-              (_, _, _) -> nil
+              (_, _, _, _) -> nil
             end
           },
           ofType: %{type: Type}
@@ -251,9 +251,9 @@ defmodule GraphQL.Type.Introspection do
           args: %{
             type: %NonNull{ofType: %List{ofType: %NonNull{ofType: InputValue}}},
             resolve: fn
-              (%{args: _args} = schema, _, _) ->
+              (%{args: _args} = schema, _, _, _) ->
                 Enum.map(schema.args, fn({name, v}) -> Map.put(v, :name, name) end)
-              (_, _, _) ->  []
+              (_, _, _, _) ->  []
             end
           },
           type: %{type: %NonNull{ofType: Type}},
@@ -406,7 +406,7 @@ defmodule GraphQL.Type.Introspection do
       args: %{
         name: %{type: %NonNull{ofType: %String{}}}
       },
-      resolve: fn(_, %{name: name}, %{schema: schema}) ->
+      resolve: fn(_, %{name: name}, _, %{schema: schema}) ->
         schema.type_cache[name]
       end
     }
@@ -418,8 +418,8 @@ defmodule GraphQL.Type.Introspection do
       type: %NonNull{ofType: %String{}},
       description: "The name of the current Object type at runtime.",
       resolve: fn
-        (_, _, %{parent_type: %{name: name}}) -> name
-        (_, _, %{parent_type: module}) -> apply(module, :type, [])
+        (_, _, _, %{parent_type: %{name: name}}) -> name
+        (_, _, _, %{parent_type: module}) -> apply(module, :type, [])
       end
     }
   end
@@ -429,7 +429,7 @@ defmodule GraphQL.Type.Introspection do
       name: "__schema",
       type: %NonNull{ofType: Schema},
       description: "Access the current type schema of this server.",
-      resolve: fn(_, _, args) -> args.schema end
+      resolve: fn(_, _, _, args) -> args.schema end
     }
   end
 end

@@ -18,8 +18,8 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         fields: fn() -> %{
           id:   %{type: %ID{}, resolve: 1},
           name: %{type: %String{}, resolve: "Mark"},
-          b: %{type: TestSchema.recursive_schema_query, resolve: fn(_,_,_) -> %{} end },
-          c: %{type: TestSchema.recursive_schema_2, resolve: fn(_,_,_) -> %{} end }
+          b: %{type: TestSchema.recursive_schema_query, resolve: fn(_,_,_,_) -> %{} end },
+          c: %{type: TestSchema.recursive_schema_2, resolve: fn(_,_,_,_) -> %{} end }
         } end
       }
     end
@@ -36,7 +36,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         fields: fn() -> %{
           id:   %{type: %ID{}, resolve: 2},
           name: %{type: %String{}, resolve: "Kate"},
-          b: %{type: TestSchema.recursive_schema_query, resolve: fn(_,_,_) -> %{} end }
+          b: %{type: TestSchema.recursive_schema_query, resolve: fn(_,_,_,_) -> %{} end }
         } end
       }
     end
@@ -51,15 +51,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
               args: %{
                 name: %{type: %String{}}
               },
-              resolve: &greeting/3,
+              resolve: &greeting/4,
             }
           }
         }
       })
     end
 
-    def greeting(_, %{name: name}, _), do: "Hello, #{name}!"
-    def greeting(_, _, _), do: "Hello, world!"
+    def greeting(_, %{name: name}, _, _), do: "Hello, #{name}!"
+    def greeting(_, _, _, _), do: "Hello, world!"
   end
 
   test "basic query execution" do
@@ -158,15 +158,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
             type: %ObjectType{
               name: "Person",
               fields: %{
-                id:   %{name: "id",   type: %ID{}, resolve: fn(p, _, _) -> p.id   end},
-                name: %{name: "name", type: %String{}, resolve: fn(p, _, _) -> p.name end},
-                age:  %{name: "age",  type: %Int{},    resolve: fn(p, _, _) -> p.age  end}
+                id:   %{name: "id",   type: %ID{}, resolve: fn(p, _, _, _) -> p.id   end},
+                name: %{name: "name", type: %String{}, resolve: fn(p, _, _, _) -> p.name end},
+                age:  %{name: "age",  type: %Int{},    resolve: fn(p, _, _, _) -> p.age  end}
               }
             },
             args: %{
               id: %{type: %ID{}}
             },
-            resolve: fn(data, %{id: id}, _) ->
+            resolve: fn(data, %{id: id}, _, _) ->
               Enum.find data, fn(record) -> record.id == id end
             end
           }
@@ -236,11 +236,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         fields: %{
           numbers: %{
             type: %List{ofType: %Int{}},
-            resolve: fn(_, _, _) -> [1, 2] end
+            resolve: fn(_, _, _, _) -> [1, 2] end
           },
           books: %{
             type: %List{ofType: book},
-            resolve: fn(_, _, _) ->
+            resolve: fn(_, _, _,_) ->
               [
                 %{title: "A", isbn: "978-3-86680-192-9"},
                 %{title: "B", isbn: "978-3-86680-255-1"}
@@ -268,7 +268,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
             args: %{
               nums: %{type: %List{ofType: %Int{}}}
             },
-            resolve: fn(_, %{nums: nums}, _) -> nums end
+            resolve: fn(_, %{nums: nums}, _, _) -> nums end
           }
         }
       }
@@ -291,7 +291,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 name: %{name: "name", type: %String{}}
               }
             },
-            resolve: fn(_, _, _) -> %{id: "1", name: "Dave"} end
+            resolve: fn(_, _, _, _) -> %{id: "1", name: "Dave"} end
           }
         }
       }
@@ -318,7 +318,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 name: %{name: "name", type: %String{}}
               }
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args, _, _) ->
               %{id: args[:id], name: args[:name]}
             end
           }
@@ -362,7 +362,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 name: %{name: "name", type: %String{}}
               }
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args, _, _) ->
               %{id: args[:id], name: args[:name]}
             end
           }
@@ -414,7 +414,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 role: %{name: "role", type: roleEnum}
               }
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args, _, _) ->
               %{id: args[:id], name: args[:name], role: args[:role]}
             end
           }
@@ -467,7 +467,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 role: %{name: "role", type: roleEnum}
               }
             },
-            resolve: fn(_root, args, _schema) ->
+            resolve: fn(_root, args, _, _schema) ->
               %{id: args[:id], name: args[:name], role: 3}
             end
           }
@@ -520,7 +520,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 role: %{name: "role", type: roleEnum}
               }
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args, _, _) ->
               %{id: args[:id], name: args[:name], role: 3}
             end
           }
@@ -573,7 +573,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 role: %{name: "role", type: roleEnum}
               }
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args, _, _) ->
               %{id: args[:id], name: args[:name], role: args[:role]}
             end
           }
@@ -617,7 +617,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
                 name: %{name: "name", type: %String{}}
               }
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args, _, _) ->
               %{id: args[:id], name: args[:name]}
             end
           }

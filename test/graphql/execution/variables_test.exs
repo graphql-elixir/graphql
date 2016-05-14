@@ -50,8 +50,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: test_input_object }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input
-            (_, _, _) -> nil
+            (_, %{input: input}, _, _) -> input
+            (_, _, _, _) -> nil
           end
         },
         field_with_nullable_string_input: %{
@@ -60,8 +60,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %String{} }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input && Poison.encode!(input)
-            (_, _, _) -> nil
+            (_, %{input: input}, _, _) -> input && Poison.encode!(input)
+            (_, _, _, _) -> nil
           end
         },
         field_with_nonnullable_string_input: %{
@@ -70,8 +70,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %NonNull{ofType: %String{} } }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input && Poison.encode!(input)
-            (_, _, _) -> nil
+            (_, %{input: input}, _, _) -> input && Poison.encode!(input)
+            (_, _, _, _) -> nil
           end
         },
         field_with_default_parameter: %{
@@ -80,8 +80,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %String{}, defaultValue: "Hello World" }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input && Poison.encode!(input)
-            (_, _, _) -> nil
+            (_, %{input: input}, _, _) -> input && Poison.encode!(input)
+            (_, _, _, _) -> nil
           end
         },
         field_with_nested_input: %{
@@ -89,7 +89,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
           args: %{
             input: %{ type: test_nested_input_object, defaultValue: "Hello World" }
           },
-          resolve: fn(_, %{input: input}, _) -> input && Poison.encode!(input) end
+          resolve: fn(_, %{input: input}, _, _) -> input && Poison.encode!(input) end
         },
         list: %{
           type: %String{},
@@ -97,8 +97,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %List{ofType: %String{} } }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input && Poison.encode!(input)
-            (_, _, _) -> nil
+            (_, %{input: input}, _, _) -> input && Poison.encode!(input)
+            (_, _, _, _) -> nil
           end
         },
         nn_list: %{
@@ -107,8 +107,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %NonNull{ofType: %List{ofType: %String{} } } }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input && Poison.encode!(input)
-            (_, _, _) -> nil
+            (_, %{input: input}, _, _) -> input && Poison.encode!(input)
+            (_, _, _, _) -> nil
           end
         },
         list_nn: %{
@@ -117,8 +117,8 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             input: %{ type: %List{ofType: %NonNull{ofType: %String{} } } }
           },
           resolve: fn
-            (_, %{input: input}, _) -> input && Poison.encode!(input)
-            (_, _, _) -> nil
+            (_, %{input: input}, _, _) -> input && Poison.encode!(input)
+            (_, _, _, _) -> nil
           end
         },
         nn_list_nn: %{
@@ -126,7 +126,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
           args: %{
             input: %{ type: %NonNull{ofType: %List{ofType: %NonNull{ofType: %String{} } } } }
           },
-          resolve: fn(_, %{input: input}, _) -> input && Poison.encode!(input) end
+          resolve: fn(_, %{input: input}, _, _) -> input && Poison.encode!(input) end
         }
       }
     }
@@ -574,7 +574,7 @@ defmodule GraphQL.Execution.Executor.VariableTest do
             args: %{
               name: %{type: %String{}}
             },
-            resolve: fn(_, %{name: name}, _) -> "Hello #{name}" end
+            resolve: fn(_, %{name: name}, _, _) -> "Hello #{name}" end
           }
         }
       }
