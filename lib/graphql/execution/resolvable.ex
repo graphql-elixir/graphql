@@ -45,7 +45,7 @@ defimpl GraphQL.Execution.Resolvable, for: Tuple  do
 end
 
 defimpl GraphQL.Execution.Resolvable, for: Atom  do
-  def resolve(nil, source, _args, context, info) do
+  def resolve(nil, source, _args, _context, info) do
     # NOTE: data keys and field names should be normalized to strings when we load the schema
     # and then we wouldn't need this Atom or String logic.
     {:ok, Map.get(source, info.field_name, Map.get(source, Atom.to_string(info.field_name)))}
