@@ -1,5 +1,4 @@
 defmodule GraphQL.Execution.Executor do
-
   alias GraphQL.Schema
   alias GraphQL.Execution.ExecutionContext
   alias GraphQL.Execution.FieldResolver
@@ -50,7 +49,6 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-
   defp collect_selections(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
     Enum.reduce selection_set[:selections], {context, field_fragment_map}, fn(selection, {context, field_fragment_map}) ->
       collect_selection(context, runtime_type, selection, field_fragment_map)
@@ -58,26 +56,55 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_selection(context, _, %{kind: :Field} = selection, field_fragment_map) do
-    field_name = field_entry_key(selection)
-    fields = field_fragment_map.fields[field_name] || []
-    {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
+    if include_node?(context, selection[:directives]) do
+      field_name = field_entry_key(selection)
+      fields = field_fragment_map.fields[field_name] || []
+      {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
+    else
+      {context, field_fragment_map}
+    end
   end
 
   defp collect_selection(context, runtime_type, %{kind: :InlineFragment} = selection, field_fragment_map) do
-    collect_fragment(context, runtime_type, selection, field_fragment_map)
+    if include_node?(context, selection[:directives]) do
+      collect_fragment(context, runtime_type, selection, field_fragment_map)
+    else
+      {context, field_fragment_map}
+    end
   end
 
   defp collect_selection(context, runtime_type, %{kind: :FragmentSpread} = selection, field_fragment_map) do
     fragment_name = selection.name.value
-    if !field_fragment_map.fragments[fragment_name] do
-      field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
-      collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
+    if include_node?(context, selection[:directives]) do
+      if !field_fragment_map.fragments[fragment_name] do
+        field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
+        collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
+      else
+        {context, field_fragment_map}
+      end
     else
       {context, field_fragment_map}
     end
   end
 
   defp collect_selection(context, _, _, field_fragment_map), do: {context, field_fragment_map}
+
+  defp include_node?(_context, nil), do: true
+  defp include_node?(context, directives) do
+    resolve_directive(context, directives, :include) &&
+    !resolve_directive(context, directives, :skip)
+  end
+
+  defp resolve_directive(context, directives, dir_type) do
+    ast = Enum.find(directives, fn(d) -> d.name.value == Atom.to_string(dir_type) end)
+    directive = apply(GraphQL.Type.Directives, dir_type, [])
+    if ast do
+      %{if: val} = argument_values(directive.args, ast.arguments, context.variable_values)
+      val
+    else
+      directive.args.if.defaultValue
+    end
+  end
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
@@ -102,7 +129,7 @@ defmodule GraphQL.Execution.Executor do
 
   defp resolve_field(context, parent_type, source, field_asts) do
     field_ast = hd(field_asts)
-    # FIXME: possible memory leak
+    # FIXME: possible memory leak with atoms
     field_name = String.to_atom(field_ast.name.value)
 
     if field_def = field_definition(parent_type, field_name) do
@@ -223,14 +250,18 @@ defmodule GraphQL.Execution.Executor do
     end
     Enum.reduce(arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def
-      value_ast = Map.get(arg_ast_map, arg_def_name, nil)
+      value_ast = Map.get(arg_ast_map, arg_def_name)
 
       value = value_from_ast(value_ast, arg_def_type.type, variable_values)
-      value = if value, do: value, else: Map.get(arg_def_type, :defaultValue, nil)
-      if value do
-        Map.put(result, arg_def_name, value)
+      value = if is_nil(value) do
+        Map.get(arg_def_type, :defaultValue)
       else
+        value
+      end
+      if is_nil(value) do
         result
+      else
+        Map.put(result, arg_def_name, value)
       end
     end)
   end
@@ -273,7 +304,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(value_ast, %List{ofType: inner_type}, variable_values) do
-    [ value_from_ast(value_ast, inner_type, variable_values) ]
+    [value_from_ast(value_ast, inner_type, variable_values)]
   end
 
   def value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..

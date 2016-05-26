@@ -81,6 +81,9 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
             stack_push(:type_stack, nil)
           end
         :Directive ->
+          # add this once we add directive validations
+          # see ref impl: src/validation/rules/KnownDirectives.js
+          #
           # TODO: once we implement directive support in the schema,
           # get the directive definition from the schema by name and
           #this._directive = schema.getDirective(node.name.value); // JS example
