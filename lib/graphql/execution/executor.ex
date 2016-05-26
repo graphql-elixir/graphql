@@ -58,16 +58,22 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_selection(context, _, %{kind: :Field} = selection, field_fragment_map) do
+    # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
+    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L381
     field_name = field_entry_key(selection)
     fields = field_fragment_map.fields[field_name] || []
     {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
   end
 
   defp collect_selection(context, runtime_type, %{kind: :InlineFragment} = selection, field_fragment_map) do
+    # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
+    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L391
     collect_fragment(context, runtime_type, selection, field_fragment_map)
   end
 
   defp collect_selection(context, runtime_type, %{kind: :FragmentSpread} = selection, field_fragment_map) do
+    # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
+    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L405
     fragment_name = selection.name.value
     if !field_fragment_map.fragments[fragment_name] do
       field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
@@ -75,6 +81,10 @@ defmodule GraphQL.Execution.Executor do
     else
       {context, field_fragment_map}
     end
+  end
+
+  defp include_node?() do
+    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L432
   end
 
   defp collect_selection(context, _, _, field_fragment_map), do: {context, field_fragment_map}
