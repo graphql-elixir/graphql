@@ -103,11 +103,33 @@ defmodule GraphQL.Execution.Executor do
     #
     # Example value of `directives`:
     #
-    #   [%{arguments: [%{kind: :Argument, loc: %{start: 0},
-    #     name: %{kind: :Name, loc: %{start: 0}, value: "if"},
-    #     value: %{kind: :BooleanValue, loc: %{start: 0}, value: false}}],
-    #  kind: :Directive, loc: %{start: 0},
-    #  name: %{kind: :Name, loc: %{start: 0}, value: "include"}}]
+    #    [
+    #      %{
+    #        arguments: [
+    #          %{
+    #            kind: :Argument,
+    #            loc: %{ start: 0 },
+    #            name: %{
+    #              kind: :Name,
+    #              loc: %{ start: 0 },
+    #              value: "if"
+    #            },
+    #            value: %{
+    #              kind: :BooleanValue,
+    #              loc: %{ start: 0 },
+    #              value: false
+    #            }
+    #          }
+    #        ],
+    #        kind: :Directive,
+    #        loc: %{ start: 0 },
+    #        name: %{
+    #          kind: :Name,
+    #          loc: %{ start: 0 },
+    #          value: "include"
+    #        }
+    #      }
+    #    ]
     #
 
     # TODO: @skip takes precedence over @include, Enum.map doesn't make much sense here
