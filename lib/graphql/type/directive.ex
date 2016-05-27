@@ -1,4 +1,3 @@
-
 defmodule GraphQL.Type.Directive do
   @moduledoc """
   # Options for implementing directives
@@ -41,11 +40,15 @@ defmodule GraphQL.Type.Directive do
   Going with option 2 for now,
   but this doesn't easily support external custom extension.
   """
-
   defstruct name: "Directive", description: nil, locations: [], args: %{}
 end
 
 defmodule GraphQL.Type.Directives do
+  alias GraphQL.Type.Directive
+  alias GraphQL.Type.Boolean
+  alias GraphQL.Type.NonNull
+  alias GraphQL.Type.String
+
   def include do
     %Directive{
       name: "include",

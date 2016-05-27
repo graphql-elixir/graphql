@@ -1,5 +1,4 @@
 defmodule GraphQL.Execution.Executor do
-
   alias GraphQL.Schema
   alias GraphQL.Execution.ExecutionContext
   alias GraphQL.Execution.FieldResolver
@@ -60,31 +59,69 @@ defmodule GraphQL.Execution.Executor do
   defp collect_selection(context, _, %{kind: :Field} = selection, field_fragment_map) do
     # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
     # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L381
-    field_name = field_entry_key(selection)
-    fields = field_fragment_map.fields[field_name] || []
-    {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
+    if include_node?(context, selection[:directives]) do
+      field_name = field_entry_key(selection)
+      fields = field_fragment_map.fields[field_name] || []
+      {context, put_in(field_fragment_map.fields[field_name], [selection | fields])}
+    else
+      {context, field_fragment_map}
+    end
   end
 
   defp collect_selection(context, runtime_type, %{kind: :InlineFragment} = selection, field_fragment_map) do
     # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
     # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L391
-    collect_fragment(context, runtime_type, selection, field_fragment_map)
+    if include_node?(context, selection[:directives]) do
+      collect_fragment(context, runtime_type, selection, field_fragment_map)
+    else
+      {context, field_fragment_map}
+    end
   end
 
   defp collect_selection(context, runtime_type, %{kind: :FragmentSpread} = selection, field_fragment_map) do
     # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
     # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L405
     fragment_name = selection.name.value
-    if !field_fragment_map.fragments[fragment_name] do
-      field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
-      collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
+    if include_node?(context, selection[:directives]) do
+      if !field_fragment_map.fragments[fragment_name] do
+        field_fragment_map = put_in(field_fragment_map.fragments[fragment_name], true)
+        collect_fragment(context, runtime_type, context.fragments[fragment_name], field_fragment_map)
+      else
+        {context, field_fragment_map}
+      end
     else
       {context, field_fragment_map}
     end
   end
 
-  defp include_node?() do
+  defp include_node?(_context, nil) do
+    true
+  end
+
+  defp include_node?(context, directives) do
     # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L432
+    #
+    # Example value of `directives`:
+    #
+    #   [%{arguments: [%{kind: :Argument, loc: %{start: 0},
+    #     name: %{kind: :Name, loc: %{start: 0}, value: "if"},
+    #     value: %{kind: :BooleanValue, loc: %{start: 0}, value: false}}],
+    #  kind: :Directive, loc: %{start: 0},
+    #  name: %{kind: :Name, loc: %{start: 0}, value: "include"}}]
+    #
+
+    # TODO: @skip takes precedence over @include, Enum.map doesn't make much sense here
+    result = Enum.map(directives, fn(directive) ->
+      case directive[:name] do
+        %{value: "skip"} ->
+          # TODO: If value is a variable from context
+          !Enum.at(directive[:arguments], 0)[:value][:value]
+        %{value: "include"} ->
+          # TODO: If value is a variable from context
+          Enum.at(directive[:arguments], 0)[:value][:value]
+      end
+    end)
+    Enum.at(result, 0)
   end
 
   defp collect_selection(context, _, _, field_fragment_map), do: {context, field_fragment_map}
