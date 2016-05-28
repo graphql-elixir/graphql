@@ -11,7 +11,7 @@ defmodule GraphQL.Execution.Executor.DirectiveTest do
     def schema do
       %Schema{
         query: %ObjectType{
-          name: "Test",
+          name: "TestType",
           fields: %{
             a: %{type: %String{}, resolve: "a"},
             b: %{type: %String{}, resolve: "b"}
