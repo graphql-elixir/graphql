@@ -399,7 +399,7 @@ defmodule GraphQL.Lang.Parser.ParserTest do
   end
 
   test "InlineFragment" do
-    assert_parse "{ user { name, ... on Person { age }, ... { id } } }",
+    assert_parse "{ user { name, ... on Person { age }, ... @include(if: true) { id } } }",
     %{kind: :Document,
       loc: %{start: 0},
       definitions: [%{kind: :OperationDefinition,
@@ -425,7 +425,14 @@ defmodule GraphQL.Lang.Parser.ParserTest do
                                                                                     typeCondition: %{kind: :NamedType,
                                                                                                      loc: %{start: 0},
                                                                                                      name: %{kind: :Name, loc: %{start: 0}, value: "Person"}}},
-                                                                                  %{kind: :InlineFragment,
+                                                                                  %{directives:  [
+                                                                                      %{arguments: [
+                                                                                        %{kind: :Argument, loc: %{start: 0},
+                                                                                          name: %{kind: :Name, loc: %{start: 0}, value: "if"},
+                                                                                          value: %{kind: :BooleanValue, loc: %{start: 0}, value: true}}],
+                                                                                        kind: :Directive, loc: %{start: 0},
+                                                                                        name: %{kind: :Name, loc: %{start: 0}, value: "include"}}],
+                                                                                    kind: :InlineFragment,
                                                                                     loc: %{start: 0},
                                                                                     selectionSet: %{kind: :SelectionSet,
                                                                                                     loc: %{start: 0},
