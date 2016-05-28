@@ -75,7 +75,7 @@ FragmentSpread -> '...' FragmentName : build_ast_node('FragmentSpread', #{'name'
 FragmentSpread -> '...' FragmentName Directives : build_ast_node('FragmentSpread', #{'name' => extract_name('$2'), 'directives' => '$3'}).
 
 InlineFragment -> '...' SelectionSet : build_ast_node('InlineFragment', #{'selectionSet' => '$2'}).
-InlineFragment -> '...' Directives SelectionSet : build_ast_node('InlineFragment', #{'directives' => '2', 'selectionSet' => '$3'}).
+InlineFragment -> '...' Directives SelectionSet : build_ast_node('InlineFragment', #{'directives' => '$2', 'selectionSet' => '$3'}).
 
 InlineFragment -> '...' 'on' TypeCondition SelectionSet : build_ast_node('InlineFragment', #{'typeCondition' => '$3', 'selectionSet' => '$4'}).
 InlineFragment -> '...' 'on' TypeCondition Directives SelectionSet : build_ast_node('InlineFragment', #{'typeCondition' => '$3', 'directives' => '$4', 'selectionSet' => '$5'}).
