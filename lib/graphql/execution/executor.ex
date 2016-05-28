@@ -133,17 +133,17 @@ defmodule GraphQL.Execution.Executor do
     #
 
     # TODO: @skip takes precedence over @include, Enum.map doesn't make much sense here
-    result = Enum.map(directives, fn(directive) ->
-      case directive[:name] do
+    result = Enum.map(directives, fn directive ->
+      case directive.name do
         %{value: "skip"} ->
           # TODO: If value is a variable from context
-          !Enum.at(directive[:arguments], 0)[:value][:value]
+          !hd(directive.arguments).value.value
         %{value: "include"} ->
           # TODO: If value is a variable from context
-          Enum.at(directive[:arguments], 0)[:value][:value]
+          hd(directive.arguments).value.value
       end
     end)
-    Enum.at(result, 0)
+    hd(result)
   end
 
   defp collect_selection(context, _, _, field_fragment_map), do: {context, field_fragment_map}
