@@ -1,53 +1,12 @@
 defmodule GraphQL.Type.Directive do
   @moduledoc """
-  # Options for implementing directives
-
-  ## Option 1
-
-      defmodule GraphQL.Type.Directives do
-        def directives do
-          %{
-            skip: %Directive{}
-            include: %Directive{}
-            deprecated: %Directive{}
-          }
-        end
-      end
-
-  ## Option 2
-
-      defmodule GraphQL.Type.Directives do
-        def skip do
-          %Directive{}
-        end
-      end
-
-  ## Option 3
-
-      defmodule GraphQL.Type.Directives.Skip do
-        def directive do
-          %Directive{
-          }
-        end
-      end
-
-  ## Option 4
-
-      @directive Deprecated, %Directive{ ... }
-      @directive Include, %Directive{ ... }
-      @directive Skip, %Directive{ ... }
-
-  Going with option 2 for now,
-  but this doesn't easily support external custom extension.
+  Directives currently supported are @skip and @include
   """
   defstruct name: "Directive", description: nil, locations: [], args: %{}
 end
 
 defmodule GraphQL.Type.Directives do
-  alias GraphQL.Type.Directive
-  alias GraphQL.Type.Boolean
-  alias GraphQL.Type.NonNull
-  alias GraphQL.Type.String
+  alias GraphQL.Type.{Directive, Boolean, NonNull, String}
 
   def include do
     %Directive{
