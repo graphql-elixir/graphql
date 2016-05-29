@@ -140,7 +140,7 @@ defmodule GraphQL.Execution.Executor do
         context.variable_values
       ) do
         %{if: false} -> false
-        val -> true
+        _ -> true
       end
     else
       true
@@ -291,14 +291,18 @@ defmodule GraphQL.Execution.Executor do
     end
     Enum.reduce(arg_defs, %{}, fn(arg_def, result) ->
       {arg_def_name, arg_def_type} = arg_def
-      value_ast = Map.get(arg_ast_map, arg_def_name, nil)
+      value_ast = Map.get(arg_ast_map, arg_def_name)
 
       value = value_from_ast(value_ast, arg_def_type.type, variable_values)
-      value = if value, do: value, else: Map.get(arg_def_type, :defaultValue, nil)
-      if value do
-        Map.put(result, arg_def_name, value)
+      value = if is_nil(value) do
+        Map.get(arg_def_type, :defaultValue)
       else
+        value
+      end
+      if is_nil(value) do
         result
+      else
+        Map.put(result, arg_def_name, value)
       end
     end)
   end
