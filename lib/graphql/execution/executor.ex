@@ -49,7 +49,6 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-
   defp collect_selections(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
     Enum.reduce selection_set[:selections], {context, field_fragment_map}, fn(selection, {context, field_fragment_map}) ->
       collect_selection(context, runtime_type, selection, field_fragment_map)
@@ -57,8 +56,6 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_selection(context, _, %{kind: :Field} = selection, field_fragment_map) do
-    # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
-    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L381
     if include_node?(context, selection[:directives]) do
       field_name = field_entry_key(selection)
       fields = field_fragment_map.fields[field_name] || []
@@ -69,8 +66,6 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_selection(context, runtime_type, %{kind: :InlineFragment} = selection, field_fragment_map) do
-    # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
-    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L391
     if include_node?(context, selection[:directives]) do
       collect_fragment(context, runtime_type, selection, field_fragment_map)
     else
@@ -79,8 +74,6 @@ defmodule GraphQL.Execution.Executor do
   end
 
   defp collect_selection(context, runtime_type, %{kind: :FragmentSpread} = selection, field_fragment_map) do
-    # if (!shouldIncludeNode(exeContext, selection.directives)) { continue }
-    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L405
     fragment_name = selection.name.value
     if include_node?(context, selection[:directives]) do
       if !field_fragment_map.fragments[fragment_name] do
@@ -94,59 +87,65 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  defp include_node?(_context, nil) do
-    true
-  end
+  defp collect_selection(context, _, _, field_fragment_map), do: {context, field_fragment_map}
+
+  defp include_node?(_context, nil), do: true
+  # defp include_node?(context, directives) do
+  #   IO.inspect directives
+  #   if directive_active?(context, directives, :skip) do
+  #     false
+  #   else
+  #     directive_active?(context, directives, :include)
+  #   end
+  # end
+
+  # defp directive_active?(context, directives, directive) do
+  #   ast = Enum.find(directives, fn(d) -> d.name.value == Atom.to_string(directive) end)
+  #   if_value = argument_values(
+  #     apply(GraphQL.Type.Directives, directive).args,
+  #     ast.arguments,
+  #     context.variable_values
+  #   )
+  #   IO.inspect if_value
+  #   true
+  # end
 
   defp include_node?(context, directives) do
-    # https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L432
-    #
-    # Example value of `directives`:
-    #
-    #    [
-    #      %{
-    #        arguments: [
-    #          %{
-    #            kind: :Argument,
-    #            loc: %{ start: 0 },
-    #            name: %{
-    #              kind: :Name,
-    #              loc: %{ start: 0 },
-    #              value: "if"
-    #            },
-    #            value: %{
-    #              kind: :BooleanValue,
-    #              loc: %{ start: 0 },
-    #              value: false
-    #            }
-    #          }
-    #        ],
-    #        kind: :Directive,
-    #        loc: %{ start: 0 },
-    #        name: %{
-    #          kind: :Name,
-    #          loc: %{ start: 0 },
-    #          value: "include"
-    #        }
-    #      }
-    #    ]
-    #
-
-    # TODO: @skip takes precedence over @include, Enum.map doesn't make much sense here
-    result = Enum.map(directives, fn directive ->
-      case directive.name do
-        %{value: "skip"} ->
-          # TODO: If value is a variable from context
-          !hd(directive.arguments).value.value
-        %{value: "include"} ->
-          # TODO: If value is a variable from context
-          hd(directive.arguments).value.value
-      end
-    end)
-    hd(result)
+    if should_skip?(context, directives) do
+      false
+    else
+      should_include?(context, directives)
+    end
   end
 
-  defp collect_selection(context, _, _, field_fragment_map), do: {context, field_fragment_map}
+  defp should_skip?(context, directives) do
+    if ast = Enum.find(directives, fn(d) -> d.name.value == "skip" end) do
+      case argument_values(
+        GraphQL.Type.Directives.skip.args,
+        ast.arguments,
+        context.variable_values
+      ) do
+        %{if: true} -> true
+        _ -> false
+      end
+    else
+      false
+    end
+  end
+  defp should_include?(context, directives) do
+    if ast = Enum.find(directives, fn(d) -> d.name.value == "include" end) do
+      case argument_values(
+        GraphQL.Type.Directives.include.args,
+        ast.arguments,
+        context.variable_values
+      ) do
+        %{if: false} -> false
+        val -> true
+      end
+    else
+      true
+    end
+  end
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
@@ -171,7 +170,7 @@ defmodule GraphQL.Execution.Executor do
 
   defp resolve_field(context, parent_type, source, field_asts) do
     field_ast = hd(field_asts)
-    # FIXME: possible memory leak
+    # FIXME: possible memory leak with atoms
     field_name = String.to_atom(field_ast.name.value)
 
     if field_def = field_definition(parent_type, field_name) do
@@ -342,7 +341,7 @@ defmodule GraphQL.Execution.Executor do
   end
 
   def value_from_ast(value_ast, %List{ofType: inner_type}, variable_values) do
-    [ value_from_ast(value_ast, inner_type, variable_values) ]
+    [value_from_ast(value_ast, inner_type, variable_values)]
   end
 
   def value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
