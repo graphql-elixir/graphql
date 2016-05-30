@@ -24,6 +24,7 @@ This document simply outlines the release process:
 
 9. Publish hex docs with `mix hex.docs`
 
+10. Update upstream repos `plug_graphql` and `graphql_relay` and release as appropriate
 
 ## Deprecation policy
 
