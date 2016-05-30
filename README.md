@@ -20,7 +20,7 @@ First, add GraphQL to your `mix.exs` dependencies:
 
 ```elixir
 defp deps do
-  [{:graphql, "~> 0.2"}]
+  [{:graphql, "~> 0.3"}]
 end
 ```
 

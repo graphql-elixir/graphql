@@ -59,9 +59,10 @@ defmodule GraphQL do
 
       # iex> GraphQL.execute_with_opts(schema, "{ hello }")
       # {:ok, %{hello: world}}
+
+  This is the preferred function signature for `execute` and
+  will replace `execute/5`.
   """
-  # FIXME: when the execute/5 form is removed (after updating the plug)
-  # then rename this to `execute`.
   def execute_with_opts(schema, query, opts \\ []) do
     execute_with_optional_validation(schema, query, opts)
   end
@@ -71,8 +72,10 @@ defmodule GraphQL do
 
       # iex> GraphQL.execute(schema, "{ hello }")
       # {:ok, %{hello: world}}
+
+  *Deprecation warning*: This will be replaced in a future version with the
+  function signature for `execute_with_opts/3`.
   """
-  # TODO: delete this when a new plug is released.
   def execute(schema, query, root_value \\ %{}, variable_values \\ %{}, operation_name \\ nil) do
     execute_with_optional_validation(
       schema,

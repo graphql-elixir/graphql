@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 (2016-05-29)
+
+* Enhancements
+  * Directive support (@skip and @include)
+  * Validations now run on queries
+    * Rule: Fields on correct type
+    * Rule: No fragment cycles
+    * Rule: Validate mandatory arguments
+    * Rule: Unique operation names
+
+* Bugfixes
+  * Allow default values to get assigned correctly when a query defines
+    an enum variable with a default
+  * Query can take an optional Enum argument and correctly fall back if
+    that value is not specified
+
+* Note: the `execute/5` signature will be changed to the `execute_with_opts/3`
+  in a future version
+
 ## 0.2.0 (2016-03-19)
 
 * Enhancements

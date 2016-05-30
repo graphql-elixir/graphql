@@ -1,7 +1,7 @@
 defmodule GraphQL.Mixfile do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.3.0"
 
   @description "GraphQL Elixir implementation"
   @repo_url "https://github.com/graphql-elixir/graphql"
@@ -42,7 +42,7 @@ defmodule GraphQL.Mixfile do
   end
 
   defp package do
-    [maintainers: ["Josh Price", "James Sadler", "Mark Olson", "Aaron Weiker"],
+    [maintainers: ["Josh Price", "James Sadler", "Mark Olson", "Aaron Weiker", "Sean Abrahams"],
      licenses: ["BSD"],
      links: %{"GitHub" => @repo_url},
      files: ~w(lib src/*.xrl src/*.yrl mix.exs *.md LICENSE)]
