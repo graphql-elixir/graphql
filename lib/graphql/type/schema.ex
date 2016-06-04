@@ -2,7 +2,9 @@ defmodule GraphQL.Schema do
 
   @type t :: %GraphQL.Schema{
     query: Map,
-    mutation: Map
+    mutation: Map,
+    type_cache: Map,
+    directives: [GraphQL.Type.Directive.t]
   }
 
   alias GraphQL.Type.Interface
@@ -12,7 +14,13 @@ defmodule GraphQL.Schema do
   alias GraphQL.Type.CompositeType
   alias GraphQL.Lang.AST.Nodes
 
-  defstruct query: nil, mutation: nil, type_cache: nil
+  defstruct query: nil,
+            mutation: nil,
+            type_cache: nil,
+            directives: [
+              GraphQL.Type.Directives.include,
+              GraphQL.Type.Directives.skip
+            ]
 
   def with_type_cache(schema = %{type_cache: nil}), do: new(schema)
   def with_type_cache(schema), do: schema
