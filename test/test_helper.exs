@@ -22,10 +22,7 @@ defmodule ExUnit.TestHelpers do
   end
 
   def assert_data(result, expected) do
-    assert(
-      result[:data] == stringify_keys(expected),
-      message: "Expected result[:data] to equal #{inspect stringify_keys(expected)} but was #{inspect result[:data]}"
-    )
+    assert result[:data] == stringify_keys(expected)
   end
 
   def assert_has_error(result, expected) do

@@ -57,7 +57,9 @@ defmodule GraphQL.Type.Introspection do
           directives: %{
             description: "A list of all directives supported by this server.",
             type: %NonNull{ofType: %List{ofType: %NonNull{ofType: Directive}}},
-            resolve: nil #schema => schema.getDirectives(),
+            resolve: fn(schema, _, _) ->
+              schema.directives
+            end
           }
         }
       }
@@ -83,7 +85,11 @@ defmodule GraphQL.Type.Introspection do
           description: %{type: %String{}},
           args: %{
             type: %NonNull{ofType: %List{ofType: %NonNull{ofType: InputValue}}},
-            resolve: nil #directive => directive.args || []
+            resolve: fn
+              %{args: args}, _, _ ->
+                Enum.map(args, fn {name, v} -> Map.put(v, :name, name) end)
+              _, _, _ ->  []
+            end
           },
           onOperation: %{type: %NonNull{ofType: %Boolean{}}},
           onFragment: %{type: %NonNull{ofType: %Boolean{}}},
@@ -251,9 +257,9 @@ defmodule GraphQL.Type.Introspection do
           args: %{
             type: %NonNull{ofType: %List{ofType: %NonNull{ofType: InputValue}}},
             resolve: fn
-              (%{args: _args} = schema, _, _) ->
-                Enum.map(schema.args, fn({name, v}) -> Map.put(v, :name, name) end)
-              (_, _, _) ->  []
+              %{args: args}, _, _ ->
+                Enum.map(args, fn {name, v} -> Map.put(v, :name, name) end)
+              _, _, _ -> []
             end
           },
           type: %{type: %NonNull{ofType: Type}},

@@ -3,7 +3,8 @@ defmodule GraphQL.Schema do
   @type t :: %GraphQL.Schema{
     query: Map,
     mutation: Map,
-    types: [GraphQL.Type.AbstractType.t | GraphQL.Type.ObjectType.t]
+    types: [GraphQL.Type.AbstractType.t | GraphQL.Type.ObjectType.t],
+    directives: [GraphQL.Type.Directive.t]
   }
 
   alias GraphQL.Type.Interface
@@ -13,7 +14,13 @@ defmodule GraphQL.Schema do
   alias GraphQL.Type.CompositeType
   alias GraphQL.Lang.AST.Nodes
 
-  defstruct query: nil, mutation: nil, types: []
+  defstruct query: nil,
+            mutation: nil,
+            types: [],
+            directives: [
+              GraphQL.Type.Directives.include,
+              GraphQL.Type.Directives.skip
+            ]
 
   # FIXME: I think *schema* should be the first argument in this module.
   def type_from_ast(nil, _), do: nil

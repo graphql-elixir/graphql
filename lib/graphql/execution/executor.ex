@@ -95,14 +95,14 @@ defmodule GraphQL.Execution.Executor do
     !resolve_directive(context, directives, :skip)
   end
 
-  defp resolve_directive(context, directives, dir_type) do
-    ast = Enum.find(directives, fn(d) -> d.name.value == Atom.to_string(dir_type) end)
-    directive = apply(GraphQL.Type.Directives, dir_type, [])
+  defp resolve_directive(context, directives, directive_name) do
+    ast = Enum.find(directives, fn(d) -> d.name.value == Atom.to_string(directive_name) end)
+    directive = apply(GraphQL.Type.Directives, directive_name, [])
     if ast do
       %{if: val} = argument_values(directive.args, ast.arguments, context.variable_values)
       val
     else
-      directive.args.if.defaultValue
+      directive_name == :include
     end
   end
 

@@ -219,7 +219,55 @@ defmodule GraphQL.StarWars.IntrospectionTest do
   test "Can run the full introspection query" do
     {:ok, result} = execute(StarWars.Schema.schema, GraphQL.Type.Introspection.query)
     assert_data(result, %{
-      "__schema" => %{"directives" => nil, "mutationType" => nil, "queryType" => %{"name" => "Query"}, "subscriptionType" => nil,
+      "__schema" => %{"directives" => [
+        %{
+          "name" => "include",
+          "description" => "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "args" => [
+            %{
+              "name" => "if",
+              "description" => "Included when true.",
+              "type" => %{
+                "kind" => "NON_NULL",
+                "name" => nil,
+                "ofType" => %{
+                  "kind" => "SCALAR",
+                  "name" => "Boolean",
+                  "ofType" => nil
+                }
+              },
+              "defaultValue" => nil
+            }
+          ],
+          "onOperation" => false,
+          "onFragment" => true,
+          "onField" => true
+        },
+        %{
+          "name" => "skip",
+          "description" => "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "args" => [
+            %{
+              "name" => "if",
+              "description" => "Skipped when true.",
+              "type" => %{
+                "kind" => "NON_NULL",
+                "name" => nil,
+                "ofType" => %{
+                  "kind" => "SCALAR",
+                  "name" => "Boolean",
+                  "ofType" => nil
+                }
+              },
+              "defaultValue" => nil
+            }
+          ],
+          "onOperation" => false,
+          "onFragment" => true,
+          "onField" => true
+        }
+      ],
+      "mutationType" => nil, "queryType" => %{"name" => "Query"}, "subscriptionType" => nil,
       "types" => [%{"description" => "The `Boolean` scalar type represents `true` or `false`.", "enumValues" => nil, "fields" => nil, "inputFields" => nil, "interfaces" => nil, "kind" => "SCALAR", "name" => "Boolean", "possibleTypes" => nil},
        %{"description" => "A character in the Star Wars Trilogy", "enumValues" => nil,
          "fields" => [%{"args" => [], "deprecationReason" => nil, "description" => nil, "isDeprecated" => nil, "name" => "appears_in", "type" => %{"kind" => "LIST", "name" => nil, "ofType" => %{"kind" => "ENUM", "name" => "Episode", "ofType" => nil}}},
