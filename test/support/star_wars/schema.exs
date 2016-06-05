@@ -57,7 +57,7 @@ defmodule StarWars.Schema do
           name: %{type: %String{}},
           friends: %{
             type: %List{ofType: Character},
-            resolve: fn(item, _, _, _) -> StarWars.Data.get_friends(item) end
+            resolve: fn(item) -> StarWars.Data.get_friends(item) end
           },
           appears_in: %{type: %List{ofType: Episode}},
           home_planet: %{type: %String{}}
@@ -77,7 +77,7 @@ defmodule StarWars.Schema do
           name: %{type: %String{}},
           friends: %{
             type: %List{ofType: Character},
-            resolve: fn(item, _, _, _) -> StarWars.Data.get_friends(item) end
+            resolve: fn(item) -> StarWars.Data.get_friends(item) end
           },
           appears_in: %{type: %List{ofType: Episode}},
           primary_function: %{type: %String{}}
@@ -100,7 +100,7 @@ defmodule StarWars.Schema do
               description: "If omitted, returns the hero of the whole saga. If provided, returns the hero of that particular episode"
             }
           },
-          resolve: fn(_, args, _, _) ->
+          resolve: fn(_, args) ->
             StarWars.Data.get_hero(Map.get(args, :episode))
           end
         },
@@ -109,14 +109,14 @@ defmodule StarWars.Schema do
           args: %{
             id: %{type: %NonNull{ofType: %String{}}, description: "id of the human"}
           },
-          resolve: fn(_, args, _, _) -> StarWars.Data.get_human(args.id) end
+          resolve: fn(_, args) -> StarWars.Data.get_human(args.id) end
         },
         droid: %{
           type: Droid,
           args: %{
             id: %{type: %NonNull{ofType: %String{}}, description: "id of the droid"}
           },
-          resolve: fn(_, args, _, _) -> StarWars.Data.get_droid(args.id) end
+          resolve: fn(_, args) -> StarWars.Data.get_droid(args.id) end
         }
       }
     }

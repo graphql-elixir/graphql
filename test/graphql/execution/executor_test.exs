@@ -50,15 +50,15 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
               args: %{
                 name: %{type: %String{}}
               },
-              resolve: &greeting/4,
+              resolve: &greeting/3
             }
           }
         }
       })
     end
 
-    def greeting(_, %{name: name}, _, _), do: "Hello, #{name}!"
-    def greeting(_, _, _, _), do: "Hello, world!"
+    def greeting(_, %{name: name}, _), do: "Hello, #{name}!"
+    def greeting(_, _, _), do: "Hello, world!"
   end
 
   test "basic query execution" do

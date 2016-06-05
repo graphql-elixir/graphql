@@ -2,12 +2,11 @@
 defmodule GraphQL.Execution.FieldResolver do
   alias GraphQL.Execution.Resolvable
 
-  def resolve(field_def, source, args, context, info) do
+  def resolve(field_def, source, args, info) do
     Resolvable.resolve(
       Map.get(field_def, :resolve),
       unwrap_type(source),
       args,
-      context,
       info
     )
   end

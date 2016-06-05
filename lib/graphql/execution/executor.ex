@@ -150,7 +150,7 @@ defmodule GraphQL.Execution.Executor do
         variable_values: context.variable_values
       }
 
-      case FieldResolver.resolve(field_def, source, args, context, info) do
+      case FieldResolver.resolve(field_def, source, args, info) do
         {:ok, result} ->
           complete_value(return_type, context, field_asts, info, result)
         {:error, message} ->

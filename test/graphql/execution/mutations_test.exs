@@ -35,14 +35,14 @@ defmodule GraphQL.Execution.Executor.MutationsTest do
             changeTheNumber: %{
               type: NumberHolder.type,
               args: %{ newNumber: %{ type: %Int{} }},
-              resolve: fn(source, %{ newNumber: newNumber }, _, _) ->
+              resolve: fn(source, %{ newNumber: newNumber }) ->
                 Map.put(source, :theNumber, newNumber)
               end
             },
             failToChangeTheNumber: %{
               type: NumberHolder.type,
               args: %{ newNumber: %{ type: %Int{} }},
-              resolve: fn(_, %{ newNumber: _ }, _, _) ->
+              resolve: fn(_, %{ newNumber: _ }) ->
                 raise "Cannot change the number"
               end
             }

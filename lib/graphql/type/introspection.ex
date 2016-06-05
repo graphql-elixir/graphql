@@ -158,11 +158,11 @@ defmodule GraphQL.Type.Introspection do
           possibleTypes: %{
             type: %List{ofType: %NonNull{ofType: Type}},
             resolve: fn
-              (%GraphQL.Type.Interface{name: _name} = interface, _args, _, info) ->
+              (%GraphQL.Type.Interface{name: _name} = interface, _args, info) ->
                 AbstractType.possible_types(interface, info.schema)
-              (%GraphQL.Type.Union{name: name}, _args, _, info) ->
+              (%GraphQL.Type.Union{name: name}, _args, info) ->
                 info.schema.type_cache[name].types
-              (_, _, _, _) -> nil
+              (_, _, _) -> nil
             end
           },
           enumValues: %{
@@ -406,7 +406,7 @@ defmodule GraphQL.Type.Introspection do
       args: %{
         name: %{type: %NonNull{ofType: %String{}}}
       },
-      resolve: fn(_, %{name: name}, _, %{schema: schema}) ->
+      resolve: fn(_, %{name: name}, %{schema: schema}) ->
         schema.type_cache[name]
       end
     }
@@ -418,8 +418,8 @@ defmodule GraphQL.Type.Introspection do
       type: %NonNull{ofType: %String{}},
       description: "The name of the current Object type at runtime.",
       resolve: fn
-        (_, _, _, %{parent_type: %{name: name}}) -> name
-        (_, _, _, %{parent_type: module}) -> apply(module, :type, [])
+        (_, _, %{parent_type: %{name: name}}) -> name
+        (_, _, %{parent_type: module}) -> apply(module, :type, [])
       end
     }
   end
@@ -429,7 +429,7 @@ defmodule GraphQL.Type.Introspection do
       name: "__schema",
       type: %NonNull{ofType: Schema},
       description: "Access the current type schema of this server.",
-      resolve: fn(_, _, _, args) -> args.schema end
+      resolve: fn(_, _, args) -> args.schema end
     }
   end
 end
