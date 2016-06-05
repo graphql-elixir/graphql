@@ -77,7 +77,7 @@ defmodule GraphQL.Lang.Type.UnionInterfaceTest do
   end
 
   def schema do
-    %GraphQL.Schema{query: person_type}
+    GraphQL.Schema.new(%{query: person_type})
   end
 
   def garfield, do: %Cat{name: "Garfield", meows: false}

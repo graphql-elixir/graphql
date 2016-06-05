@@ -95,7 +95,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
       }
     }
 
-    blog_schema = %Schema{query: blog_query}
+    blog_schema = Schema.new(%{query: blog_query})
 
     query = """
     {

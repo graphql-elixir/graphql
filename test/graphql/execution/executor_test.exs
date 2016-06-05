@@ -11,18 +11,23 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   alias GraphQL.Type.Int
 
   defmodule TestSchema do
-    def recursive_schema do
-      %Schema{
-        query: %ObjectType{
-          name: "Recursive1",
-          fields: fn() -> %{
-            id:   %{type: %ID{}, resolve: 1},
-            name: %{type: %String{}, resolve: "Mark"},
-            b: %{type: TestSchema.recursive_schema.query, resolve: fn(_,_,_) -> %{} end },
-            c: %{type: TestSchema.recursive_schema_2, resolve: fn(_,_,_) -> %{} end }
-          } end
-        }
+    
+    def recursive_schema_query do
+      %ObjectType{
+        name: "Recursive1",
+        fields: fn() -> %{
+          id:   %{type: %ID{}, resolve: 1},
+          name: %{type: %String{}, resolve: "Mark"},
+          b: %{type: TestSchema.recursive_schema_query, resolve: fn(_,_,_) -> %{} end },
+          c: %{type: TestSchema.recursive_schema_2, resolve: fn(_,_,_) -> %{} end }
+        } end
       }
+    end
+
+    def recursive_schema do
+      Schema.new(%{
+        query: TestSchema.recursive_schema_query
+      })
     end
 
     def recursive_schema_2 do
@@ -31,13 +36,13 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         fields: fn() -> %{
           id:   %{type: %ID{}, resolve: 2},
           name: %{type: %String{}, resolve: "Kate"},
-          b: %{type: TestSchema.recursive_schema.query, resolve: fn(_,_,_) -> %{} end }
+          b: %{type: TestSchema.recursive_schema_query, resolve: fn(_,_,_) -> %{} end }
         } end
       }
     end
 
     def schema do
-      %Schema{
+      Schema.new(%{
         query: %ObjectType{
           name: "RootQueryType",
           fields: %{
@@ -50,7 +55,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
             }
           }
         }
-      }
+      })
     end
 
     def greeting(_, %{name: name}, _), do: "Hello, #{name}!"
@@ -68,7 +73,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "anonymous fragments are processed" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "X",
         fields: %{
@@ -76,14 +81,14 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           name: %{type: %String{}, resolve: "Mark"}
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, ~S[{id, ...{ name }}])
     assert_data(result, %{id: "1", name: "Mark"})
   end
 
   test "TypeChecked inline fragments run the correct type" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "BType",
         fields: %{
@@ -92,14 +97,14 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           b: %{type: %String{}, resolve: "b"}
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, ~S[{id, ... on AType { a }, ... on BType { b }}])
     assert_data(result, %{id: "1", b: "b"})
   end
 
   test "TypeChecked fragments run the correct type" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "BType",
         fields: %{
@@ -108,14 +113,14 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           b: %{type: %String{}, resolve: "b"}
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, ~S[{id, ...spreada ...spreadb} fragment spreadb on BType { b } fragment spreada on AType { a }])
     assert_data(result, %{id: "1", b: "b"})
   end
 
   test "allow {module, function, args} style of resolve" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "Q",
         fields: %{
@@ -123,7 +128,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           h: %{type: %String{}, args: %{name: %{type: %String{}}}, resolve: {TestSchema, :greeting, []}}
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, ~S[query Q {g, h(name:"Joe")}])
     assert_data(result, %{g: "Hello, world!", h: "Hello, Joe!"})
@@ -145,7 +150,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "simple selection set" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "PersonQuery",
         fields: %{
@@ -167,7 +172,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
 
     data = [
       %{id: "0", name: "Kate", age: 25},
@@ -183,7 +188,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "use specified query operation" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "Q",
         fields: %{a: %{ type: %String{}}}
@@ -192,7 +197,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         name: "M",
         fields: %{b: %{ type: %String{}}}
       }
-    }
+    })
     data = %{"a" => "A", b: "B"}
 
     {:ok, result} = execute(schema,~S[query Q { a } mutation M { b }], root_value: data, operation_name: "Q")
@@ -200,7 +205,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "use specified mutation operation" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "Q",
         fields: %{a: %{ type: %String{}}}
@@ -209,7 +214,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         name: "M",
         fields: %{b: %{ type: %String{}}}
       }
-    }
+    })
     data = %{a: "A", b: "B"}
 
     {:ok, result} = execute(schema,~S[query Q { a } mutation M { b }], root_value: data, operation_name: "M")
@@ -225,7 +230,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
       }
     }
 
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "ListsOfThings",
         fields: %{
@@ -244,7 +249,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, ~S[{numbers, books {title}}])
     assert_data(result, %{numbers: [1, 2], books: [
@@ -254,7 +259,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "list arguments" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "ListsAsArguments",
         fields: %{
@@ -267,14 +272,14 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, "{numbers(nums: [1, 2])}")
     assert_data(result, %{numbers: [1, 2]})
   end
 
   test "multiple definitions of the same field should be merged" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "PersonQuery",
         fields: %{
@@ -290,14 +295,14 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
 
     {:ok, result} = execute(schema, "{ person { id name } person { id } }")
     assert_data(result, %{person: %{id: "1", name: "Dave"}})
   end
 
   test "mutations accept variables " do
-    schema = %Schema{
+    schema = Schema.new(%{
       mutation: %ObjectType{
         name: "PersonMutation",
         fields: %{
@@ -319,7 +324,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
     query = ~S[
       mutation hello($id: ID, $name: String){
         person(id: $id, name: $name) {
@@ -341,7 +346,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "mutations variables are not required " do
-    schema = %Schema{
+    schema = Schema.new(%{
       mutation: %ObjectType{
         name: "PersonMutation",
         fields: %{
@@ -363,7 +368,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
     query = ~S[
       mutation hello($id: ID, $name: String){
         person(id: $id, name: $name) {
@@ -391,7 +396,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         ADMIN: %{value: 3, description: "Admin"}
       }
     }
-    schema = %Schema{
+    schema = Schema.new(%{
       mutation: %ObjectType{
         name: "PersonMutation",
         fields: %{
@@ -415,7 +420,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
     query = ~S[
       mutation hello($id: ID, $name: String, $role: Role){
         person(id: $id, name: $name, role: $role) {
@@ -444,7 +449,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         ADMIN: %{value: 3, description: "Admin"}
       }
     }
-    schema = %Schema{
+    schema = Schema.new(%{
       mutation: %ObjectType{
         name: "PersonMutation",
         fields: %{
@@ -468,7 +473,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
     query = ~S[
       mutation hello($id: ID, $name: String){
         person(id: $id, name: $name) {
@@ -497,7 +502,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         ADMIN: %{value: 3, description: "Admin"}
       }
     }
-    schema = %Schema{
+    schema = Schema.new(%{
       mutation: %ObjectType{
         name: "PersonMutation",
         fields: %{
@@ -521,7 +526,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
     query = ~S[
       mutation hello($id: ID, $name: String, $role: Role){
         person(id: $id, name: $name, role: $role) {
@@ -550,7 +555,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
         ADMIN: %{value: 3, description: "Admin"}
       }
     }
-    schema = %Schema{
+    schema = Schema.new(%{
       mutation: %ObjectType{
         name: "PersonMutation",
         fields: %{
@@ -574,7 +579,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
     query = ~S[
       mutation hello($id: ID, $name: String = "Bob", $role: Role = USER){
         person(id: $id, name: $name, role: $role) {
@@ -596,7 +601,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   end
 
   test "mutations will use default value when not passed in" do
-    schema = %Schema{
+    schema = Schema.new(%{
       mutation: %ObjectType{
         name: "PersonMutation",
         fields: %{
@@ -618,7 +623,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           }
         }
       }
-    }
+    })
     query = ~S[
       mutation hello($id: ID, $name: String = "Dave"){
         person(id: $id, name: $name, role: $role) {

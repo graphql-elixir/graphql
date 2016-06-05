@@ -18,7 +18,7 @@ defmodule GraphQL.Lang.AST.CompositeVisitorTest do
     end
 
     def leave(visitor, node, accumulator) do
-      {:continue, %{accumulator | calls: ["#{visitor.name} leaving #{node[:kind]}"] ++ accumulator[:calls]}}
+      %{accumulator | calls: ["#{visitor.name} leaving #{node[:kind]}"] ++ accumulator[:calls]}
     end
   end
 

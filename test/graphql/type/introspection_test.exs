@@ -9,24 +9,24 @@ defmodule GraphQL.Type.IntrospectionTest do
 
   defmodule EmptySchema do
     def schema do
-      %Schema{
+      Schema.new(%{
         query: %ObjectType{
           name: "QueryRoot",
           fields: %{
             onlyField: %{type: %String{}}
           }
         }
-      }
+      })
     end
   end
 
   test "exposes descriptions on types and fields" do
-    schema = %Schema{
+    schema = Schema.new(%{
       query: %ObjectType{
         name: "QueryRoot",
         fields: %{onlyField: %{type: %String{}}}
       }
-    }
+    })
 
     query = """
     {

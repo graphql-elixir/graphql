@@ -17,7 +17,7 @@ defmodule GraphQL.Lang.AST.ReducerTest do
     end
 
     def leave(_visitor, node, accumulator) do
-      {:continue, Map.merge(accumulator, %{calls: ["Leaving: #{node[:kind]}"] ++ accumulator[:calls]})}
+      Map.merge(accumulator, %{calls: ["Leaving: #{node[:kind]}"] ++ accumulator[:calls]})
     end
   end
 
@@ -37,7 +37,7 @@ defmodule GraphQL.Lang.AST.ReducerTest do
     end
 
     def leave(_visitor, _node, accumulator) do
-      {:continue, %{accumulator | count: accumulator[:count] - 1}}
+      %{accumulator | count: accumulator[:count] - 1}
     end
   end
 

@@ -30,11 +30,11 @@ defmodule GraphQL.Type.Interface do
     """
     def possible_types(interface, schema) do
       # get the complete typemap from this schema
-      GraphQL.Schema.reduce_types(schema)
+      schema.type_cache
       # filter them down to a list of types that implement this interface
       |> Enum.filter(fn {_, typedef} -> GraphQL.Type.implements?(typedef, interface) end)
       # then return the type, instead of the {name, type} tuple that comes from
-      # the reduce_types call
+      # the type_cache
       |> Enum.map(fn({_,v}) -> v end)
     end
 

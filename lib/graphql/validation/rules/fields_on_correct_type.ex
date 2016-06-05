@@ -29,7 +29,7 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
 
     def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
 
-    def leave(_visitor, _node, accumulator), do: {:continue, accumulator}
+    def leave(_visitor, _node, accumulator), do: accumulator
 
     defp sibling_interfaces_including_field(schema, type, field_name) do
       AbstractType.possible_types(type, schema)

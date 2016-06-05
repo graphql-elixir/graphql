@@ -123,6 +123,6 @@ defmodule StarWars.Schema do
   end
 
   def schema do
-    %GraphQL.Schema{query: query}
+    GraphQL.Schema.new(%{query: query})
   end
 end

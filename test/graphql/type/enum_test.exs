@@ -50,7 +50,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
       }
     end
 
-    def schema, do: %GraphQL.Schema{query: query}
+    def schema, do: GraphQL.Schema.new(%{query: query})
   end
 
   test "enum values are able to be parsed" do

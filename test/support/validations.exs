@@ -311,7 +311,7 @@ defmodule ValidationsSupport do
 
   defmodule TestSchema do
     def schema do
-      %Schema{
+      Schema.new(%{
         query: %ObjectType{
           name: "QueryRoot",
           fields: fn() -> %{
@@ -329,11 +329,12 @@ defmodule ValidationsSupport do
             complicatedArgs: %{ type: ComplicatedArgs.type },
           } end
         }
-      }
+      })
     end
   end
 
   defp validate(schema, query_string, rules) do
+    schema = Schema.with_type_cache(schema)
     {:ok, document} = Parser.parse(query_string)
     case Validator.validate_with_rules(schema, document, rules) do
       :ok -> []

@@ -42,43 +42,32 @@ defimpl Visitor, for: GraphQL.Lang.AST.CompositeVisitor do
   Invoke *enter* on the outer visitor first, passing the resulting accumulator to the *enter*
   call on the *inner* visitor.
 
-  If either visitor's enter method returns :break, both visitors will still be executed, but
+  If either visitor's enter method returns :skip, both visitors will still be executed, but
   then execution will cease.
   """
   def enter(composite_visitor, node, accumulator) do
-    call_in_order(
-      composite_visitor.outer_visitor,
-      composite_visitor.inner_visitor,
-      node, accumulator, &Visitor.enter/3)
+    {v1_next_action, v1_accumulator}
+      = Visitor.enter(composite_visitor.outer_visitor, node, accumulator)
+    accumulator = Map.merge(accumulator, v1_accumulator)
+
+    if v1_next_action == :skip do
+      {:skip, accumulator}
+    else
+      Visitor.enter(composite_visitor.inner_visitor, node, accumulator)
+    end
   end
 
   @doc """
   Invoke *leave* on the inner visitor first, passing the resulting accumulator to the *leave*
   call on the *outer* visitor.
 
-  If either visitor's enter method returns :break, both visitors will still be executed, but
+  If either visitor's enter method returns :skip, both visitors will still be executed, but
   then execution will cease.
   """
   def leave(composite_visitor, node, accumulator) do
-    call_in_order(
-      composite_visitor.inner_visitor,
-      composite_visitor.outer_visitor,
-      node, accumulator, &Visitor.leave/3)
-  end
-
-  # Visits two visitors in the order specified and invokes the supplied Visitor function.
-  defp call_in_order(v1, v2, node, accumulator, fun) do
-    {v1_next_action, v1_accumulator} = fun.(v1, node, accumulator)
-    accumulator = Map.merge(accumulator, v1_accumulator)
-    {v2_next_action, v2_accumulator} = fun.(v2, node, accumulator)
-
-    next_action = if v1_next_action == :break do
-      :break
-    else 
-      v2_next_action
-    end
-    
-    {next_action, v2_accumulator}
+    v1_accumulator = Visitor.leave(composite_visitor.inner_visitor, node, accumulator)
+    v2_accumulator = Visitor.leave(composite_visitor.outer_visitor, node, Map.merge(accumulator, v1_accumulator))
+    v2_accumulator
   end
 end
 

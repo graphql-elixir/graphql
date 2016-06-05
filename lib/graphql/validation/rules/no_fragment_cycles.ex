@@ -1,6 +1,6 @@
 defmodule GraphQL.Validation.Rules.NoFragmentCycles do
 
-  alias GraphQL.Lang.AST.{Visitor, InitialisingVisitor}
+  alias GraphQL.Lang.AST.{Visitor, InitialisingVisitor, DocumentInfo}
   alias GraphQL.Util.Stack
   import GraphQL.Validation
 
@@ -29,9 +29,7 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
       {:continue, acc}
     end
 
-    def leave(_visitor, _node, acc) do
-      {:continue, acc}
-    end
+    def leave(_visitor, _node, acc), do: acc
 
     defp detect_cycles(acc, fragment_def) do
       acc
@@ -69,7 +67,7 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
     defp process_one_node(acc, spread_node, _) do
       acc = %{ acc | spread_path: Stack.push(acc[:spread_path], spread_node)} 
       if !visited?(acc, spread_node) do
-        spread_fragment = get_fragment(acc[:document], spread_node.name.value)
+        spread_fragment = DocumentInfo.get_fragment_definition(acc[:document_info], spread_node.name.value)
         if spread_fragment do
           acc = detect_cycles(acc, spread_fragment)
         end
@@ -92,12 +90,6 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
         _ -> " via #{Enum.join(spread_names, ", ")}"
       end
       "Cannot spread fragment #{frag_name} within itself#{via}."
-    end
-
-    defp get_fragment(document, fragment_name) do
-      Enum.find(document.definitions, fn(definition) ->
-        definition.kind == :FragmentDefinition && definition.name.value == fragment_name
-      end)
     end
 
     defp spread_nodes_of_fragment(fragment_def) do

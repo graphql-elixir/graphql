@@ -168,7 +168,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         _ ->
           :ignore
       end
-      {:continue, accumulator}
+      accumulator
     end
   end
 end

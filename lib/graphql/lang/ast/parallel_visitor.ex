@@ -4,7 +4,7 @@ defmodule GraphQL.Lang.AST.ParallelVisitor do
   A ParallelVisitor runs all child visitors in parallel instead of serially like the CompositeVisitor.
 
   In this context, 'in parallel' really means that for each node in the AST, each visitor will be invoked
-  for each node in the AST, but the :break/:continue return value of enter and leave is maintained per-visitor.
+  for each node in the AST, but the :skip/:continue return value of enter and leave is maintained per-visitor.
 
   This means invividual visitors can bail out of AST processing as soon as possible and not waste cycles.
 
@@ -19,31 +19,33 @@ defmodule GraphQL.Lang.AST.ParallelVisitor do
   
   defimpl Visitor do
     def enter(visitor, node, accumulator) do
-      accumulator = Enum.reduce(visitor.visitors, accumulator, fn(child_visitor, acc) ->
-        if !skipping?(accumulator, child_visitor) do
-          acc = case child_visitor |> Visitor.enter(node, accumulator) do
-            {:continue, next_accumulator} -> next_accumulator
-            {:break, next_accumulator} ->
-              put_in(next_accumulator[:skipping][child_visitor], node)
-          end
-        end
-        acc
+      visitors = Enum.filter(visitor.visitors, fn(child_visitor) ->
+        !skipping?(accumulator, child_visitor)
       end)
-      {:continue, accumulator}
+      accumulator = Enum.reduce(visitors, accumulator, fn(child_visitor, accumulator) ->
+        case child_visitor |> Visitor.enter(node, accumulator) do
+          {:continue, next_accumulator} -> next_accumulator
+          {:skip, next_accumulator} ->
+            put_in(next_accumulator[:skipping][child_visitor], node)
+        end
+      end)
+      if length(visitors) > 0 do
+        {:continue, accumulator}
+      else
+        {:skip, accumulator}
+      end
     end
 
     def leave(visitor, node, accumulator) do
-      accumulator = Enum.reduce(visitor.visitors, accumulator, fn(child_visitor, acc) ->
+      Enum.reduce visitor.visitors, accumulator, fn(child_visitor, accumulator) ->
         cond do
-          !skipping?(acc, child_visitor) ->
-            {_, next_accumulator} = child_visitor |> Visitor.leave(node, acc)
-            next_accumulator
+          !skipping?(accumulator, child_visitor) ->
+            child_visitor |> Visitor.leave(node, accumulator)
           accumulator[:skipping][child_visitor] == node ->
-            put_in(acc[:skipping][child_visitor], false)
+            Map.delete(accumulator[:skipping], child_visitor)
           true -> accumulator
         end
-      end)
-      {:continue, accumulator}
+      end
     end
 
     defp skipping?(accumulator, child_visitor) do
