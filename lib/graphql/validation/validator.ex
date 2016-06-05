@@ -18,7 +18,7 @@ defmodule GraphQL.Validation.Validator do
   Runs validations against the document with all known validation rules.
   """
   def validate(schema, document) do
-    validate_with_rules(schema, document, Rules.all)   
+    validate_with_rules(schema, document, Rules.all)
   end
 
   @doc """
@@ -35,7 +35,7 @@ defmodule GraphQL.Validation.Validator do
     schema = Schema.with_type_cache(schema)
     validation_pipeline = CompositeVisitor.compose([
       %TypeInfoVisitor{},
-      rule 
+      rule
     ])
     result = Reducer.reduce(document, validation_pipeline, %{
       type_info: %TypeInfo{schema: schema},
