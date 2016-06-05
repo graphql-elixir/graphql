@@ -12,10 +12,13 @@ defmodule GraphQL.Schema do
   alias GraphQL.Type.CompositeType
   alias GraphQL.Lang.AST.Nodes
 
-  defstruct query: nil, mutation: nil, type_lookups: nil
+  defstruct query: nil, mutation: nil, type_cache: nil
+
+  def with_type_cache(schema = %{type_cache: nil}), do: new(schema)
+  def with_type_cache(schema), do: schema
 
   def new(%{query: query, mutation: mutation}) do
-    %GraphQL.Schema{query: query, mutation: mutation, type_lookups: do_reduce_types(query, mutation)}
+    %GraphQL.Schema{query: query, mutation: mutation, type_cache: do_reduce_types(query, mutation)}
   end
   def new(%{mutation: mutation}), do: new(%{query: nil, mutation: mutation})
   def new(%{query: query}), do: new(%{query: query, mutation: nil})
@@ -29,7 +32,7 @@ defmodule GraphQL.Schema do
     %GraphQL.Type.List{ofType: type_from_ast(input_type_ast.type, schema)}
   end
   def type_from_ast(%{kind: :NamedType} = input_type_ast, schema) do
-    schema.type_lookups |> Map.get(input_type_ast.name.value, :not_found)
+    schema.type_cache |> Map.get(input_type_ast.name.value, :not_found)
   end
 
   defp do_reduce_types(query, mutation) do

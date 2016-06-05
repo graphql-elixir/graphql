@@ -9,7 +9,7 @@ defmodule GraphQL.Execution.Executor.DirectiveTest do
 
   defmodule TestSchema do
     def schema do
-      Schema.new(%{
+      %Schema{
         query: %ObjectType{
           name: "TestType",
           fields: %{
@@ -17,7 +17,7 @@ defmodule GraphQL.Execution.Executor.DirectiveTest do
             b: %{type: %String{}, resolve: "b"}
           }
         }
-      })
+      }
     end
   end
 

@@ -334,6 +334,7 @@ defmodule ValidationsSupport do
   end
 
   defp validate(schema, query_string, rules) do
+    schema = Schema.with_type_cache(schema)
     {:ok, document} = Parser.parse(query_string)
     case Validator.validate_with_rules(schema, document, rules) do
       :ok -> []

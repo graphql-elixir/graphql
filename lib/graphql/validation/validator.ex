@@ -10,6 +10,8 @@ defmodule GraphQL.Validation.Validator do
     Reducer
   }
 
+  alias GraphQL.Schema
+
   alias GraphQL.Validation.Rules
 
   @doc """
@@ -30,6 +32,7 @@ defmodule GraphQL.Validation.Validator do
   can be removed.
   """
   def validate_with_rules(schema, document, [rule|[]] = rules) when length(rules) == 1 do
+    schema = Schema.with_type_cache(schema)
     validation_pipeline = CompositeVisitor.compose([
       %TypeInfoVisitor{},
       rule 
@@ -52,6 +55,7 @@ defmodule GraphQL.Validation.Validator do
   Runs validations against the document with only the specified rules.
   """
   def validate_with_rules(schema, document, rules) do
+    schema = Schema.with_type_cache(schema)
     validation_pipeline = CompositeVisitor.compose([
       %TypeInfoVisitor{},
       %ParallelVisitor{visitors: rules}
