@@ -45,8 +45,10 @@ defmodule GraphQL.Execution.Executor do
       :mutation     ->
         {context, result} = execute_fields_serially(context, type, root_value, fields)
         {:ok, result, context.errors}
-      :subscription -> {:error, "Subscriptions not currently supported"}
-      _             -> {:error, "Can only execute queries, mutations and subscriptions"}
+      :subscription ->
+        {:error, "Subscriptions not currently supported"}
+      _             ->
+        {:error, "Can only execute queries, mutations and subscriptions"}
     end
   end
 
@@ -108,14 +110,9 @@ defmodule GraphQL.Execution.Executor do
   end
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
-  defp execute_fields(context, parent_type, source_value, fields) when is_atom(parent_type) do
-    execute_fields(context, apply(parent_type, :type, []), source_value, fields)
-  end
-
-  @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, {context, %{}}, fn({field_name_ast, field_asts}, {context, results}) ->
-      case resolve_field(context, parent_type, source_value, field_asts) do
+      case resolve_field(context, unwrap_type(parent_type), source_value, field_asts) do
         {context, :undefined} -> {context, results}
         {context, value} -> {context, Map.put(results, field_name_ast.value, value)}
       end
@@ -130,8 +127,7 @@ defmodule GraphQL.Execution.Executor do
 
   defp resolve_field(context, parent_type, source, field_asts) do
     field_ast = hd(field_asts)
-    # FIXME: possible memory leak with atoms
-    field_name = String.to_atom(field_ast.name.value)
+    field_name = String.to_existing_atom(field_ast.name.value)
 
     if field_def = field_definition(parent_type, field_name) do
       return_type = field_def.type
@@ -156,7 +152,7 @@ defmodule GraphQL.Execution.Executor do
 
       case FieldResolver.resolve(field_def, source, args, info) do
         {:ok, result} ->
-          complete_value_catching_error(context, return_type, field_asts, info, result)
+          complete_value(return_type, context, field_asts, info, result)
         {:error, message} ->
           {ExecutionContext.report_error(context, message), nil}
       end
@@ -165,65 +161,50 @@ defmodule GraphQL.Execution.Executor do
     end
   end
 
-  @spec complete_value_catching_error(ExecutionContext.t, any, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map | nil}
-  defp complete_value_catching_error(context, return_type, field_asts, info, result) do
-    # TODO lots of error checking
-    complete_value(context, return_type, field_asts, info, result)
-  end
+  @spec complete_value(any, ExecutionContext.t, any, any, nil) :: {ExecutionContext.t, nil}
+  defp complete_value(_, context, _, _, nil), do: {context, nil}
 
-  @spec complete_value(ExecutionContext.t, any, any, any, nil) :: {ExecutionContext.t, nil}
-  defp complete_value(context, _, _, _, nil), do: {context, nil}
-
-  @spec complete_value(ExecutionContext.t, %ObjectType{}, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map}
-  defp complete_value(context, %ObjectType{} = return_type, field_asts, _info, result) do
+  @spec complete_value(%ObjectType{}, ExecutionContext.t, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map}
+  defp complete_value(%ObjectType{} = return_type, context, field_asts, _info, result) do
     {context, sub_field_asts} = collect_sub_fields(context, return_type, field_asts)
     execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) when is_atom(inner_type) do
-    complete_value(context, %NonNull{ofType: apply(inner_type, :type, [])}, field_asts, info, result)
-  end
-
-  @spec complete_value(ExecutionContext.t, %NonNull{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
-  defp complete_value(context, %NonNull{ofType: inner_type}, field_asts, info, result) do
+  @spec complete_value(%NonNull{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
+  defp complete_value(%NonNull{ofType: inner_type}, context, field_asts, info, result) do
     # TODO: Null Checking
-    complete_value(context, inner_type, field_asts, info, result)
+    complete_value(unwrap_type(inner_type), context, field_asts, info, result)
   end
 
-  @spec complete_value(ExecutionContext.t, %Interface{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
-  defp complete_value(context, %Interface{} = return_type, field_asts, info, result) do
+  @spec complete_value(%Interface{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
+  defp complete_value(%Interface{} = return_type, context, field_asts, info, result) do
     runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  @spec complete_value(ExecutionContext.t, %Union{}, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
-  defp complete_value(context, %Union{} = return_type, field_asts, info, result) do
+  @spec complete_value(%Union{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
+  defp complete_value(%Union{} = return_type, context, field_asts, info, result) do
     runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
     {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
     execute_fields(context, runtime_type, result, sub_field_asts.fields)
   end
 
-  defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) when is_atom(list_type) do
-    complete_value(context, %List{ofType: apply(list_type, :type, [])}, field_asts, info, result)
-  end
-
-  @spec complete_value(ExecutionContext.t, %List{}, GraphQL.Document.t, any, any) :: map
-  defp complete_value(context, %List{ofType: list_type}, field_asts, info, result) do
+  @spec complete_value(%List{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: map
+  defp complete_value(%List{ofType: list_type}, context, field_asts, info, result) do
     {context, result} = Enum.reduce result, {context, []}, fn(item, {context, acc}) ->
-      {context, value} = complete_value_catching_error(context, list_type, field_asts, info, item)
+      {context, value} = complete_value(unwrap_type(list_type), context, field_asts, info, item)
       {context, [value] ++ acc}
     end
     {context, Enum.reverse(result)}
   end
 
-  defp complete_value(context, return_type, field_asts, info, result) when is_atom(return_type) do
-    type = apply(return_type, :type, [])
-    complete_value(context, type, field_asts, info, result)
+  defp complete_value(return_type, context, field_asts, info, result) when is_atom(return_type) do
+    complete_value(unwrap_type(return_type), context, field_asts, info, result)
   end
 
-  defp complete_value(context, return_type, _field_asts, _info, result) do
-    {context, GraphQL.Types.serialize(return_type, result)}
+  defp complete_value(return_type, context, _field_asts, _info, result) do
+    {context, GraphQL.Types.serialize(unwrap_type(return_type), result)}
   end
 
   defp collect_sub_fields(context, return_type, field_asts) do
@@ -311,7 +292,7 @@ defmodule GraphQL.Execution.Executor do
   def value_from_ast(nil, _, _), do: nil # remove once NonNull is actually done..
 
   def value_from_ast(value_ast, type, variable_values) when is_atom(type) do
-    value_from_ast(value_ast, apply(type, :type, []), variable_values)
+    value_from_ast(value_ast, type.type, variable_values)
   end
 
   def value_from_ast(value_ast, type, _) do
@@ -355,4 +336,7 @@ defmodule GraphQL.Execution.Executor do
       true -> runtime_type.name == typed_condition.name
     end
   end
+
+  defp unwrap_type(type) when is_atom(type), do: type.type
+  defp unwrap_type(type), do: type
 end

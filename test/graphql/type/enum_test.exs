@@ -29,7 +29,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
               from_int: %{type: %Int{}},
               from_string: %{type: %String{}},
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args) ->
               Map.get(args, :from_enum) ||
               Map.get(args, :from_int) ||
               Map.get(args, :from_string)
@@ -41,7 +41,7 @@ defmodule GraphQL.Lang.Type.EnumTest do
               from_enum: %{type: color_type},
               from_int: %{type: %Int{}}
             },
-            resolve: fn(_, args, _) ->
+            resolve: fn(_, args) ->
               Map.get(args, :from_enum) ||
               Map.get(args, :from_int)
             end

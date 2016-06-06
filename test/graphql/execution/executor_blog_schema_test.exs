@@ -58,7 +58,7 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
             height: %{type: %Int{}}
           },
           type: image,
-          resolve: fn(o, %{width: w, height: h}, _) -> o.pic.(w, h) end
+          resolve: fn(o, %{width: w, height: h}) -> o.pic.(w, h) end
         },
         recentArticle: nil
       }
@@ -86,11 +86,11 @@ defmodule GraphQL.Execution.Executor.ExecutorBlogSchemaTest do
         article: %{
           type: article,
           args: %{id: %{type: %ID{}}},
-          resolve: fn(_, %{id: id}, _) -> make_article(id) end
+          resolve: fn(_, %{id: id}) -> make_article(id) end
         },
         feed: %{
           type: %List{ofType: article},
-          resolve: fn(_, _, _) -> for id <- 1..2, do: make_article(id) end
+          resolve: fn() -> for id <- 1..2, do: make_article(id) end
         }
       }
     }

@@ -11,9 +11,11 @@ defmodule GraphQL.Lang.AST.ParallelVisitor do
   This code based on the graphql-js *visitInParallel* function.
   """
 
-  alias GraphQL.Lang.AST.Visitor
-  alias GraphQL.Lang.AST.InitialisingVisitor
-  alias GraphQL.Lang.AST.PostprocessingVisitor
+  alias GraphQL.Lang.AST.{
+    Visitor,
+    InitialisingVisitor,
+    PostprocessingVisitor
+  }
 
   defstruct visitors: []
   
