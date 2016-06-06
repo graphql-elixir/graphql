@@ -7,6 +7,7 @@ defmodule GraphQL.Schema do
     directives: [GraphQL.Type.Directive.t]
   }
 
+  alias GraphQL.Type.Input
   alias GraphQL.Type.Interface
   alias GraphQL.Type.Union
   alias GraphQL.Type.ObjectType
@@ -77,6 +78,19 @@ defmodule GraphQL.Schema do
       end)
       typemap = Enum.reduce(type.interfaces, typemap, fn(fieldtype,map) ->
        reduce_types(map, fieldtype)
+      end)
+    end
+  end
+
+  defp reduce_types(typemap, %Input{} = type) do
+    if Map.has_key?(typemap, type.name) do
+      typemap
+    else
+      typemap = Map.put(typemap, type.name, type)
+      thunk_fields = CompositeType.get_fields(type)
+      typemap = Enum.reduce(thunk_fields, typemap, fn({_,fieldtype},typemap) ->
+        _reduce_arguments(typemap, fieldtype)
+        |> reduce_types(fieldtype.type)
       end)
     end
   end
