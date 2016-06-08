@@ -44,6 +44,7 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
 
     defp field_usage_count({_, count}), do: count
 
+    # TODO is this meant to be a ==?
     defp is_a_graphql_object_type(type), do: %ObjectType{} = type
 
     defp to_self_and_interfaces(type), do: [type] ++ type.interfaces
