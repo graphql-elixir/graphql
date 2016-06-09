@@ -65,14 +65,19 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
     end
 
     defp process_one_node(acc, spread_node, _) do
-      acc = %{ acc | spread_path: Stack.push(acc[:spread_path], spread_node)} 
-      if !visited?(acc, spread_node) do
-        spread_fragment = DocumentInfo.get_fragment_definition(acc[:document_info], spread_node.name.value)
-        if spread_fragment do
-          acc = detect_cycles(acc, spread_fragment)
+      acc = %{ acc | spread_path: Stack.push(acc[:spread_path], spread_node)}
+      acc =
+        if !visited?(acc, spread_node) do
+          spread_fragment = DocumentInfo.get_fragment_definition(acc[:document_info], spread_node.name.value)
+          if spread_fragment do
+            detect_cycles(acc, spread_fragment)
+          else
+            acc
+          end
+        else
+          acc
         end
-      end
-      %{ acc | spread_path: Stack.pop(acc[:spread_path])} 
+      %{ acc | spread_path: Stack.pop(acc[:spread_path])}
     end
 
     defp visited?(acc, node) do
