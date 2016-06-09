@@ -123,7 +123,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           end
         :List ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
-          list_type =  TypeInfo.nullable_type(accumulator[:type_info], input_type)
+          list_type = TypeInfo.named_type(input_type)
           if %Type.List{} === list_type  do
             stack_push(:input_type_stack, list_type.ofType)
           else
