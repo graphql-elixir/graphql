@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 (2016-06-09)
+
+* Bugfixes
+  * Fix introspection to include Input types when input types are arguments
+    to fields.
+
 ## 0.3.0 (2016-05-29)
 
 * Enhancements
