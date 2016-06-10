@@ -76,7 +76,7 @@ defmodule GraphQL.Type.IntrospectionTest do
                 type: %NonNull{ofType: input_type}
               }
             },
-            resolve: fn(data, args, info) ->
+            resolve: fn(data, _, _) ->
               data
             end
           }
