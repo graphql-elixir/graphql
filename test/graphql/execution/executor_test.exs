@@ -142,7 +142,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
             type: %String{},
             args: %{
               name: %{type: %String{}}
-          },
+            },
             resolve: fn(_, %{name: name}, _) -> "Hello #{name}!!" end,
           }
         }
