@@ -9,6 +9,7 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
   alias GraphQL.Type.ID
   alias GraphQL.Type.String
   alias GraphQL.Type.Int
+  alias GraphQL.Type.NonNull
 
   defmodule TestSchema do
     def recursive_schema_query do
@@ -38,6 +39,23 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
           b: %{type: TestSchema.recursive_schema_query, resolve: fn() -> %{} end }
         } end
       }
+    end
+
+    def non_null_schema do
+      Schema.new(%{
+        query: %ObjectType{
+          name: "RootQueryType",
+          fields: %{
+            greeting: %{
+              type: %String{},
+              args: %{
+                name: %{type: %NonNull{ofType: %String{}}}
+              },
+              resolve: &greeting/3
+            }
+          }
+        }
+      })
     end
 
     def schema do
@@ -131,6 +149,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
 
     {:ok, result} = execute(schema, ~S[query Q {g, h(name:"Joe")}])
     assert_data(result, %{g: "Hello, world!", h: "Hello, Joe!"})
+  end
+
+  test "must specify a non null argument" do
+    {_, result} = execute(TestSchema.non_null_schema, "query a{greeting}")
+    assert_has_error(result, %{message: "Field \"greeting\" argument \"name\" of type \"String!\" is required but not provided."})
   end
 
   test "must specify operation name when multiple operations exist" do
