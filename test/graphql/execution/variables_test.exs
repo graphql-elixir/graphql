@@ -13,8 +13,6 @@ defmodule GraphQL.Execution.Executor.VariableTest do
   defmodule GraphQL.Type.TestComplexScalar do
     defstruct name: "ComplexScalar", description: ""
   end
-  # TODO: Why can't I have a defimpl in here?
-  # Should I put this in a support file?
 
   alias GraphQL.Type.TestComplexScalar
 

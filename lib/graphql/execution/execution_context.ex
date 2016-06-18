@@ -18,7 +18,7 @@ defmodule GraphQL.Execution.ExecutionContext do
       fragments: %{},
       root_value: root_value,
       operation: nil,
-      variable_values: variable_values || %{}, # TODO: We need to deeply set keys as strings or atoms. not allow both.
+      variable_values: variable_values || %{},
       errors: []
     }, fn(definition, context) ->
 
@@ -43,4 +43,3 @@ defmodule GraphQL.Execution.ExecutionContext do
     put_in(context.errors, [%{"message" => msg} | context.errors])
   end
 end
-

@@ -172,7 +172,6 @@ defmodule GraphQL.Execution.Executor do
 
   @spec complete_value(%NonNull{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
   defp complete_value(%NonNull{ofType: inner_type}, context, field_asts, info, result) do
-    # TODO: Null Checking
     complete_value(unwrap_type(inner_type), context, field_asts, info, result)
   end
 

@@ -19,7 +19,6 @@ defmodule GraphQL.Execution.Variables do
 
   defp get_variable_value(schema, ast, input_value) do
     type = GraphQL.Schema.type_from_ast(ast.type, schema)
-    # todo soooooo much error handling. so much.
     value_for(ast, type, input_value)
   end
 

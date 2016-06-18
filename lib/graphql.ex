@@ -98,7 +98,6 @@ defmodule GraphQL do
   end
 
   defp execute_with_optional_validation(schema, query, opts) do
-    # TODO: use the `with` statement to compose write this in a nicer way
     case GraphQL.Lang.Parser.parse(query) do
       {:ok, document} ->
         case optionally_validate(Keyword.get(opts, :validate, true), schema, document) do
