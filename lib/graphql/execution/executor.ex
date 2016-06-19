@@ -2,6 +2,8 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Schema
   alias GraphQL.Execution.ExecutionContext
   alias GraphQL.Execution.FieldResolver
+  alias GraphQL.Execution.BatchResolvable
+  alias GraphQL.Execution.Patch
   alias GraphQL.Type.ObjectType
   alias GraphQL.Type.List
   alias GraphQL.Type.Interface
@@ -12,6 +14,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.CompositeType
   alias GraphQL.Type.AbstractType
   alias GraphQL.Lang.AST.Nodes
+
 
   @type result_data :: {:ok, Map}
 
@@ -111,11 +114,34 @@ defmodule GraphQL.Execution.Executor do
 
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) do
-    Enum.reduce fields, {context, %{}}, fn({field_name_ast, field_asts}, {context, results}) ->
+    {context, results} = Enum.reduce fields, {context, %{}}, fn({field_name_ast, field_asts}, {context, results}) ->
       case resolve_field(context, unwrap_type(parent_type), source_value, field_asts) do
         {context, :undefined} -> {context, results}
         {context, value} -> {context, Map.put(results, field_name_ast.value, value)}
       end
+    end
+
+    resolve_batches(context, results)
+  end
+
+  defp resolve_batches(context, results) do
+    if length(context.batch_resolvables) > 0 do
+      batches = BatchResolvable.Group.partition(context.batch_resolvables)
+
+      patched_results = Enum.map(batches, fn(batch) ->
+        Task.async(fn -> BatchResolvable.resolve(batch) end)
+      end)
+      |> Task.yield_many()
+      |> Enum.map(fn({_, {:ok, patches}}) -> patches end)
+      |> Elixir.List.flatten()
+      |> Enum.reduce(results, fn(patch, results) ->
+        Patch.apply(results, patch)
+      end)
+      # TODO call execute_fields on resolved values
+
+      {context, patched_results}
+    else
+      {context, results}
     end
   end
 
@@ -147,12 +173,17 @@ defmodule GraphQL.Execution.Executor do
         fragments: context.fragments,
         root_value: context.root_value,
         operation: context.operation,
-        variable_values: context.variable_values
+        variable_values: context.variable_values,
+        path: []
       }
 
       case FieldResolver.resolve(field_def, source, args, info) do
         {:ok, result} ->
-          complete_value(return_type, context, field_asts, info, result)
+          if BatchResolvable.batchable?(result) do
+            {ExecutionContext.add_batch_resolvable(context, result), "!BATCHED"}
+          else
+            complete_value(return_type, context, field_asts, info, result)
+          end
         {:error, message} ->
           {ExecutionContext.report_error(context, message), nil}
       end
