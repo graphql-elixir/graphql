@@ -1,14 +1,14 @@
 
 defmodule GraphQL.Execution.ExecutionContext do
 
-  defstruct [:schema, :fragments, :root_value, :operation, :variable_values, :errors]
+  defstruct [:schema, :fragments, :root_value, :operation, :variable_values, :errors, :batch_resolvables]
   @type t :: %__MODULE__{
     schema: GraphQL.Schema.t,
     fragments: struct,
     root_value: Map,
     operation: Map,
     variable_values: Map,
-    errors: list(GraphQL.Error.t)
+    batch_resolvables: list
   }
 
   @spec new(GraphQL.Schema.t, GraphQL.Document.t, map, map, String.t) :: __MODULE__.t
@@ -19,6 +19,7 @@ defmodule GraphQL.Execution.ExecutionContext do
       root_value: root_value,
       operation: nil,
       variable_values: variable_values || %{},
+      batch_resolvables: [],
       errors: []
     }, fn(definition, context) ->
 
@@ -41,5 +42,9 @@ defmodule GraphQL.Execution.ExecutionContext do
   @spec report_error(__MODULE__.t, String.t) :: __MODULE__.t
   def report_error(context, msg) do
     put_in(context.errors, [%{"message" => msg} | context.errors])
+  end
+
+  def add_batch_resolvable(context, batch_resolvable) do
+    put_in(context.batch_resolvables, [batch_resolvable | context.batch_resolvables])
   end
 end
