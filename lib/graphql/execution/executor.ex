@@ -173,8 +173,7 @@ defmodule GraphQL.Execution.Executor do
 
   @spec complete_value(%ObjectType{}, ExecutionContext.t, GraphQL.Document.t, any, map) :: {ExecutionContext.t, map}
   defp complete_value(%ObjectType{} = return_type, context, field_asts, _info, result) do
-    {context, sub_field_asts} = collect_sub_fields(context, return_type, field_asts)
-    execute_fields(context, return_type, result, sub_field_asts.fields)
+    complete_sub_fields(return_type, context, field_asts, result)
   end
 
   @spec complete_value(%NonNull{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
@@ -207,6 +206,16 @@ defmodule GraphQL.Execution.Executor do
 
   defp complete_value(return_type, context, _field_asts, _info, result) do
     {context, GraphQL.Types.serialize(unwrap_type(return_type), result)}
+  end
+
+  defp complete_union_or_interface(return_type, context, field_asts, info, result) do
+    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
+    complete_sub_fields(runtime_type, context, field_asts, result)
+  end
+
+  defp complete_sub_fields(return_type, context, field_asts, result) do
+    {context, sub_field_asts} = collect_sub_fields(context, return_type, field_asts)
+    execute_fields(context, return_type, result, sub_field_asts.fields)
   end
 
   defp collect_sub_fields(context, return_type, field_asts) do
@@ -341,10 +350,4 @@ defmodule GraphQL.Execution.Executor do
 
   defp unwrap_type(type) when is_atom(type), do: type.type
   defp unwrap_type(type), do: type
-
-  defp complete_union_or_interface(return_type, context, field_asts, info, result) do
-    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
-    {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
-    execute_fields(context, runtime_type, result, sub_field_asts.fields)
-  end
 end
