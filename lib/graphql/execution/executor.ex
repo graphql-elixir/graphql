@@ -116,11 +116,14 @@ defmodule GraphQL.Execution.Executor do
   @spec execute_fields(ExecutionContext.t, atom | Map, any, any) :: {ExecutionContext.t, map}
   defp execute_fields(context, parent_type, source_value, fields) do
     Enum.reduce fields, {context, %{}}, fn({field_name_ast, field_asts}, {context, results}) ->
-      case resolve_field(context, unwrap_type(parent_type), source_value, field_asts) do
-        {context, :undefined} -> {context, results}
-        {context, value} -> {context, Map.put(results, field_name_ast.value, value)}
-      end
+      resolve_field(context, unwrap_type(parent_type), source_value, field_asts)
+      |> unwrap_result(results, field_name_ast)
     end
+  end
+
+  defp unwrap_result({context, :undefined}, results, _), do: {context, results}
+  defp unwrap_result({context, value}, results, field_name_ast) do
+    {context, Map.put(results, field_name_ast.value, value)}
   end
 
   @spec execute_fields_serially(ExecutionContext.t, atom, map, any) :: {ExecutionContext.t, map}
