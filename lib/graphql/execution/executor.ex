@@ -184,16 +184,12 @@ defmodule GraphQL.Execution.Executor do
 
   @spec complete_value(%Interface{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
   defp complete_value(%Interface{} = return_type, context, field_asts, info, result) do
-    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
-    {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
-    execute_fields(context, runtime_type, result, sub_field_asts.fields)
+    complete_union_or_interface(return_type, context, field_asts, info, result)
   end
 
   @spec complete_value(%Union{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: {ExecutionContext.t, map}
   defp complete_value(%Union{} = return_type, context, field_asts, info, result) do
-    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
-    {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
-    execute_fields(context, runtime_type, result, sub_field_asts.fields)
+    complete_union_or_interface(return_type, context, field_asts, info, result)
   end
 
   @spec complete_value(%List{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: map
@@ -345,4 +341,10 @@ defmodule GraphQL.Execution.Executor do
 
   defp unwrap_type(type) when is_atom(type), do: type.type
   defp unwrap_type(type), do: type
+
+  defp complete_union_or_interface(return_type, context, field_asts, info, result) do
+    runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
+    {context, sub_field_asts} = collect_sub_fields(context, runtime_type, field_asts)
+    execute_fields(context, runtime_type, result, sub_field_asts.fields)
+  end
 end
