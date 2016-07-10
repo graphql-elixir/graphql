@@ -46,32 +46,16 @@ defmodule GraphQL.Execution.Executor do
     case operation.operation do
       :query        ->
         {context, result} = execute_fields(context, type, root_value, fields)
-        {:ok, expand_array_maps(result), context.errors}
+        {:ok, ArrayMap.expand_result(result), context.errors}
       :mutation     ->
         {context, result} = execute_fields_serially(context, type, root_value, fields)
-        {:ok, expand_array_maps(result), context.errors}
+        {:ok, ArrayMap.expand_result(result), context.errors}
       :subscription ->
         {:error, "Subscriptions not currently supported"}
       _             ->
         {:error, "Can only execute queries, mutations and subscriptions"}
     end
   end
-
-  defp expand_array_maps(result) when is_list(result) do
-    Enum.map(result, &expand_array_maps/1)
-  end
-  defp expand_array_maps(%ArrayMap{} = result) do
-    Enum.reduce(Enum.sort(Map.keys(result.map)), [], fn(index, acc) ->
-      [expand_array_maps(Map.get(result.map, index))] ++ acc
-    end) |> Enum.reverse
-  end
-  defp expand_array_maps(result) when is_map(result) do
-    Enum.reduce(result, %{}, fn({k, v}, acc) ->
-      Map.put(acc, expand_array_maps(k), expand_array_maps(v))
-    end)
-  end
-  defp expand_array_maps(result), do: result
-
 
   defp collect_selections(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
     Enum.reduce selection_set[:selections], {context, field_fragment_map}, fn(selection, {context, field_fragment_map}) ->
