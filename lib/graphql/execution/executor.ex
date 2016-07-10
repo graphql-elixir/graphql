@@ -12,6 +12,7 @@ defmodule GraphQL.Execution.Executor do
   alias GraphQL.Type.CompositeType
   alias GraphQL.Type.AbstractType
   alias GraphQL.Lang.AST.Nodes
+  alias GraphQL.Util.ArrayMap
 
   @type result_data :: {:ok, Map}
 
@@ -45,16 +46,32 @@ defmodule GraphQL.Execution.Executor do
     case operation.operation do
       :query        ->
         {context, result} = execute_fields(context, type, root_value, fields)
-        {:ok, result, context.errors}
+        {:ok, expand_array_maps(result), context.errors}
       :mutation     ->
         {context, result} = execute_fields_serially(context, type, root_value, fields)
-        {:ok, result, context.errors}
+        {:ok, expand_array_maps(result), context.errors}
       :subscription ->
         {:error, "Subscriptions not currently supported"}
       _             ->
         {:error, "Can only execute queries, mutations and subscriptions"}
     end
   end
+
+  defp expand_array_maps(result) when is_list(result) do
+    Enum.map(result, &expand_array_maps/1)
+  end
+  defp expand_array_maps(%ArrayMap{} = result) do
+    Enum.reduce(Enum.sort(Map.keys(result.map)), [], fn(index, acc) ->
+      [expand_array_maps(Map.get(result.map, index))] ++ acc
+    end) |> Enum.reverse
+  end
+  defp expand_array_maps(result) when is_map(result) do
+    Enum.reduce(result, %{}, fn({k, v}, acc) ->
+      Map.put(acc, expand_array_maps(k), expand_array_maps(v))
+    end)
+  end
+  defp expand_array_maps(result), do: result
+
 
   defp collect_selections(context, runtime_type, selection_set, field_fragment_map \\ %{fields: %{}, fragments: %{}}) do
     Enum.reduce selection_set[:selections], {context, field_fragment_map}, fn(selection, {context, field_fragment_map}) ->
@@ -193,11 +210,11 @@ defmodule GraphQL.Execution.Executor do
 
   @spec complete_value(%List{}, ExecutionContext.t, GraphQL.Document.t, any, any) :: map
   defp complete_value(%List{ofType: list_type}, context, field_asts, info, result) do
-    {context, result} = Enum.reduce result, {context, []}, fn(item, {context, acc}) ->
+    {context, value, _} = Enum.reduce result, {context, %ArrayMap{}, 0}, fn(item, {context, acc, count}) ->
       {context, value} = complete_value(unwrap_type(list_type), context, field_asts, info, item)
-      {context, [value] ++ acc}
+      {context, ArrayMap.put(acc, count, value), count + 1}
     end
-    {context, Enum.reverse(result)}
+    {context, value}
   end
 
   defp complete_value(return_type, context, field_asts, info, result) when is_atom(return_type) do
