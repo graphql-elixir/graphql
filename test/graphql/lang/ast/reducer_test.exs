@@ -4,46 +4,13 @@ defmodule GraphQL.Lang.AST.ReducerTest do
 
   alias GraphQL.Lang.Parser
   alias GraphQL.Lang.AST.Reducer
-  alias GraphQL.Lang.AST.Visitor
-  alias GraphQL.Lang.AST.PostprocessingVisitor
+  alias GraphQL.Lang.AST.CompositeVisitor
 
-  defmodule TracingVisitor do
-    defstruct name: "logging visitor"
-  end
-
-  defimpl Visitor, for: TracingVisitor do
-    def enter(_visitor, node, accumulator) do
-      {:continue, Map.merge(accumulator, %{calls: ["Entering: #{node[:kind]}"] ++ accumulator[:calls]})}
-    end
-
-    def leave(_visitor, node, accumulator) do
-      Map.merge(accumulator, %{calls: ["Leaving: #{node[:kind]}"] ++ accumulator[:calls]})
-    end
-  end
-
-  defimpl PostprocessingVisitor, for: TracingVisitor do
-    def finish(_visitor, accumulator) do
-      Enum.reverse accumulator[:calls]
-    end
-  end
-
-  defmodule BalancedCallsVisitor do
-    defstruct name: "balanced calls visitor"
-  end
-
-  defimpl Visitor, for: BalancedCallsVisitor do
-    def enter(_visitor, _node, accumulator) do
-      {:continue, %{accumulator | count: accumulator[:count] + 1}}
-    end
-
-    def leave(_visitor, _node, accumulator) do
-      %{accumulator | count: accumulator[:count] - 1}
-    end
-  end
-
-  defimpl PostprocessingVisitor, for: BalancedCallsVisitor do
-    def finish(_visitor, accumulator), do: accumulator[:count]
-  end
+  alias GraphQL.TestSupport.VisitorImplementations.{
+    CallReverser,
+    TracingVisitor,
+    BalancedCallsVisitor
+  }
 
   test "Enter and leave calls should be balanced" do
     {:ok, ast} = Parser.parse "type Person {name: String}"
@@ -53,22 +20,27 @@ defmodule GraphQL.Lang.AST.ReducerTest do
 
   test "All nodes are visited" do
     {:ok, ast} = Parser.parse "type Person {name: String}"
-    log = Reducer.reduce(ast, %TracingVisitor{}, %{calls: []})
+
+    v0 = %CallReverser{}
+    v1 = %TracingVisitor{name: "Tracing Visitor"}
+    composite_visitor = CompositeVisitor.compose([v0, v1])
+
+    log = Reducer.reduce(ast, composite_visitor, %{calls: []})
     assert log == [
-      "Entering: Document",
-      "Entering: ObjectTypeDefinition",
-      "Entering: Name",
-      "Leaving: Name",
-      "Entering: FieldDefinition",
-      "Entering: Name",
-      "Leaving: Name",
-      "Entering: NamedType",
-      "Entering: Name",
-      "Leaving: Name",
-      "Leaving: NamedType",
-      "Leaving: FieldDefinition",
-      "Leaving: ObjectTypeDefinition",
-      "Leaving: Document"
+      "Tracing Visitor entering Document",
+      "Tracing Visitor entering ObjectTypeDefinition",
+      "Tracing Visitor entering Name",
+      "Tracing Visitor leaving Name",
+      "Tracing Visitor entering FieldDefinition",
+      "Tracing Visitor entering Name",
+      "Tracing Visitor leaving Name",
+      "Tracing Visitor entering NamedType",
+      "Tracing Visitor entering Name",
+      "Tracing Visitor leaving Name",
+      "Tracing Visitor leaving NamedType",
+      "Tracing Visitor leaving FieldDefinition",
+      "Tracing Visitor leaving ObjectTypeDefinition",
+      "Tracing Visitor leaving Document"
     ]
   end
 end

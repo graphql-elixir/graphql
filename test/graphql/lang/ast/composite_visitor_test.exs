@@ -4,33 +4,9 @@ defmodule GraphQL.Lang.AST.CompositeVisitorTest do
 
   alias GraphQL.Lang.Parser
   alias GraphQL.Lang.AST.Reducer
-  alias GraphQL.Lang.AST.Visitor
   alias GraphQL.Lang.AST.CompositeVisitor
-  alias GraphQL.Lang.AST.PostprocessingVisitor
 
-  defmodule TracingVisitor do
-    defstruct name: nil
-  end
-
-  defimpl Visitor, for: TracingVisitor do
-    def enter(visitor, node, accumulator) do
-      {:continue, %{accumulator | calls: ["#{visitor.name} entering #{node[:kind]}"] ++ accumulator[:calls]}}
-    end
-
-    def leave(visitor, node, accumulator) do
-      %{accumulator | calls: ["#{visitor.name} leaving #{node[:kind]}"] ++ accumulator[:calls]}
-    end
-  end
-
-  defmodule CallReverser do
-    defstruct name: "call reverser"
-  end
-
-  defimpl PostprocessingVisitor, for: CallReverser do
-    def finish(_visitor, accumulator) do
-      Enum.reverse(accumulator[:calls])
-    end
-  end
+  alias GraphQL.TestSupport.VisitorImplementations.{CallReverser, TracingVisitor}
   
   test "Composed Visitors are called in the correct order" do
     v0 = %CallReverser{}
