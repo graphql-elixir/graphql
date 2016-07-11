@@ -57,4 +57,14 @@ defmodule GraphQL.Type.Interface do
   defimpl String.Chars do
     def to_string(iface), do: iface.name
   end
+
+  defimpl GraphQL.Execution.Completion do
+    alias GraphQL.Execution.Selection
+
+    def complete_value(return_type, context, field_asts, info, result) do
+      runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
+      Selection.complete_sub_fields(runtime_type, context, field_asts, result)
+    end
+  end
 end
+
