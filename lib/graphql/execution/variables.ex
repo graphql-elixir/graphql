@@ -1,4 +1,6 @@
 defmodule GraphQL.Execution.Variables do
+  alias GraphQL.Execution.ASTValue
+
   @spec extract(map) :: map
   def extract(context) do
     schema = context.schema
@@ -24,7 +26,7 @@ defmodule GraphQL.Execution.Variables do
 
   @spec value_for(map, map, map | nil) :: map | nil
   defp value_for(%{defaultValue: default}, type, nil) do
-    GraphQL.Execution.Executor.value_from_ast(%{value: default}, type, nil)
+    ASTValue.value_from_ast(%{value: default}, type, nil)
   end
   defp value_for(_, _, nil), do: nil
   defp value_for(_, type, input) do

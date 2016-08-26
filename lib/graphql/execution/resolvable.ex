@@ -11,7 +11,7 @@ defmodule GraphQL.Execution.ResolveWrapper do
       {:ok, fun.()}
     rescue
       e in RuntimeError -> {:error, e.message}
-      e in FunctionClauseError -> {:error, "Could not find a resolve function for this query."}
+      _ in FunctionClauseError -> {:error, "Could not find a resolve function for this query."}
     end
   end
 end

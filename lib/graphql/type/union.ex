@@ -1,4 +1,6 @@
 defmodule GraphQL.Type.Union do
+  alias GraphQL.Execution.Completion  
+
   @type t :: %GraphQL.Type.Union{
     name: binary,
     description: binary | nil,
@@ -39,4 +41,15 @@ defmodule GraphQL.Type.Union do
   defimpl String.Chars do
     def to_string(union), do: union.name
   end
+
+  defimpl Completion do
+    alias GraphQL.Execution.Selection
+    alias GraphQL.Type.AbstractType
+
+    def complete_value(return_type, context, field_asts, info, result) do
+      runtime_type = AbstractType.get_object_type(return_type, result, info.schema)
+      Selection.complete_sub_fields(runtime_type, context, field_asts, result)
+    end
+  end
 end
+
