@@ -13,35 +13,47 @@ defmodule GraphQL.Execution.ExecutionContext do
 
   @spec new(GraphQL.Schema.t, GraphQL.Document.t, map, map, String.t) :: __MODULE__.t
   def new(schema, document, root_value, variable_values, operation_name) do
-    Enum.reduce(document.definitions, %__MODULE__{
+
+    initial_context = %__MODULE__{
       schema: schema,
       fragments: %{},
       root_value: root_value,
       operation: nil,
       variable_values: variable_values || %{},
       errors: []
-    }, fn(definition, context) ->
-      case definition do
-        %{kind: :OperationDefinition} ->
-          cond do
-            !operation_name && context.operation ->
-              report_error(context, "Must provide operation name if query contains multiple operations.")
-            !operation_name || definition.name.value === operation_name ->
-              context = %{context | operation: definition}
-              %{context | variable_values: GraphQL.Execution.Variables.extract(context) }
-            true -> context
-          end
-        %{kind: :FragmentDefinition} ->
-          put_in(context.fragments[definition.name.value], definition)
-      end
-    end) |> validate_operation_exists(operation_name)
+    }
+
+    document.definitions
+    |> Enum.reduce(initial_context, build_definition_handler(operation_name))
+    |> validate_operation_exists(operation_name)
   end
 
-  def validate_operation_exists(context, nil), do: context
-  def validate_operation_exists(context = %{operation: nil}, operation_name) do
+  defp build_definition_handler(operation_name) do
+    fn(definition, context) -> handle_definition(operation_name, definition, context) end
+  end
+
+  defp handle_definition(operation_name, definition = %{kind: :OperationDefinition}, context) do
+    multiple_operations_no_operation_name = !operation_name && context.operation
+    should_set_operation = !operation_name || definition.name.value === operation_name
+    cond do
+      multiple_operations_no_operation_name ->
+        report_error(context, "Must provide operation name if query contains multiple operations.")
+      should_set_operation ->
+        context = %{context | operation: definition}
+        %{context | variable_values: GraphQL.Execution.Variables.extract(context) }
+      true -> context
+    end
+  end
+
+  defp handle_definition(_, definition = %{kind: :FragmentDefinition}, context) do
+    put_in(context.fragments[definition.name.value], definition)
+  end
+
+  defp validate_operation_exists(context, nil), do: context
+  defp validate_operation_exists(context = %{operation: nil}, operation_name) do
     report_error(context, "Operation `#{operation_name}` not found in query.")
   end
-  def validate_operation_exists(context, _operation_name), do: context
+  defp validate_operation_exists(context, _operation_name), do: context
 
   @spec report_error(__MODULE__.t, String.t) :: __MODULE__.t
   def report_error(context, msg) do
