@@ -13,7 +13,7 @@ defmodule GraphQL.Execution.ExecutionContext do
 
   @spec new(GraphQL.Schema.t, GraphQL.Document.t, map, map, String.t) :: __MODULE__.t
   def new(schema, document, root_value, variable_values, operation_name) do
-    Enum.reduce document.definitions, %__MODULE__{
+    execution_context = Enum.reduce document.definitions, %__MODULE__{
       schema: schema,
       fragments: %{},
       root_value: root_value,
@@ -21,7 +21,6 @@ defmodule GraphQL.Execution.ExecutionContext do
       variable_values: variable_values || %{},
       errors: []
     }, fn(definition, context) ->
-
       case definition do
         %{kind: :OperationDefinition} ->
           cond do
@@ -35,6 +34,11 @@ defmodule GraphQL.Execution.ExecutionContext do
         %{kind: :FragmentDefinition} ->
           put_in(context.fragments[definition.name.value], definition)
       end
+    end
+    if operation_name && !execution_context.operation do
+      report_error(execution_context, "Operation `#{operation_name}` not found in query.")
+    else
+      execution_context
     end
   end
 
