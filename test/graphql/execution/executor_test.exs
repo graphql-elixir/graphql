@@ -158,6 +158,11 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_has_error(result, %{message: "Must provide operation name if query contains multiple operations."})
   end
 
+  test "operation name must match an operation defined in the query" do
+    {_, result} = execute(TestSchema.schema, "query a {greeting}", operation_name: "b")
+    assert_has_error(result, %{message: "Operation `b` not found in query."})
+  end
+
   test "do not include illegal fields in output" do
     {:ok, result} = execute(TestSchema.schema, ~S[query Q {g, h(name:"Joe")}], validate: false)
     assert_data(result, %{})
