@@ -41,6 +41,7 @@ defmodule GraphQL.Execution.ExecutionContext do
   def validate_operation_exists(context = %{operation: nil}, operation_name) do
     report_error(context, "Operation `#{operation_name}` not found in query.")
   end
+  def validate_operation_exists(context, _operation_name), do: context
 
   @spec report_error(__MODULE__.t, String.t) :: __MODULE__.t
   def report_error(context, msg) do
