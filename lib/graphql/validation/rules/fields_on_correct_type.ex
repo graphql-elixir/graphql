@@ -16,15 +16,14 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
       schema = accumulator[:type_info].schema
       parent_type = TypeInfo.parent_type(accumulator[:type_info])
       field_def = TypeInfo.find_field_def(schema, parent_type, node)
-      if parent_type do
-        if !field_def do
-          accumulator = report_error(
-            accumulator,
-            undefined_field_message(schema, node.name.value, parent_type)
-          )
-        end
+      if parent_type && !field_def do
+        {:continue, report_error(
+          accumulator,
+          undefined_field_message(schema, node.name.value, parent_type)
+        )}
+      else
+        {:continue, accumulator}
       end
-      {:continue, accumulator}
     end
 
     def enter(_visitor, _node, accumulator), do: {:continue, accumulator}
@@ -44,6 +43,7 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
 
     defp field_usage_count({_, count}), do: count
 
+    # TODO is this meant to be a ==?
     defp is_a_graphql_object_type(type), do: %ObjectType{} = type
 
     defp to_self_and_interfaces(type), do: [type] ++ type.interfaces
@@ -85,10 +85,11 @@ defmodule GraphQL.Validation.Rules.FieldsOnCorrectType do
           |> Enum.slice(0, @max_type_suggestions)
           |> Enum.map(&"\"#{&1}\"")
           |> Enum.join(", ")
-        message = "#{message} However, this field exists on #{suggestions}. "
-                <> "Perhaps you meant to use an inline fragment?"
+        "#{message} However, this field exists on #{suggestions}. " <>
+        "Perhaps you meant to use an inline fragment?"
+      else
+        message
       end
-      message
     end
   end
 end

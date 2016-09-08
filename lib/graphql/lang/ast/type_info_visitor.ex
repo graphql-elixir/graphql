@@ -24,7 +24,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         old_type_info = var!(accumulator)[:type_info]
         new_type_info = %TypeInfo{old_type_info |
           unquote(stack_name) => Stack.push(old_type_info.unquote(stack_name), unquote(value))}
-        var!(accumulator) = put_in(var!(accumulator)[:type_info], new_type_info)
+        put_in(var!(accumulator)[:type_info], new_type_info)
       end
     end
 
@@ -33,30 +33,26 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         old_type_info = var!(accumulator)[:type_info]
         new_type_info = %TypeInfo{old_type_info |
           unquote(stack_name) => Stack.pop(old_type_info.unquote(stack_name))}
-        var!(accumulator) = put_in(var!(accumulator)[:type_info], new_type_info)
+        put_in(var!(accumulator)[:type_info], new_type_info)
       end
     end
 
-    defmacrop set_directive(directive) do
-      quote do
-        var!(accumulator) = put_in(
-          var!(accumulator)[:type_info],
-          %TypeInfo{ var!(accumulator)[:type_info] | directive: unquote(directive)}
-        )
-      end
+    def set_directive(accumulator, directive) do
+      put_in(
+        accumulator[:type_info],
+        %TypeInfo{accumulator[:type_info] | directive: directive}
+      )
     end
 
-    defmacrop set_argument(argument) do
-      quote do
-        var!(accumulator) = put_in(
-          var!(accumulator)[:type_info],
-          %TypeInfo{var!(accumulator)[:type_info] | argument: unquote(argument)}
-        )
-      end
+    def set_argument(accumulator, argument) do
+      put_in(
+        accumulator[:type_info],
+        %TypeInfo{accumulator[:type_info] | argument: argument}
+      )
     end
 
     def enter(_visitor, node, accumulator) do
-      case node.kind do
+      accumulator = case node.kind do
         :SelectionSet ->
           type = TypeInfo.type(accumulator[:type_info])
           named_type = TypeInfo.named_type(type)
@@ -74,10 +70,10 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
               node
             )
             field_def_type = if field_def, do: field_def.type, else: nil
-            stack_push(:field_def_stack, field_def)
+            accumulator = stack_push(:field_def_stack, field_def)
             stack_push(:type_stack, field_def_type)
           else
-            stack_push(:field_def_stack, nil)
+            accumulator = stack_push(:field_def_stack, nil)
             stack_push(:type_stack, nil)
           end
         :Directive ->
@@ -89,7 +85,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
           #this._directive = schema.getDirective(node.name.value); // JS example
           # and set it like this
           #set_directive(directive_def)
-          set_directive(nil)
+          set_directive(accumulator, nil)
         :OperationDefinition ->
           type = case node.operation do
             :query -> accumulator[:type_info].schema.query
@@ -115,15 +111,15 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
               Map.get(field_or_directive, :arguments, %{}),
               fn(arg) -> arg == node.name.value end
             )
-            set_argument(arg_def)
+            accumulator = set_argument(accumulator, arg_def)
             stack_push(:input_type_stack, (if arg_def && Map.has_key?(arg_def, :type), do: arg_def.type, else: nil))
           else
-            set_argument(nil)
+            accumulator = set_argument(accumulator, nil)
             stack_push(:input_type_stack, nil)
           end
         :List ->
           input_type = TypeInfo.input_type(accumulator[:type_info])
-          list_type =  TypeInfo.nullable_type(accumulator[:type_info], input_type)
+          list_type = TypeInfo.named_type(input_type)
           if %Type.List{} === list_type  do
             stack_push(:input_type_stack, list_type.ofType)
           else
@@ -144,7 +140,7 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
             stack_push(:input_type_stack, nil)
           end
         _ ->
-          :ignore
+          accumulator
       end
       {:continue, accumulator}
     end
@@ -154,20 +150,19 @@ defmodule GraphQL.Lang.AST.TypeInfoVisitor do
         :SelectionSet ->
           stack_pop(:parent_type_stack)
         :Field ->
-          stack_pop(:field_def_stack)
+          accumulator = stack_pop(:field_def_stack)
           stack_pop(:type_stack)
         :Directive ->
-          set_directive(nil)
+          set_directive(accumulator, nil)
         kind when kind in [:OperationDefinition, :InlineFragment, :FragmentDefinition] ->
           stack_pop(:type_stack)
         :Argument ->
-          set_argument(nil)
+          set_argument(accumulator, nil)
         kind when kind in [:List, :ObjectField, :VariableDefinition] ->
           stack_pop(:input_type_stack)
         _ ->
-          :ignore
+          accumulator
       end
-      accumulator
     end
   end
 end

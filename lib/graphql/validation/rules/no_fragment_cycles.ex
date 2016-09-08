@@ -31,6 +31,7 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
 
     def leave(_visitor, _node, acc), do: acc
 
+    defp detect_cycles(acc, nil), do: acc
     defp detect_cycles(acc, fragment_def) do
       acc
       |> mark_visited(fragment_def)
@@ -40,18 +41,18 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
     defp detect_cycles_via_spread_nodes(acc, _, []), do: acc
     defp detect_cycles_via_spread_nodes(acc, fragment_def, spread_nodes) do
       frag_name = fragment_def.name.value
-      acc = %{ acc | spread_path_indices:
+      acc = %{acc | spread_path_indices:
         Map.merge(acc[:spread_path_indices], %{frag_name => Stack.length(acc[:spread_path])})}
 
       acc = process_spread_nodes(acc, spread_nodes)
 
-      %{ acc | spread_path_indices: Map.delete(acc[:spread_path_indices], frag_name)}
+      %{acc | spread_path_indices: Map.delete(acc[:spread_path_indices], frag_name)}
     end
 
     defp process_spread_nodes(acc, []), do: acc
     defp process_spread_nodes(acc, [spread_node|rest]) do
       spread_name = spread_node.name.value
-      cycle_index = Map.get(acc[:spread_path_indices], spread_name, nil)
+      cycle_index = Map.get(acc[:spread_path_indices], spread_name)
       process_spread_nodes(process_one_node(acc, spread_node, cycle_index), rest)
     end
 
@@ -65,14 +66,15 @@ defmodule GraphQL.Validation.Rules.NoFragmentCycles do
     end
 
     defp process_one_node(acc, spread_node, _) do
-      acc = %{ acc | spread_path: Stack.push(acc[:spread_path], spread_node)} 
-      if !visited?(acc, spread_node) do
-        spread_fragment = DocumentInfo.get_fragment_definition(acc[:document_info], spread_node.name.value)
-        if spread_fragment do
-          acc = detect_cycles(acc, spread_fragment)
+      acc = %{acc | spread_path: Stack.push(acc[:spread_path], spread_node)}
+      acc =
+        if !visited?(acc, spread_node) do
+          spread_fragment = DocumentInfo.get_fragment_definition(acc[:document_info], spread_node.name.value)
+          detect_cycles(acc, spread_fragment)
+        else
+          acc
         end
-      end
-      %{ acc | spread_path: Stack.pop(acc[:spread_path])} 
+      %{acc | spread_path: Stack.pop(acc[:spread_path])}
     end
 
     defp visited?(acc, node) do
