@@ -1,10 +1,23 @@
 # Changelog
 
+## 0.3.2 (2016-06-09)
+
+* Enhancements
+  * Future support for deferred resolvers
+  * GraphQL IDL compiler
+
+* Bugfixes
+  * Validate operation name matches an operation
+  * Resolve no longer fails when it cannot find a matching function
+  * Fix 1.3 warnings
+
+
 ## 0.3.1 (2016-06-09)
 
 * Bugfixes
   * Fix introspection to include Input types when input types are arguments
     to fields.
+
 
 ## 0.3.0 (2016-05-29)
 
@@ -24,6 +37,7 @@
 
 * Note: the `execute/5` signature will be changed to the `execute_with_opts/3`
   in a future version
+
 
 ## 0.2.0 (2016-03-19)
 

@@ -1,7 +1,7 @@
 defmodule GraphQL.Mixfile do
   use Mix.Project
 
-  @version "0.3.1"
+  @version "0.3.2"
 
   @description "GraphQL Elixir implementation"
   @repo_url "https://github.com/graphql-elixir/graphql"
