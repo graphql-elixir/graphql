@@ -1,10 +1,11 @@
-
-# ArrayMap is used for representing lists in intermediate results.
-# This means the entire intermediate Executor result representation can
-# be manipulated with the Access protocol which will allow for patching
-# the entire structure in an ad-hoc manner. This is key to implementing
-# deferred resolvers.
 defmodule GraphQL.Util.ArrayMap do
+  @moduledoc """
+  ArrayMap is used for representing lists in intermediate results.
+  This means the entire intermediate Executor result representation can
+  be manipulated with the Access protocol which will allow for patching
+  the entire structure in an ad-hoc manner. This is key to implementing
+  deferred resolvers.
+  """
 
   @behaviour Access
 
@@ -44,8 +45,10 @@ defmodule GraphQL.Util.ArrayMap do
     {value, %__MODULE__{map: map}}
   end
 
-  # Converts an intermediate executor result that contains ArrayMaps into one
-  # where the array maps are converted into lists.
+  @doc """
+  Converts an intermediate executor result that contains ArrayMaps into one
+  where the array maps are converted into lists.
+  """
   def expand_result(result) when is_list(result) do
     Enum.map(result, &expand_result/1)
   end
@@ -54,6 +57,11 @@ defmodule GraphQL.Util.ArrayMap do
       [expand_result(Map.get(result.map, index))] ++ acc
     end) |> Enum.reverse
   end
+  # Without the following we run into an issue when attempting to process
+  # structs because they are not enumerable.
+  #
+  # FIXME: We need a better way of detecting scalars (Eg: DateTime)
+  def expand_result(%{__struct__: _} = result), do: result
   def expand_result(result) when is_map(result) do
     Enum.reduce(result, %{}, fn({k, v}, acc) ->
       Map.put(acc, expand_result(k), expand_result(v))
