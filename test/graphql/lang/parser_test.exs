@@ -10,6 +10,11 @@ defmodule GraphQL.Lang.Parser.ParserTest do
     assert_parse "{}", %{errors: [%{"message" => "GraphQL: syntax error before: '}' on line 1", "line_number" => 1}]}, :error
   end
 
+  test "Handle unicode in string values" do
+    assert_parse ~S[{ f(a: "é")}], %{definitions: [%{kind: :OperationDefinition, loc: %{start: 0}, operation: :query, selectionSet: %{kind: :SelectionSet, loc: %{start: 0}, selections: [%{arguments: [%{kind: :Argument, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "a"}, value: %{kind: :StringValue, loc: %{start: 0}, value: "é"}}], kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "f"}}]}}], kind: :Document, loc: %{start: 0}}
+    assert_parse ~S[{ f(a: "–")}], %{definitions: [%{kind: :OperationDefinition, loc: %{start: 0}, operation: :query, selectionSet: %{kind: :SelectionSet, loc: %{start: 0}, selections: [%{arguments: [%{kind: :Argument, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "a"}, value: %{kind: :StringValue, loc: %{start: 0}, value: "–"}}], kind: :Field, loc: %{start: 0}, name: %{kind: :Name, loc: %{start: 0}, value: "f"}}]}}], kind: :Document, loc: %{start: 0}}
+  end
+
   test "simple selection set" do
     assert_parse "{ hero }",
     %{kind: :Document,

@@ -210,7 +210,7 @@ Erlang code.
 
 extract_atom({Value, _Line}) -> Value.
 extract_token({_Token, _Line, Value}) -> list_to_binary(Value).
-extract_quoted_string_token({_Token, _Line, Value}) -> list_to_binary(lists:sublist(Value, 2, length(Value) - 2)).
+extract_quoted_string_token({_Token, _Line, Value}) -> unicode:characters_to_binary(lists:sublist(Value, 2, length(Value) - 2)).
 extract_integer({_Token, _Line, Value}) -> {Int, []} = string:to_integer(Value), Int.
 extract_float({_Token, _Line, Value}) -> {Float, []} = string:to_float(Value), Float.
 extract_boolean({_Token, _Line, "true"}) -> true;
