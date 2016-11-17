@@ -73,7 +73,7 @@ Execute a simple GraphQL query
 
 ```elixir
 iex> GraphQL.execute(TestSchema.schema, "{greeting}")
-{:ok, %{data: %{"greeting" => "Hello world!"}}}
+{:ok, %{data: %{"greeting" => "Hello, world!"}}}
 ```
 
 ## Status
