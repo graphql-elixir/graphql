@@ -8,7 +8,11 @@ end
 defmodule GraphQL.Execution.ResolveWrapper do
   def wrap(fun) do
     try do
-      {:ok, fun.()}
+      case fun.() do
+        {:ok, result} -> {:ok, result}
+        {:error, message} -> {:error, message}
+        result -> {:ok, result}
+      end
     rescue
       e in RuntimeError -> {:error, e.message}
       _ in FunctionClauseError -> {:error, "Could not find a resolve function for this query."}

@@ -245,6 +245,37 @@ defmodule GraphQL.Execution.Executor.ExecutorTest do
     assert_data(result, %{b: "B"})
   end
 
+  test "resolvers can return value or raise error, or :ok/:error tuples" do
+    schema = Schema.new(%{
+      query: %ObjectType{
+        name: "Q",
+        fields: %{
+          a: %{
+            type: %String{},
+            resolve: fn(_) -> "A" end
+          },
+          b: %{
+            type: %String{},
+            resolve: fn(_) -> {:ok, "B"} end
+          },
+          c: %{
+            type: %String{},
+            resolve: fn(_) -> raise "C" end
+          },
+          d: %{
+            type: %String{},
+            resolve: fn(_) -> {:error, "D"} end
+          }
+        }
+      }
+    })
+
+    {:ok, result} = execute(schema,~S[query Q { a b c d }])
+    assert_data(result, %{a: "A", b: "B", c: nil, d: nil})
+    assert_has_error(result, %{message: "C"})
+    assert_has_error(result, %{message: "D"})
+  end
+
   test "lists of things" do
     book = %ObjectType{
       name: "Book",
