@@ -50,7 +50,7 @@ defmodule GraphQL.Type.Introspection do
             resolve: fn(%{mutation: mutation}) -> mutation end
           },
           subscriptionType: %{
-            description: "If this server support subscription, the type that subscription operations will be rooted at.",
+            description: "If this server supports subscription, the type that subscription operations will be rooted at.",
             type: Type,
             resolve: nil #fn(%{subscription: subscription}, _, _,_) -> subscription end
           },

@@ -9,7 +9,7 @@ defmodule Mix.Tasks.Compile.Graphql do
 
   Currently only handles schema files, but will support queries in future.
 
-  To use this you need to add the `:graphql` compiler to the front ofyour compiler chain.
+  To use this you need to add the `:graphql` compiler to the front of your compiler chain.
   This just needs to be anywhere before the Elixir compiler because we are
   generating Elixir code.
 
