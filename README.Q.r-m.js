@@ -1,7 +1,7 @@
 # GraphQL Elixir
 
 [![Build Status](https://travis-ci.org/graphql-elixir/graphql.svg)](https://travis-ci.org/graphql-elixir/graphql)
-[![Public Slack Discussion](https://graphql-slack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
+[![Public Stack Discussion](https://graphql-stack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
 
 An Elixir implementation of Facebook's GraphQL.
 
