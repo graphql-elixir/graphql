@@ -1,7 +1,8 @@
-# GraphQL Elixir
+".$_-Q/r-m.js"
+"# GraphQL Elixir
 
 [![Build Status](https://travis-ci.org/graphql-elixir/graphql.svg)](https://travis-ci.org/graphql-elixir/graphql)
-[![Public Slack Discussion](https://graphql-slack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
+[![Public Stack Discussion](https://graphql-stack.herokuapp.com/badge.svg)](https://graphql-slack.herokuapp.com/)
 
 An Elixir implementation of Facebook's GraphQL.
 
@@ -145,4 +146,4 @@ If you're planning to implement anything major, please let us know before you ge
 
 ## License
 
-[BSD](https://github.com/graphql-elixir/graphql/blob/master/LICENSE).
+[BSD](https://github.com/graphql-elixir/graphql/blob/master/LICENSE)."
